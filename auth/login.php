@@ -9,6 +9,14 @@ require_once __DIR__ . '/../config/db.php'; // Makes $conn available
 
 $error_message = '';
 
+// Store booking params in session if present
+if (isset($_GET['schedule_id'])) {
+    $_SESSION['booking_schedule_id'] = intval($_GET['schedule_id']);
+}
+if (isset($_GET['treatment_id'])) {
+    $_SESSION['booking_treatment_id'] = intval($_GET['treatment_id']);
+}
+
 // 3. Process form when user clicks Sign In
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identity = trim($_POST['identity'] ?? '');
@@ -18,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_message = 'Please fill out all fields.';
     } else {
         // Query database to find user by name OR email matching registration
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE name = ? OR email = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, password, photo FROM users WHERE name = ? OR email = ? LIMIT 1");
         $stmt->bind_param("ss", $identity, $identity);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -32,9 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Success: Set session data
                 $_SESSION['user_token'] = 'authenticated_success_token';
                 $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_photo'] = $user['photo'] ?? '';
                 
-                // Redirect directly to the payment page
-                header('Location: ../user/payment.php');
+                $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '../user/payment.php';
+                header('Location: ' . $redirect);
                 exit;
             } else {
                 $error_message = 'Username and password do not match.';
@@ -96,6 +106,9 @@ require '../includes/header.php';
                 <?php endif; ?>
                 
                 <form id="login-form" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" class="space-y-5 mt-6">
+                    <?php if (isset($_GET['redirect'])): ?>
+                    <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect']); ?>">
+                    <?php endif; ?>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Email or Username</label>
                         <input type="text" name="identity" required value="<?php echo isset($_POST['identity']) ? htmlspecialchars($_POST['identity']) : ''; ?>" placeholder="you@example.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-pink-400 transition-colors">

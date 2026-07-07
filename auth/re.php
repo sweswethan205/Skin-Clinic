@@ -8,6 +8,14 @@ require_once __DIR__ . '/../config/db.php'; // Uses your $conn
 $errors = [];
 $success = "";
 
+// Store booking params in session if present
+if (isset($_GET['schedule_id'])) {
+    $_SESSION['booking_schedule_id'] = intval($_GET['schedule_id']);
+}
+if (isset($_GET['treatment_id'])) {
+    $_SESSION['booking_treatment_id'] = intval($_GET['treatment_id']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Capture input
     $username = trim($_POST['username'] ?? '');
@@ -30,11 +38,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("ssss", $username, $email, $phone, $hashedPassword);
 
         if ($stmt->execute()) {
-            $success = "Account created successfully!";
-            // Optional: Clear fields on success so they don't remain in inputs
-            $username = $email = $phone = "";
+
+            $_SESSION['user_token'] = 'authenticated_success_token';
+            $_SESSION['user_id'] = $conn->insert_id;
+            $_SESSION['user_name'] = $username;
+            $_SESSION['user_photo'] = '';
+            header('Location: ../user/index.php');
+            exit;
         } else {
-            $errors[] = "Registration failed: This email is already registered.";
+            $errors[] = "Your account has already been registered. Please <a href='../auth/login.php' class='text-pink-500 underline font-semibold'>login</a>.";
         }
         $stmt->close();
     }

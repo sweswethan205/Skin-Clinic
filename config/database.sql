@@ -32,22 +32,10 @@ CREATE TABLE doctors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     email VARCHAR(50) UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    specialization VARCHAR(100),
+    description TEXT,
     experience INT,
     phone VARCHAR(50),
     photo VARCHAR(255),
-    status ENUM('active','inactive') DEFAULT 'active'
-);
-
--- =====================================
--- CATEGORIES
--- =====================================
-
-CREATE TABLE categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(100) NOT NULL,
-    description TEXT,
     status ENUM('active','inactive') DEFAULT 'active'
 );
 
@@ -57,17 +45,10 @@ CREATE TABLE categories (
 
 CREATE TABLE treatments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    category_id INT NOT NULL,
     treatment_name VARCHAR(100) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
-    duration INT,
     image VARCHAR(255),
-    status ENUM('active','inactive') DEFAULT 'active',
-
-    FOREIGN KEY (category_id)
-    REFERENCES categories(id)
-    ON DELETE CASCADE
 );
 
 -- =====================================
@@ -115,6 +96,7 @@ CREATE TABLE appointments (
     user_id INT NOT NULL,
     treatment_id INT NOT NULL,
     schedule_id INT NOT NULL,
+    payment_method_id  INT NOT NULL,
 
     status ENUM(
         'pending',
@@ -133,7 +115,10 @@ CREATE TABLE appointments (
     REFERENCES treatments(id),
 
     FOREIGN KEY (schedule_id)
-    REFERENCES schedules(id)
+    REFERENCES schedules(id),
+
+    FOREIGN KEY (payment_method_id)
+    REFERENCES payment_methods(id)
 );
 
 -- =====================================
@@ -156,30 +141,30 @@ VALUES
 -- PAYMENTS
 -- =====================================
 
-CREATE TABLE payments (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+-- CREATE TABLE payments (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
 
-    appointment_id INT NOT NULL,
-    payment_method_id INT NOT NULL,
+--     appointment_id INT NOT NULL,
+--     payment_method_id INT NOT NULL,
 
-    amount DECIMAL(10,2) NOT NULL,
+--     amount DECIMAL(10,2) NOT NULL,
 
-    payment_status ENUM(
-        'pending',
-        'paid',
-        'failed'
-    ) DEFAULT 'pending',
+--     payment_status ENUM(
+--         'pending',
+--         'paid',
+--         'failed'
+--     ) DEFAULT 'pending',
 
-    payment_date DATETIME NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     payment_date DATETIME NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (appointment_id)
-    REFERENCES appointments(id)
-    ON DELETE CASCADE,
+--     FOREIGN KEY (appointment_id)
+--     REFERENCES appointments(id)
+--     ON DELETE CASCADE,
 
-    FOREIGN KEY (payment_method_id)
-    REFERENCES payment_methods(id)
-);
+--     FOREIGN KEY (payment_method_id)
+--     REFERENCES payment_methods(id)
+-- );
 
 -- =====================================
 -- NOTIFICATIONS
@@ -189,9 +174,11 @@ CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     user_id INT NOT NULL,
-    appointment_id INT NOT NULL,
+    appointment_id INT NULL,
 
-    message TEXT NOT NULL,
+    title VARCHAR(255),
+    message TEXT,
+    type VARCHAR(50),
     is_read BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -202,5 +189,33 @@ CREATE TABLE notifications (
 
     FOREIGN KEY (appointment_id)
     REFERENCES appointments(id)
-    ON DELETE CASCADE
+    ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS `testimonials` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NULL, -- If they are a registered user
+  `name` VARCHAR(100) NOT NULL, -- Patient's name
+  `rating` INT CHECK (rating >= 1 AND rating <= 5), -- Star rating (1-5)
+  `review_text` TEXT NOT NULL, -- Their feedback message
+  `status` ENUM('pending', 'approved', 'rejected') DEFAULT 'pending', -- Control status
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE `messages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NULL,                    
+  `name` VARCHAR(100) NOT NULL,          
+  `email` VARCHAR(100) NOT NULL, 
+  `phone` VARCHAR(20) NULL,         
+  `subject` VARCHAR(150) DEFAULT NULL,   
+  `message_text` TEXT NOT NULL,          
+  `status` ENUM('unread', 'read') DEFAULT 'unread', 
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================
+-- CONTACTS (contact form submissions)
+-- =====================================
+

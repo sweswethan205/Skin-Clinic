@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/../config/db.php';
+$treatments_result = $conn->query("SELECT * FROM treatments ORDER BY treatment_name ASC");
+$treatments = [];
+while ($row = $treatments_result->fetch_assoc()) {
+    $treatments[] = $row;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,130 +52,44 @@
             <p class="text-brand-textMuted max-w-xl mx-auto text-sm leading-relaxed">
                 Explore our selection of state-of-the-art dermatological procedures customized completely to target your unique skin requirements.
             </p>
-
-            <div class="flex flex-wrap justify-center gap-2 mt-10">
-                <button data-filter="all" class="filter-btn bg-brand-pink text-white text-xs font-medium px-5 py-2.5 rounded-full shadow-sm shadow-pink-200 transition duration-300">All Treatments</button>
-                <button data-filter="facial-care" class="filter-btn bg-white hover:bg-brand-lightPink text-brand-dark text-xs font-medium px-5 py-2.5 rounded-full border border-gray-100 transition duration-300">Facial Care</button>
-                <button data-filter="acne-scars" class="filter-btn bg-white hover:bg-brand-lightPink text-brand-dark text-xs font-medium px-5 py-2.5 rounded-full border border-gray-100 transition duration-300">Acne & Scars</button>
-                <button data-filter="anti-aging" class="filter-btn bg-white hover:bg-brand-lightPink text-brand-dark text-xs font-medium px-5 py-2.5 rounded-full border border-gray-100 transition duration-300">Anti-Aging</button>
-                <button data-filter="laser" class="filter-btn bg-white hover:bg-brand-lightPink text-brand-dark text-xs font-medium px-5 py-2.5 rounded-full border border-gray-100 transition duration-300">Laser Treatment</button>
-            </div>
         </div>
         <div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-lightPink rounded-full filter blur-3xl opacity-40"></div>
     </section>
 
     <section class="max-w-7xl mx-auto px-6 py-20">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <div data-category="facial-care" class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
-                    <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=600&q=80" alt="Hydra Facial" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
-                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-brand-pink font-semibold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border border-pink-50">Facial Care</span>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2">Hydra Facial Elite</h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6">Multi-step treatment configuration using patented technology to cleanse, exfoliate, extract impurities, and deeply hydrate skin.</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
-                        <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$120</span>
-                        </div>
-                        <a href="../user/doctor.php" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
-                    </div>
-                </div>
-            </div>
-
-            <div data-category="acne-scars" class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
-                    <img src="https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=600&q=80" alt="Acne Treatment" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
-                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-brand-pink font-semibold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border border-pink-50">Acne & Scars</span>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2">Advanced Acne Control</h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6">Clinical medical-grade targeted solutions to clear deep blemishes, balance sebum production, and prevent scarring.</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
-                        <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$100</span>
-                        </div>
-                        <a href="../user/doctor.php" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
-                    </div>
-                </div>
-            </div>
-
-            <div data-category="anti-aging" class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
-                    <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80" alt="Anti-Aging Facial" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
-                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-brand-pink font-semibold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border border-pink-50">Anti-Aging</span>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2">Collagen Lift Facial</h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6">Reduces fine lines and age wrinkles by infusing active organic peptide complexes and pure hyaluronic skin boosters.</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
-                        <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$150</span>
-                        </div>
-                        <a href="../user/doctor.php" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
-                    </div>
-                </div>
-            </div>
-
-            <div data-category="facial-care" class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
-                    <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=600&q=80" alt="Skin Brightening" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
-                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-brand-pink font-semibold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border border-pink-50">Facial Care</span>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2">Laser Radiance Peel</h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6">Effectively counteracts dull skin patches and safely balances dark hyperpigmentation issues to restore natural tone brightness.</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
-                        <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$110</span>
-                        </div>
-                        <a href="../user/doctor.php" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
-                    </div>
-                </div>
-            </div>
-
-            <div data-category="laser" class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
-                    <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=600&q=80" alt="Carbon Laser" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
-                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-brand-pink font-semibold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border border-pink-50">Laser Treatment</span>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2">Hollywood Carbon Peel</h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6">A high-end treatment utilizing advanced clinical Q-Switched laser technology to clear deep skin debris and close open pores.</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
-                        <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$180</span>
-                        </div>
-                        <a href="../user/doctor.php" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
-                    </div>
-                </div>
-            </div>
-
-            <div data-category="anti-aging" class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
-                    <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80" alt="Microneedling" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
-                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-brand-pink font-semibold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border border-pink-50">Anti-Aging</span>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2">RF Microneedling Therapy</h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6">Combines uniform physical micro-needling structures with radiofrequency currents to remodel layer elasticity.</p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
-                        <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$220</span>
-                        </div>
-                        <a href="../user/doctor.php" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
-                    </div>
-                </div>
-            </div>
-
+        <?php if (empty($treatments)): ?>
+        <div class="text-center py-20">
+            <i class="fa-regular fa-hand-back-fist text-4xl text-gray-300 mb-4 block"></i>
+            <p class="text-sm text-gray-400 font-medium">No treatments available at the moment.</p>
         </div>
+        <?php else: ?>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <?php foreach ($treatments as $treatment): ?>
+            <div class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
+                <div class="overflow-hidden aspect-[4/3] relative">
+                    <?php if (!empty($treatment['image'])): ?>
+                    <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
+                    <?php else: ?>
+                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink text-brand-pink text-5xl">
+                        <i class="fa-solid fa-hand-holding-medical"></i>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
+                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
+                        <div>
+                            <span class="text-xs text-gray-400 block font-light">Price from</span>
+                            <span class="text-brand-pink font-bold text-xl">$<?php echo number_format($treatment['price'], 2); ?></span>
+                        </div>
+                        <a href="../user/booking.php?treatment_id=<?php echo $treatment['id']; ?>" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
     </section>
 
     <section class="max-w-7xl mx-auto px-6 pb-24">
@@ -187,43 +109,6 @@
     </section>
 
 <?php include '../includes/footer.php' ?>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const buttons = document.querySelectorAll('.filter-btn');
-        const cards = document.querySelectorAll('.treatment-card');
-
-        buttons.forEach(button => {
-            button.addEventListener('click', () => {
-                const filterValue = button.getAttribute('data-filter');
-
-                // 1. Reset all button styles back to standard unselected state
-                buttons.forEach(btn => {
-                    btn.classList.remove('bg-brand-pink', 'text-white', 'shadow-sm', 'shadow-pink-200');
-                    btn.classList.add('bg-white', 'text-brand-dark', 'border', 'border-gray-100');
-                });
-                
-                // Highlight the active clicked button
-                button.classList.remove('bg-white', 'text-brand-dark', 'border', 'border-gray-100');
-                button.classList.add('bg-brand-pink', 'text-white', 'shadow-sm', 'shadow-pink-200');
-
-                // 2. Hide or Show cards dynamically based on matched values
-                cards.forEach(card => {
-                    const cardCategory = card.getAttribute('data-category');
-                    
-                    if (filterValue === 'all' || cardCategory === filterValue) {
-                        card.style.display = 'block';
-                        // Clean micro fade-in layout animation trigger
-                        setTimeout(() => { card.style.opacity = '1'; }, 20);
-                    } else {
-                        card.style.opacity = '0';
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        });
-    });
-    </script>
 
 </body>
 </html>
