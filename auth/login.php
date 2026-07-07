@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_photo'] = $user['photo'] ?? '';
                 
-                $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '../user/payment.php';
+                $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '../user/index1.php';
                 header('Location: ' . $redirect);
                 exit;
             } else {

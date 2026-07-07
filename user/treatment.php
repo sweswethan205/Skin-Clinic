@@ -24,7 +24,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             <div class="col-span-full text-center py-10 text-sm text-gray-400">No treatments available at the moment.</div>
             <?php else: ?>
             <?php foreach ($treatments as $treatment): ?>
-            <div class="bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group">
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group">
                 <div class="overflow-hidden aspect-video">
                     <?php if (!empty($treatment['image'])): ?>
                     <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">

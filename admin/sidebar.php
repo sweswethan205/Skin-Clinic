@@ -139,14 +139,6 @@ if ($mc && $mc_row = $mc->fetch_assoc()) {
                 <?php endif; ?>
             </a>
 
-            <a href="../admin/profile.php"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition
-                <?= ($current_page == "profile.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
-                <i class="fa-solid fa-user-gear"></i>
-                <span>Profile</span>
-            </a>
 
         </nav>
 

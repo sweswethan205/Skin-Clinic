@@ -144,9 +144,9 @@ if (isset($_GET['edit'])) {
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
 
         <!-- HEADER -->
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
+        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="text-brand-muted text-lg hover:text-brand-dark transition-colors"><i class="fa-solid fa-bars-staggered"></i></button>
+               
                 <div>
                     <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Doctor Schedules</h2>
                     <p class="text-xs text-brand-muted font-medium">Manage doctor availability and time slots.</p>

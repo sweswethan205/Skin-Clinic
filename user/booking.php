@@ -307,6 +307,11 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-brand-pink"></span> Choose Time
                         </h3>
+
+
+                        <div id="booking-message" class="hidden mb-4 p-3 rounded-xl text-sm font-medium text-center"></div>
+
+
                         
                         <div id="slots-dynamic-grid" class="grid grid-cols-2 gap-2">
                             <p class="text-xs text-slate-400 text-center col-span-2 py-4">Choose a practitioner and date first.</p>
@@ -502,11 +507,27 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                 .then(slots => {
                     grid.innerHTML = "";
 
-                    if (slots.length === 0) {
-                        grid.innerHTML = "<p class='text-slate-400 col-span-2 text-center text-sm'>No available schedule for this date.</p>";
-                        legend.classList.add('hidden');
-                        return;
-                    }
+                    // if (slots.length === 0) {
+                    //     grid.innerHTML = "<p class='text-slate-400 col-span-2 text-center text-sm'>No available schedule for this date.</p>";
+                    //     legend.classList.add('hidden');
+                    //     return;
+                    // }
+
+                    const message = document.getElementById("booking-message");
+
+if (slots.length === 0) {
+
+    message.classList.remove("hidden");
+    message.className = "mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium text-center";
+    message.innerHTML = "❌No available schedule for this date.";
+
+    grid.innerHTML = "";
+    legend.classList.add("hidden");
+    return;
+}
+
+// Hide message when slots are available
+message.classList.add("hidden");
 
                     legend.classList.remove('hidden');
                     legend.classList.add('flex');

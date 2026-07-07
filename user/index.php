@@ -1,4 +1,15 @@
-<?php require_once __DIR__ . '/../config/db.php'; ?>
+<?php require_once __DIR__ . '/../config/db.php'; 
+
+// Fetch approved reviews
+$reviews_query = "SELECT name, rating, review_text, created_at FROM testimonials WHERE status = 'approved' ORDER BY created_at DESC LIMIT 6";
+$reviews_result = $conn->query($reviews_query);
+$reviews = [];
+if ($reviews_result && $reviews_result->num_rows > 0) {
+    while ($row = $reviews_result->fetch_assoc()) {
+        $reviews[] = $row;
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -217,36 +228,31 @@ while ($row = $home_treatments->fetch_assoc()) {
             <h2 class="font-serif text-3xl text-brand-dark">Real Stories, Real Results</h2>
         </div>
         <div class="grid md:grid-cols-3 gap-6 relative">
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                <div class="flex items-center space-x-3">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" alt="Jessica" class="w-10 h-10 rounded-full object-cover">
-                    <div>
-                        <h4 class="font-semibold text-sm">Jessica Brown</h4>
-                        <div class="text-yellow-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+            <?php if (!empty($reviews)): ?>
+                <?php foreach ($reviews as $review): ?>
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-pink/20 flex items-center justify-center text-brand-pink text-sm font-bold">
+                                <?= strtoupper(substr($review['name'], 0, 1)) ?>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-sm"><?= htmlspecialchars($review['name']) ?></h4>
+                                <div class="text-yellow-400 text-xs">
+                                    <?php for ($s = 0; $s < intval($review['rating']); $s++): ?>
+                                        <i class="fa-solid fa-star"></i>
+                                    <?php endfor; ?>
+                                    <?php for ($s = intval($review['rating']); $s < 5; $s++): ?>
+                                        <i class="fa-regular fa-star"></i>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-brand-textMuted italic leading-relaxed">"<?= htmlspecialchars($review['review_text']) ?>"</p>
                     </div>
-                </div>
-                <p class="text-xs text-brand-textMuted italic leading-relaxed">"GlowSkin Clinic transformed my skin! The staff is professional and the results are amazing."</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                <div class="flex items-center space-x-3">
-                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80" alt="Emily" class="w-10 h-10 rounded-full object-cover">
-                    <div>
-                        <h4 class="font-semibold text-sm">Emily Davis</h4>
-                        <div class="text-yellow-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    </div>
-                </div>
-                <p class="text-xs text-brand-textMuted italic leading-relaxed">"I love the personalized care here. My acne is completely gone and my skin has never looked better."</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                <div class="flex items-center space-x-3">
-                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" alt="Sophia" class="w-10 h-10 rounded-full object-cover">
-                    <div>
-                        <h4 class="font-semibold text-sm">Sophia Miller</h4>
-                        <div class="text-yellow-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    </div>
-                </div>
-                <p class="text-xs text-brand-textMuted italic leading-relaxed">"Best facial treatment I've ever had. My skin feels so fresh and glowing after every session."</p>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-span-3 text-center text-gray-400 text-sm py-8">No reviews yet. Be the first to share your experience!</div>
+            <?php endif; ?>
         </div>
 
         <!-- Add this call-to-action button right below the reviews -->

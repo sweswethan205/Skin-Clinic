@@ -89,7 +89,7 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
         <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="text-brand-muted text-lg hover:text-brand-dark transition-colors"><i class="fa-solid fa-bars-staggered"></i></button>
+                
                 <div>
                     <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Messages</h2>
                     <p class="text-xs text-brand-muted font-medium">View contact form submissions</p>

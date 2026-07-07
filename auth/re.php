@@ -30,25 +30,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($password !== $confirm) {
         $errors[] = "Passwords do not match.";
     } else {
-        // Secure Hashing
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Prepare Query - Matches your schema exactly
-        $stmt = $conn->prepare("INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $username, $email, $phone, $hashedPassword);
-
-        if ($stmt->execute()) {
-
-            $_SESSION['user_token'] = 'authenticated_success_token';
-            $_SESSION['user_id'] = $conn->insert_id;
-            $_SESSION['user_name'] = $username;
-            $_SESSION['user_photo'] = '';
-            header('Location: ../user/index.php');
-            exit;
+        
+        // 🚀 CRITICAL ADDITION: Check if email already exists
+        $check_stmt = $conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+        $check_stmt->bind_param("s", $email);
+        $check_stmt->execute();
+        $check_stmt->store_result();
+        
+        if ($check_stmt->num_rows > 0) {
+            // Email is a duplicate! Show helpful message
+            $errors[] = "Your account has already been registered with this email. Please <a href='../auth/login.php' class='text-pink-500 underline font-semibold'>login</a>.";
+            $check_stmt->close();
         } else {
-            $errors[] = "Your account has already been registered. Please <a href='../auth/login.php' class='text-pink-500 underline font-semibold'>login</a>.";
+            $check_stmt->close();
+
+            // Secure Hashing
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+            // Prepare Query - Matches your schema exactly
+            $stmt = $conn->prepare("INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $username, $email, $phone, $hashedPassword);
+
+            if ($stmt->execute()) {
+                $_SESSION['user_token'] = 'authenticated_success_token';
+                $_SESSION['user_id'] = $conn->insert_id;
+                $_SESSION['user_name'] = $username;
+                $_SESSION['user_photo'] = '';
+                $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '../user/index1.php';
+                header('Location: ' . $redirect);
+                exit;
+            } else {
+                $errors[] = "An unexpected error occurred. Please try again.";
+            }
+            $stmt->close();
         }
-        $stmt->close();
     }
 }
 ?>
@@ -136,19 +151,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <?php if (!empty($errors)): ?>
-                <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <span><?php foreach($errors as $err) echo htmlspecialchars($err); ?></span>
-                </div>
-            <?php endif; ?>
-            <?php if (!empty($success)): ?>
-                <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 text-xs font-medium rounded-xl flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <span><?= htmlspecialchars($success) ?></span>
+                <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex flex-col gap-1">
+                    <?php foreach($errors as $err): ?>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+                            <span><?= $err; // Removed htmlspecialchars here so login link works safely ?></span>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
 
             <form id="register-form" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" novalidate class="space-y-4">
+                <?php if (isset($_GET['redirect'])): ?>
+                <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect']); ?>">
+                <?php endif; ?>
+                <?php if (isset($_GET['schedule_id'])): ?>
+                <input type="hidden" name="schedule_id" value="<?php echo htmlspecialchars($_GET['schedule_id']); ?>">
+                <?php endif; ?>
                 
                 <div>
                     <label for="username" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Username</label>

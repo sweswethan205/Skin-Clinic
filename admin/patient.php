@@ -133,9 +133,9 @@ $stmt->close();
     
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
         
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
+        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="text-brand-muted text-lg hover:text-brand-dark transition-colors"><i class="fa-solid fa-bars-staggered"></i></button>
+
                 <div>
                     <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Patients Management</h2>
                     <p class="text-xs text-brand-muted font-medium">Manage all registered patient accounts.</p>
@@ -230,9 +230,9 @@ $stmt->close();
                                     </td>
                                     <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= htmlspecialchars($u['email']) ?></td>
                                     <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= htmlspecialchars($u['phone']) ?></td>
-                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= date("d M Y", strtotime($u['created_at'])) ?></td>
+                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted text-center"><?= date("d M Y", strtotime($u['created_at'])) ?></td>
                                     <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
-                                        <button onclick='openEditModal(<?= json_encode($u) ?>)' class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors" title="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
+                                        
                                         <a href="?delete=<?= $u['id'] ?>" onclick="return confirm('Delete this user?')" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors inline-block" title="Delete"><i class="fa-regular fa-trash-can"></i></a>
                                     </td>
                                 </tr>

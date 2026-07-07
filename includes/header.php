@@ -85,10 +85,22 @@ $user_photo = $_SESSION['user_photo'] ?? '';
                     </div>
                 </div>
             <?php else: ?>
-                <a href="../auth/re.php" class="text-sm font-medium text-brand-dark hover:text-brand-pink transition">Sign Up</a>
-                <a href="../user/booking.php">
-                <button class="bg-brand-pink text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-opacity-90 transition">Book Appointment</button>
-            </a>
+                <div class="relative group">
+                   <a href="../auth/re.php"> <button class="text-sm font-medium text-brand-dark hover:text-brand-pink transition flex items-center gap-1">
+                        Sign Up 
+                    </button></a>
+                    <!-- <div class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <a href="../auth/login.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark hover:bg-brand-lightPink rounded-t-lg transition">
+                            <i class="fa-solid fa-right-to-bracket text-brand-pink"></i> Login
+                        </a>
+                        <a href="../auth/re.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark hover:bg-brand-lightPink rounded-b-lg transition">
+                            <i class="fa-solid fa-user-plus text-brand-pink"></i> Register
+                        </a>
+                    </div> -->
+                </div>
+                <a href="../user/treatment.php">
+                    <button class="bg-brand-pink text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-opacity-90 transition">Book Appointment</button>
+                </a>
             <?php endif; ?>
             <!-- <a href="../user/booking.php">
                 <button class="bg-brand-pink text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-opacity-90 transition">Book Appointment</button>
