@@ -1,0 +1,279 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include_once '../config/db.php';
+
+$message = '';
+$msg_type = '';
+
+// Handle status update
+if (isset($_GET['action']) && isset($_GET['id'])) {
+    $id = intval($_GET['id']);
+    $action = $_GET['action'];
+    $new_status = '';
+    if ($action === 'confirm') $new_status = 'confirmed';
+    elseif ($action === 'cancel') $new_status = 'cancelled';
+    elseif ($action === 'complete') $new_status = 'completed';
+    elseif ($action === 'pending') $new_status = 'pending';
+
+    if ($new_status) {
+        // Get appointment info for notification
+        $info = $conn->prepare("SELECT user_id, schedule_id FROM appointments WHERE id = ? LIMIT 1");
+        $info->bind_param("i", $id);
+        $info->execute();
+        $info_res = $info->get_result();
+        $app_info = $info_res->fetch_assoc();
+        $info->close();
+
+        $stmt = $conn->prepare("UPDATE appointments SET status=? WHERE id=?");
+        $stmt->bind_param("si", $new_status, $id);
+        if ($stmt->execute()) {
+            $message = "Appointment #$id " . ($action === 'cancel' ? 'cancelled' : ($action === 'confirm' ? 'confirmed' : ($action === 'complete' ? 'completed' : 'updated'))) . " successfully.";
+            $msg_type = 'success';
+
+            // Create notification
+            if ($app_info) {
+                $title = 'Appointment ' . ucfirst($new_status);
+                $notif_msg = "Appointment #$id status changed to $new_status.";
+                $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type) VALUES (?, ?, ?, ?, 'status')");
+                $notif->bind_param("iiss", $app_info['user_id'], $id, $title, $notif_msg);
+                $notif->execute();
+                $notif->close();
+            }
+        }
+        $stmt->close();
+
+        // If cancelled, mark schedule as available
+        if ($action === 'cancel') {
+            $stmt = $conn->prepare("UPDATE schedules s JOIN appointments a ON a.schedule_id = s.id SET s.is_booked='no' WHERE a.id=?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+}
+
+// Fetch appointments
+$appointments = [];
+$query = "SELECT a.id, a.status, a.created_at,
+                 u.name AS patient_name,
+                 t.treatment_name,
+                 d.name AS doctor_name,
+                 s.available_date,
+                 s.start_time
+          FROM appointments a
+          JOIN users u ON u.id = a.user_id
+          JOIN treatments t ON t.id = a.treatment_id
+          JOIN schedules s ON s.id = a.schedule_id
+          JOIN doctors d ON d.id = s.doctor_id
+          ORDER BY a.created_at DESC";
+$result = $conn->query($query);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $appointments[] = $row;
+    }
+}
+
+// Counts by status
+$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0, 'completed' => 0];
+foreach ($appointments as $a) {
+    $counts['total']++;
+    $s = $a['status'];
+    if (isset($counts[$s])) $counts[$s]++;
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowSkin Clinic - Appointments Registry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#FF6584',
+                            pinkHover: '#E04F6E',
+                            lightPink: '#FFF0F2',
+                            dark: '#0F172A',
+                            muted: '#64748B',
+                            canvas: '#F1F5F9'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-brand-canvas text-slate-700 min-h-screen flex antialiased">
+
+    <?php include 'sidebar.php'; ?>
+    
+    <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
+        
+        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleSidebar()" class="text-brand-muted text-lg hover:text-brand-dark transition-colors"><i class="fa-solid fa-bars-staggered"></i></button>
+                <div>
+                    <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Appointments Management</h2>
+                    <p class="text-xs text-brand-muted font-medium">Review scheduling pipelines and verify intake statuses.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <div class="relative w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-brand-muted text-xs">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Search appointments..." class="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-pink focus:bg-white transition-all placeholder:text-slate-400">
+                </div>
+
+                <div class="flex items-center space-x-3 border-l pl-6 border-slate-200">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120" alt="Admin Profile" class="w-10 h-10 rounded-xl object-cover border border-slate-200">
+                    <div>
+                        <span class="text-xs font-bold text-brand-dark block leading-tight">Admin</span>
+                        <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
+            
+            <?php if ($message): ?>
+            <div class="px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 <?= $msg_type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200' ?>">
+                <i class="fa-solid <?= $msg_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?>"></i>
+                <?= htmlspecialchars($message) ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                <div class="flex flex-wrap gap-2" id="filter-buttons">
+                    <button onclick="filterTable('all')" class="filter-btn px-4 py-2 bg-brand-dark text-white text-xs font-bold rounded-xl shadow-xs transition-all" data-filter="all">All Intake (<?= $counts['total'] ?>)</button>
+                    <button onclick="filterTable('pending')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="pending">Pending (<?= $counts['pending'] ?>)</button>
+                    <button onclick="filterTable('confirmed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="confirmed">Confirmed (<?= $counts['confirmed'] ?>)</button>
+                    <button onclick="filterTable('cancelled')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="cancelled">Cancelled (<?= $counts['cancelled'] ?>)</button>
+                    <button onclick="filterTable('completed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="completed">Completed (<?= $counts['completed'] ?>)</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Patient</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Treatment</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Doctor</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Date & Time</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Status</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                            <?php if (count($appointments) > 0): ?>
+                                <?php $i = 1; ?>
+                                <?php foreach ($appointments as $a): 
+                                    $status_class = match($a['status']) {
+                                        'confirmed' => 'text-emerald-600 bg-emerald-50 border-emerald-100',
+                                        'pending' => 'text-blue-600 bg-blue-50 border-blue-100',
+                                        'cancelled' => 'text-rose-600 bg-rose-50 border-rose-100',
+                                        'completed' => 'text-slate-600 bg-slate-50 border-slate-100',
+                                        default => 'text-slate-600 bg-slate-50 border-slate-100'
+                                    };
+                                ?>
+                            <tr class="hover:bg-slate-50/60 transition-colors group" data-status="<?= $a['status'] ?>">
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= $i++ ?></td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-xl bg-brand-lightPink text-brand-pink flex items-center justify-center text-xs font-bold border border-pink-100">
+                                            <?= strtoupper(substr($a['patient_name'], 0, 2)) ?>
+                                        </div>
+                                        <span class="font-bold text-brand-dark group-hover:text-brand-pink transition-colors"><?= htmlspecialchars($a['patient_name']) ?></span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 font-bold"><?= htmlspecialchars($a['treatment_name']) ?></td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-user-doctor text-brand-muted text-[11px]"></i> <?= htmlspecialchars($a['doctor_name']) ?></span>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <span class="block font-bold"><?= date("d M Y", strtotime($a['available_date'])) ?></span>
+                                    <span class="text-[10px] text-brand-muted block font-medium"><?= date("h:i A", strtotime($a['start_time'])) ?></span>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <span class="text-[10px] font-bold <?= $status_class ?> px-2 py-0.5 rounded-lg border"><?= ucfirst($a['status']) ?></span>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
+                                    <?php if ($a['status'] === 'pending'): ?>
+                                        <a href="?action=confirm&id=<?= $a['id'] ?>" class="p-1.5 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-lg transition-colors inline-block" title="Confirm"><i class="fa-regular fa-circle-check"></i></a>
+                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
+                                    <?php elseif ($a['status'] === 'confirmed'): ?>
+                                        <a href="?action=complete&id=<?= $a['id'] ?>" class="p-1.5 bg-blue-50 hover:bg-blue-500 text-blue-600 hover:text-white rounded-lg transition-colors inline-block" title="Mark Completed"><i class="fa-solid fa-check"></i></a>
+                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
+                                    <?php elseif ($a['status'] === 'completed' || $a['status'] === 'cancelled'): ?>
+                                        <a href="?action=pending&id=<?= $a['id'] ?>" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors inline-block" title="Reset to Pending"><i class="fa-solid fa-arrow-rotate-left"></i></a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                            <tr><td colspan="7" class="py-8 text-center text-brand-muted">No appointments found.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-slate-50/50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold">
+                    <span>Showing <?= count($appointments) ?> <?= count($appointments) === 1 ? 'entry' : 'entries' ?></span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Status filter
+        function filterTable(status) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = btn.className.replace('bg-brand-dark text-white', 'bg-slate-50 text-brand-muted border border-slate-200/40 hover:bg-slate-100 hover:text-brand-dark');
+                if (btn.dataset.filter === status) {
+                    btn.className = 'filter-btn px-4 py-2 bg-brand-dark text-white text-xs font-bold rounded-xl shadow-xs transition-all';
+                }
+            });
+            document.querySelectorAll('tbody tr').forEach(row => {
+                if (status === 'all' || row.dataset.status === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Live search
+        document.getElementById('search-input')?.addEventListener('keyup', function() {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('tbody tr').forEach(row => {
+                if (row.style.display === 'none') return;
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
+<?php $conn->close(); ?>
