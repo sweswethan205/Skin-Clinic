@@ -7,6 +7,7 @@ while ($row = $treatments_result->fetch_assoc()) {
 }
 ?>
 <?php include '../includes/header.php'; ?>
+
 <!-- POPULAR TREATMENTS SECTION -->
     <section class="max-w-7xl mx-auto px-6 py-20">
         <div class="flex justify-between items-end mb-10">
@@ -24,8 +25,11 @@ while ($row = $treatments_result->fetch_assoc()) {
             <div class="col-span-full text-center py-10 text-sm text-gray-400">No treatments available at the moment.</div>
             <?php else: ?>
             <?php foreach ($treatments as $treatment): ?>
-            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group">
-                <div class="overflow-hidden aspect-video">
+            <!-- Card Container - flex-col h-full forces equal layout sizes -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group flex flex-col h-full">
+                
+                <!-- Card Image Box -->
+                <div class="overflow-hidden aspect-video shrink-0">
                     <?php if (!empty($treatment['image'])): ?>
                     <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
                     <?php else: ?>
@@ -34,12 +38,24 @@ while ($row = $treatments_result->fetch_assoc()) {
                     </div>
                     <?php endif; ?>
                 </div>
-                <div class="p-5">
-                    <h3 class="font-serif text-lg text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-brand-pink font-bold text-lg"><?php echo number_format($treatment['price'], 2); ?>MMK</span>
-                        <a href="../user/booking.php?treatment_id=<?php echo $treatment['id']; ?>" class="bg-brand-pink text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">Book Now</a>
+                
+                <!-- Content & Button Container -->
+                <div class="p-5 flex flex-col flex-grow justify-between">
+                    <div>
+                        <h3 class="font-serif text-lg text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
+                        <!-- line-clamp-3 forces multi-line descriptions to match perfectly across rows -->
+                        <p class="text-xs text-brand-textMuted leading-relaxed mb-6 line-clamp-3"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
+                    </div>
+                    
+                    <!-- Bottom Action Footer Row -->
+                    <div class="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">
+                        <div>
+                            <span class="text-[10px] text-gray-400 block font-light leading-none mb-1">Price from</span>
+                            <span class="text-brand-pink font-bold text-lg">$<?php echo number_format($treatment['price'], 2); ?></span>
+                        </div>
+                        <a href="../user/booking.php?treatment_id=<?php echo $treatment['id']; ?>" class="bg-brand-pink hover:bg-opacity-90 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-all shadow-xs">
+                            Book Session
+                        </a>
                     </div>
                 </div>
             </div>
@@ -47,4 +63,5 @@ while ($row = $treatments_result->fetch_assoc()) {
             <?php endif; ?>
         </div>
     </section>
-    <?php include '../includes/footer.php'; ?>
+
+<?php include '../includes/footer.php'; ?>

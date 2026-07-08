@@ -36,6 +36,8 @@
 </head>
 <body class="bg-[#FFF0F2]/30 min-h-screen text-slate-800 antialiased">
 
+    <?php include '../includes/header.php'; ?>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         <div class="text-center max-w-2xl mx-auto mb-12">

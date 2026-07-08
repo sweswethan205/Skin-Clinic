@@ -258,7 +258,7 @@ if (isset($_SESSION['user_id'])) {
 
     <header class="bg-white border-b border-gray-100 py-4 px-6 shadow-xs">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="doctor-and-date.html" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-textMuted hover:text-brand-pink transition">
+            <a href="booking.php" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-textMuted hover:text-brand-pink transition">
                 <i class="fa-solid fa-arrow-left"></i> Back to Schedule
             </a>
             <div class="text-xs font-medium text-brand-textMuted tracking-wide">

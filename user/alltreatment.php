@@ -56,34 +56,50 @@ while ($row = $treatments_result->fetch_assoc()) {
         <div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-lightPink rounded-full filter blur-3xl opacity-40"></div>
     </section>
 
-    <section class="max-w-7xl mx-auto px-6 py-20">
+    <!-- MAIN CARDS PLATFORM CONTAINER -->
+    <section class="max-w-7xl mx-auto px-6 py-16">
         <?php if (empty($treatments)): ?>
         <div class="text-center py-20">
             <i class="fa-regular fa-hand-back-fist text-4xl text-gray-300 mb-4 block"></i>
             <p class="text-sm text-gray-400 font-medium">No treatments available at the moment.</p>
         </div>
         <?php else: ?>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Adjusted layout columns grid to support 4 rows cleanly (sm:2, md:3, lg:4) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <?php foreach ($treatments as $treatment): ?>
-            <div class="treatment-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
-                <div class="overflow-hidden aspect-[4/3] relative">
+            <!-- Slimmed Card Container layout -->
+            <div class="treatment-card bg-white rounded-xl overflow-hidden shadow-xs border border-slate-100 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lg hover:border-pink-100 group">
+                
+                <!-- Smaller Compact Image Section Height container framework -->
+                <div class="overflow-hidden h-44 relative bg-slate-50">
                     <?php if (!empty($treatment['image'])): ?>
                     <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
                     <?php else: ?>
-                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink text-brand-pink text-5xl">
+                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink text-brand-pink text-3xl">
                         <i class="fa-solid fa-hand-holding-medical"></i>
                     </div>
                     <?php endif; ?>
                 </div>
-                <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
+
+                <!-- Balanced Smaller Text Padding Body content box -->
+                <div class="p-4 flex flex-col justify-between min-h-[180px]">
+                    <div>
+                        <h3 class="font-serif text-base text-brand-dark font-bold mb-1.5 line-clamp-1">
+                            <?php echo htmlspecialchars($treatment['treatment_name']); ?>
+                        </h3>
+                        <!-- Added line-clamp to prevent messy mismatched card heights -->
+                        <p class="text-[11px] text-brand-textMuted leading-normal mb-4 line-clamp-3">
+                            <?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-3 border-t border-slate-50 mt-auto">
                         <div>
-                            <span class="text-xs text-gray-400 block font-light">Price from</span>
-                            <span class="text-brand-pink font-bold text-xl">$<?php echo number_format($treatment['price'], 2); ?></span>
+                            <span class="text-[10px] text-gray-400 block font-light leading-none mb-0.5">Price from</span>
+                            <span class="text-brand-pink font-bold text-base">$<?php echo number_format($treatment['price'], 2); ?></span>
                         </div>
-                        <a href="../user/booking.php?treatment_id=<?php echo $treatment['id']; ?>" class="bg-brand-pink text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-pink-100 hover:bg-opacity-95">Book Session</a>
+                        <a href="../user/booking.php?treatment_id=<?php echo $treatment['id']; ?>" class="bg-brand-pink text-white text-[11px] font-semibold px-3.5 py-2 rounded-lg transition-all shadow-xs hover:bg-opacity-95">
+                            Book Session
+                        </a>
                     </div>
                 </div>
             </div>

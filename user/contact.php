@@ -42,18 +42,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt) {
             $stmt->bind_param("issss", $user_id, $name, $email, $subject, $combined_message);
 
+            // if ($stmt->execute()) {
+            //     $message_id = $stmt->insert_id;
+            //     $notif_title = 'Message Sent';
+            //     $notif_msg = "Your contact message has been sent successfully. Our team will review and respond shortly.";
+            //     $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'contact')");
+            //     $nstmt->bind_param("iss", $user_id, $notif_title, $notif_msg);
+            //     $nstmt->execute();
+            //     $nstmt->close();
+            //     $_SESSION['contact_success'] = true;
+            //     header('Location: contact.php');
+            //     exit;
+            // } 
             if ($stmt->execute()) {
                 $message_id = $stmt->insert_id;
+                
+                // 1. Title format for the layout
                 $notif_title = 'New Contact Message';
-                $notif_msg = "$name sent a contact message: " . substr($message_text, 0, 50) . (strlen($message_text) > 50 ? '...' : '');
-                $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (0, ?, ?, 'contact')");
-                $nstmt->bind_param("ss", $notif_title, $notif_msg);
+                
+                // 2. Format message text: "Swe Swe sent a contact message: I want to get more treatment."
+                // Clean up line breaks for clean list rendering
+                $clean_user_msg = str_replace(array("\r", "\n"), ' ', $message_text);
+                $notif_msg = $name . " sent a contact message: " . $clean_user_msg;
+                
+                // 3. Insert into notifications table (Make sure type is 'contact' so your Admin filter captures it)
+                $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'contact')");
+                $nstmt->bind_param("iss", $user_id, $notif_title, $notif_msg);
                 $nstmt->execute();
                 $nstmt->close();
+                
                 $_SESSION['contact_success'] = true;
                 header('Location: contact.php');
                 exit;
-            } else {
+            }
+            else {
                 $notification = 'error';
                 $db_error_message = "Execute failed: " . $stmt->error;
             }
