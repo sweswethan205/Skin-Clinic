@@ -2,6 +2,13 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Auth check - redirect to login if not authenticated
+if (!isset($_SESSION['admin_token']) || $_SESSION['admin_token'] !== 'authenticated_success_token') {
+    header('Location: login.php');
+    exit;
+}
+
 include_once '../config/db.php';
 
 $admin = $conn->query("SELECT username, photo FROM admins ORDER BY id ASC LIMIT 1")->fetch_assoc();
@@ -26,9 +33,14 @@ if ($result) { $row = $result->fetch_assoc(); $total_doctors = $row['c']; }
 $result = $conn->query("SELECT COUNT(*) AS c FROM treatments");
 if ($result) { $row = $result->fetch_assoc(); $total_treatments = $row['c']; }
 
+// Total revenue (sum of treatment prices for completed/confirmed appointments)
+$total_revenue = 0;
+$rev_result = $conn->query("SELECT COALESCE(SUM(t.price), 0) AS total FROM appointments a JOIN treatments t ON t.id = a.treatment_id WHERE a.status IN ('completed','confirmed')");
+if ($rev_result) { $row = $rev_result->fetch_assoc(); $total_revenue = $row['total']; }
+
 // Unread notifications count
 $unread_notif_count = 0;
-$nc = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE is_read = 0 AND type = 'booking'");
+$nc = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE is_read = 0");
 if ($nc && $ncr = $nc->fetch_assoc()) {
     $unread_notif_count = $ncr['c'];
 }
@@ -53,6 +65,39 @@ if ($r_result = $conn->query($r_query)) {
     while ($row = $r_result->fetch_assoc()) {
         $recent_appointments[] = $row;
     }
+}
+
+// Appointments overview (daily counts for current month)
+$chart_labels = [];
+$chart_data = [];
+$chart_max = 10;
+$c_query = "SELECT DATE(created_at) AS day, COUNT(*) AS cnt
+            FROM appointments
+            WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
+            GROUP BY DATE(created_at)
+            ORDER BY day ASC";
+if ($c_result = $conn->query($c_query)) {
+    $chart_raw = [];
+    while ($row = $c_result->fetch_assoc()) {
+        $chart_raw[$row['day']] = (int)$row['cnt'];
+    }
+    $days_in_month = (int)date('t');
+    $year = date('Y');
+    $month = date('m');
+    for ($d = 1; $d <= $days_in_month; $d++) {
+        $date = sprintf('%s-%s-%02d', $year, $month, $d);
+        $label = date('j M', strtotime($date));
+        $chart_labels[] = $label;
+        $val = $chart_raw[$date] ?? 0;
+        $chart_data[] = $val;
+        if ($val > $chart_max) $chart_max = $val;
+    }
+}
+$chart_max = max($chart_max, 5);
+$chart_step = max(1, ceil($chart_max / 5));
+$chart_ticks = [];
+for ($t = 0; $t <= 5; $t++) {
+    $chart_ticks[] = $t * $chart_step;
 }
 
 // Top treatments
@@ -168,7 +213,7 @@ if ($msg_result = $conn->query($msg_query)) {
                     </div>
                     <div>
                         <span class="text-xs font-bold text-slate-800 block"><?php echo htmlspecialchars($admin_username); ?></span>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
+                        <!-- <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i> -->
                     </div>
                 </a>
             </div>
@@ -178,9 +223,9 @@ if ($msg_result = $conn->query($msg_query)) {
         <main class="bg-slate-100 flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-4 sm:space-y-6">
             
             <!-- GRID LAYER 1: METRIC CARD SYSTEM -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 <!-- Total Appointments -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-xs flex items-center justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-md hover:shadow-xl flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-brand-pink text-lg">
                             <i class="fa-regular fa-calendar-check"></i>
@@ -191,13 +236,13 @@ if ($msg_result = $conn->query($msg_query)) {
                             <span class="text-[10px] font-medium text-slate-400 block mt-0.5">All Time</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <!-- <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
                         <i class="fa-solid fa-arrow-up text-[8px]"></i> 12%
-                    </span>
+                    </span> -->
                 </div>
 
                 <!-- Total Patients -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-xs flex items-center justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-md hover:shadow-xl flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 text-lg">
                             <i class="fa-solid fa-user-group"></i>
@@ -208,13 +253,13 @@ if ($msg_result = $conn->query($msg_query)) {
                             <span class="text-[10px] font-medium text-slate-400 block mt-0.5">Registered Users</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <!-- <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
                         <i class="fa-solid fa-arrow-up text-[8px]"></i> 8%
-                    </span>
+                    </span> -->
                 </div>
 
                 <!-- Total Doctors -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-xs flex items-center justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-md hover:shadow-xl flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 text-lg">
                             <i class="fa-solid fa-user-doctor"></i>
@@ -225,13 +270,13 @@ if ($msg_result = $conn->query($msg_query)) {
                             <span class="text-[10px] font-medium text-slate-400 block mt-0.5">Active Doctors</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <!-- <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
                         <i class="fa-solid fa-arrow-up text-[8px]"></i> 5%
-                    </span>
+                    </span> -->
                 </div>
 
                 <!-- Total Treatments -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-xs flex items-center justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-md hover:shadow-xl flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 text-lg">
                             <i class="fa-solid fa-mortar-pestle"></i>
@@ -242,9 +287,26 @@ if ($msg_result = $conn->query($msg_query)) {
                             <span class="text-[10px] font-medium text-slate-400 block mt-0.5">Active Treatments</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <!-- <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
                         <i class="fa-solid fa-arrow-up text-[8px]"></i> 7%
-                    </span>
+                    </span> -->
+                </div>
+
+                <!-- Total Revenue -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-100/80 shadow-md hover:shadow-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center text-violet-500 text-lg">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-medium text-slate-400 block">Total Revenue</span>
+                            <span class="text-2xl font-bold text-slate-800 tracking-tight"><?= number_format($total_revenue, 0) ?> <span class="text-xs font-medium text-slate-400">MMK</span></span>
+                            <!-- <span class="text-[10px] font-medium text-slate-400 block mt-0.5">Completed & Confirmed</span> -->
+                        </div>
+                    </div>
+                    <!-- <span class="text-[10px] font-bold text-violet-500 bg-violet-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                        <i class="fa-solid fa-wallet text-[8px]"></i> Revenue
+                    </span> -->
                 </div>
             </div>
 
@@ -263,45 +325,66 @@ if ($msg_result = $conn->query($msg_query)) {
                         </div>
                     </div>
                     
-                    <!-- SVG Interactive Vector Graph Chart Blueprint Mockup -->
+                    <!-- Dynamic Chart -->
+                    <?php
+                    $data_count = count($chart_data);
+                    $svg_w = 500;
+                    $svg_h = 150;
+                    $pad = 0;
+                    $plot_w = $svg_w - $pad * 2;
+                    $plot_h = $svg_h - $pad * 2;
+                    $max_val = $chart_max;
+                    $points = [];
+                    $x_interval = $data_count > 1 ? $plot_w / ($data_count - 1) : $plot_w;
+                    foreach ($chart_data as $i => $val) {
+                        $x = $i * $x_interval + $pad;
+                        $y = $svg_h - ($max_val > 0 ? ($val / $max_val * $plot_h) : 0) - $pad;
+                        $points[] = "$x,$y";
+                    }
+                    $line_path = implode(' ', array_map(function($p) { return "L$p"; }, $points));
+                    $line_path = substr($line_path, 1); // remove first L
+                    $area_path = "M$line_path L" . ($data_count - 1) * $x_interval + $pad . "," . ($svg_h - $pad) . " L$pad," . ($svg_h - $pad) . " Z";
+
+                    // Find max index for tooltip
+                    $max_idx = array_keys($chart_data, max($chart_data))[0] ?? 0;
+                    $max_x = $max_idx * $x_interval + $pad;
+                    $max_y = $svg_h - ($max_val > 0 ? ($chart_data[$max_idx] / $max_val * $plot_h) : 0) - $pad;
+                    $max_label = $chart_labels[$max_idx] ?? '';
+                    $max_val_display = $chart_data[$max_idx] ?? 0;
+                    ?>
                     <div class="relative w-full h-56 mt-4">
-                        <!-- Y Axis Indicators -->
                         <div class="absolute left-0 top-0 h-full w-6 flex flex-col justify-between text-[10px] text-slate-300 font-medium">
-                            <span>50</span><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span>
+                            <?php foreach (array_reverse($chart_ticks) as $tick): ?>
+                            <span><?= $tick ?></span>
+                            <?php endforeach; ?>
                         </div>
-                        
-                        <!-- SVG Vector Data Line Overlay -->
                         <div class="ml-8 h-full relative border-b border-l border-slate-100/50">
-                            <!-- Background Grid Horizontal Lines -->
-                            <div class="absolute inset-x-0 top-0 h-[1px] border-t border-dashed border-slate-100"></div>
-                            <div class="absolute inset-x-0 top-1/5 h-[1px] border-t border-dashed border-slate-100"></div>
-                            <div class="absolute inset-x-0 top-2/5 h-[1px] border-t border-dashed border-slate-100"></div>
-                            <div class="absolute inset-x-0 top-3/5 h-[1px] border-t border-dashed border-slate-100"></div>
-                            <div class="absolute inset-x-0 top-4/5 h-[1px] border-t border-dashed border-slate-100"></div>
-                            
-                            <svg viewBox="0 0 500 150" class="w-full h-full overflow-visible absolute bottom-0">
+                            <?php for ($g = 1; $g <= 5; $g++): ?>
+                            <div class="absolute inset-x-0 top-<?= ($g - 1) * 20 ?>-full h-[1px] border-t border-dashed border-slate-100" style="top: <?= ($g - 1) * 20 ?>%"></div>
+                            <?php endfor; ?>
+                            <svg viewBox="0 0 <?= $svg_w ?> <?= $svg_h ?>" class="w-full h-full overflow-visible absolute bottom-0">
                                 <defs>
                                     <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stop-color="#FF6584" stop-opacity="0.15"/>
                                         <stop offset="100%" stop-color="#FF6584" stop-opacity="0.00"/>
                                     </linearGradient>
                                 </defs>
-                                <path d="M0,120 Q40,70 80,90 T160,50 T240,75 T320,40 T400,85 T500,20 L500,150 L0,150 Z" fill="url(#chartGrad)" />
-                                <path d="M0,120 Q40,70 80,90 T160,50 T240,75 T320,40 T400,85 T500,20" fill="none" stroke="#FF6584" stroke-width="2.5" />
-                                
-                                <!-- Tooltip Node Intersection Highlight -->
-                                <circle cx="240" cy="53" r="4" fill="#FF6584" stroke="white" stroke-width="2" />
+                                <path d="M<?= $area_path ?>" fill="url(#chartGrad)" />
+                                <path d="M<?= $line_path ?>" fill="none" stroke="#FF6584" stroke-width="2.5" />
+                                <circle cx="<?= $max_x ?>" cy="<?= $max_y ?>" r="4" fill="#FF6584" stroke="white" stroke-width="2" />
                             </svg>
-
-                            <!-- Tooltip Text Box Node Indicator Placement -->
-                            <div class="absolute top-[32px] left-[45%] -translate-x-1/2 bg-brand-pink text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-brand-pink">
-                                35
+                            <div class="absolute top-[<?= $max_y / $svg_h * 100 ?>%] left-[<?= $max_x / $plot_w * 100 ?>%] -translate-x-1/2 -translate-y-full bg-brand-pink text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-brand-pink">
+                                <?= $max_val_display ?>
                             </div>
                         </div>
-
-                        <!-- X Axis Horizontal Text Labels -->
                         <div class="ml-8 mt-2 flex justify-between text-[9px] text-slate-400 font-semibold tracking-wide">
-                            <span>01 May</span><span>05 May</span><span>10 May</span><span>15 May</span><span>20 May</span><span>25 May</span><span>30 May</span>
+                            <?php
+                            $label_count = count($chart_labels);
+                            $step = $label_count > 7 ? floor($label_count / 7) : 1;
+                            for ($i = 0; $i < $label_count; $i += $step):
+                            ?>
+                            <span><?= $chart_labels[$i] ?></span>
+                            <?php endfor; ?>
                         </div>
                     </div>
                 </div>
@@ -320,7 +403,7 @@ if ($msg_result = $conn->query($msg_query)) {
                                 $status_class = match($app['status']) {
                                     'confirmed' => 'text-emerald-500 bg-emerald-50',
                                     'pending' => 'text-blue-500 bg-blue-50',
-                                    'cancelled' => 'text-rose-500 bg-rose-50',
+                                    // 'cancelled' => 'text-rose-500 bg-rose-50',
                                     'completed' => 'text-slate-500 bg-slate-50',
                                     default => 'text-slate-500 bg-slate-50'
                                 };

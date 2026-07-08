@@ -33,7 +33,6 @@ $sql = "SELECT n.*,
         LEFT JOIN users u ON n.user_id = u.id
         LEFT JOIN appointments a ON n.appointment_id = a.id
         LEFT JOIN treatments t ON a.treatment_id = t.id
-        WHERE n.type = 'booking'
         ORDER BY n.created_at DESC";
 
 $result = $conn->query($sql);
@@ -89,9 +88,9 @@ $result = $conn->query($sql);
             <table class="w-full text-sm">
                 <thead class="bg-slate-100 text-slate-600">
                     <tr>
+                        <th class="p-3 text-left">Type</th>
                         <th class="p-3 text-left">Message</th>
                         <th class="p-3 text-left">User</th>
-                        <th class="p-3 text-left">Treatment</th>
                         <th class="p-3 text-left">Status</th>
                         <th class="p-3 text-left">Date</th>
                         <th class="p-3 text-center">Actions</th>
@@ -99,8 +98,20 @@ $result = $conn->query($sql);
                 </thead>
 
                 <tbody>
-                    <?php while ($row = $result->fetch_assoc()): ?>
+                    <?php while ($row = $result->fetch_assoc()): 
+                        $type_colors = [
+                            'booking' => 'bg-blue-100 text-blue-600',
+                            'contact' => 'bg-amber-100 text-amber-600',
+                            'review' => 'bg-purple-100 text-purple-600',
+                            'status' => 'bg-emerald-100 text-emerald-600',
+                        ];
+                        $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600';
+                    ?>
                         <tr class="border-b hover:bg-slate-50">
+
+                            <td class="p-3">
+                                <span class="px-2 py-1 text-xs font-bold rounded-full <?= $type_color ?>"><?= ucfirst($row['type']) ?></span>
+                            </td>
 
                             <td class="p-3">
                                 <div class="font-medium text-slate-800">
@@ -112,11 +123,7 @@ $result = $conn->query($sql);
                             </td>
 
                             <td class="p-3 text-slate-600">
-                                <?= $row['user_name'] ?? '-' ?>
-                            </td>
-
-                            <td class="p-3 text-slate-600">
-                                <?= $row['treatment_name'] ?? '-' ?>
+                                <?= $row['user_name'] ?? 'Guest' ?>
                             </td>
 
                             <td class="p-3">

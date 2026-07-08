@@ -95,8 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
 
     if (empty($errors)) {
         $conn->begin_transaction();
-        $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, payment_method_id, status) VALUES (?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("iiii", $user_id, $treatment_id, $schedule_id, $payment_method_id);
+        $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, payment_method_id, receipt_image, status) VALUES (?, ?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("iiiss", $user_id, $treatment_id, $schedule_id, $payment_method_id, $receipt_path);
         if ($stmt->execute()) {
             $appointment_id = $stmt->insert_id;
             $stmt->close();

@@ -19,7 +19,12 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
     if ($new_status) {
         // Get appointment info for notification
-        $info = $conn->prepare("SELECT user_id, schedule_id FROM appointments WHERE id = ? LIMIT 1");
+        $info = $conn->prepare("
+            SELECT a.user_id, a.schedule_id, t.treatment_name 
+            FROM appointments a 
+            JOIN treatments t ON t.id = a.treatment_id 
+            WHERE a.id = ? LIMIT 1
+        ");
         $info->bind_param("i", $id);
         $info->execute();
         $info_res = $info->get_result();
@@ -35,7 +40,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             // Create notification
             if ($app_info) {
                 $title = 'Appointment ' . ucfirst($new_status);
-                $notif_msg = "Appointment #$id status changed to $new_status.";
+                $treatment_name = $app_info['treatment_name'];
+                $status_label = ucfirst($new_status);
+                $notif_msg = "Your \"$treatment_name\" appointment has been $status_label.";
                 $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type) VALUES (?, ?, ?, ?, 'status')");
                 $notif->bind_param("iiss", $app_info['user_id'], $id, $title, $notif_msg);
                 $notif->execute();
@@ -56,17 +63,19 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
 // Fetch appointments
 $appointments = [];
-$query = "SELECT a.id, a.status, a.created_at,
+$query = "SELECT a.id, a.status, a.created_at, a.receipt_image,
                  u.name AS patient_name,
-                 t.treatment_name,
+                 t.treatment_name, t.price,
                  d.name AS doctor_name,
                  s.available_date,
-                 s.start_time
+                 s.start_time,
+                 pm.method_name AS payment_method
           FROM appointments a
           JOIN users u ON u.id = a.user_id
           JOIN treatments t ON t.id = a.treatment_id
           JOIN schedules s ON s.id = a.schedule_id
           JOIN doctors d ON d.id = s.doctor_id
+          LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id
           ORDER BY a.created_at DESC";
 $result = $conn->query($query);
 if ($result) {
@@ -182,6 +191,8 @@ foreach ($appointments as $a) {
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Treatment</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Doctor</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Date & Time</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Payment</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Receipt</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Status</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
@@ -217,6 +228,29 @@ foreach ($appointments as $a) {
                                     <span class="text-[10px] text-brand-muted block font-medium"><?= date("h:i A", strtotime($a['start_time'])) ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <?php if (!empty($a['payment_method'])): ?>
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
+                                            <i class="fa-solid fa-wallet text-brand-muted text-[9px]"></i>
+                                            <?= htmlspecialchars($a['payment_method']) ?>
+                                        </span>
+                                        <span class="block text-[11px] font-bold text-emerald-600 mt-0.5"><?= number_format($a['price'], 2) ?> MMK</span>
+                                    <?php else: ?>
+                                        <span class="text-[10px] text-brand-muted">N/A</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <?php if (!empty($a['receipt_image']) && file_exists(__DIR__ . '/../' . ltrim($a['receipt_image'], './'))): ?>
+                                        <button onclick="openReceiptModal('<?= htmlspecialchars($a['receipt_image']) ?>')" class="relative group cursor-pointer">
+                                            <img src="<?= htmlspecialchars($a['receipt_image']) ?>" alt="Receipt" class="w-10 h-10 rounded-lg object-cover border border-slate-200 shadow-xs group-hover:ring-2 group-hover:ring-brand-pink transition-all">
+                                            <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-brand-pink text-white rounded-full flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <i class="fa-solid fa-expand"></i>
+                                            </span>
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="text-[10px] text-brand-muted italic">No receipt</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="text-[10px] font-bold <?= $status_class ?> px-2 py-0.5 rounded-lg border"><?= ucfirst($a['status']) ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
@@ -233,7 +267,7 @@ foreach ($appointments as $a) {
                             </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                            <tr><td colspan="7" class="py-8 text-center text-brand-muted">No appointments found.</td></tr>
+                            <tr><td colspan="9" class="py-8 text-center text-brand-muted">No appointments found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -272,6 +306,41 @@ foreach ($appointments as $a) {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(q) ? '' : 'none';
             });
+        });
+    </script>
+
+    <!-- Receipt Image Modal -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+                <h3 class="text-xs font-bold text-brand-dark uppercase tracking-wider">Payment Receipt</h3>
+                <button onclick="closeReceiptModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-brand-muted hover:text-brand-dark flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+            <div class="p-4 flex items-center justify-center">
+                <img id="receipt-modal-img" src="" alt="Receipt" class="max-w-full max-h-[75vh] object-contain rounded-xl border border-slate-100">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openReceiptModal(src) {
+            const modal = document.getElementById('receipt-modal');
+            const img = document.getElementById('receipt-modal-img');
+            img.src = src;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeReceiptModal() {
+            const modal = document.getElementById('receipt-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('receipt-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeReceiptModal();
         });
     </script>
 </body>

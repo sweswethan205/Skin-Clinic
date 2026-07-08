@@ -30,6 +30,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               VALUES ($user_id, '$name', $rating, '$review_text', 'pending')";
 
     if ($conn->query($query)) {
+        $notif_title = 'New Review';
+        $notif_msg = "$name submitted a $rating-star review: " . substr($review_text, 0, 50) . (strlen($review_text) > 50 ? '...' : '');
+        $nid = ($user_id !== "NULL") ? intval($user_id) : 0;
+        $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'review')");
+        $nstmt->bind_param("iss", $nid, $notif_title, $notif_msg);
+        $nstmt->execute();
+        $nstmt->close();
         $notification = 'success';
     } else {
         $notification = 'error';

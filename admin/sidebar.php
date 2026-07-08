@@ -2,7 +2,7 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 include_once '../config/db.php';
 $notif_count = 0;
-$nc = $conn->query("SELECT COUNT(*) AS cnt FROM notifications WHERE is_read = 0 AND type = 'booking'");
+$nc = $conn->query("SELECT COUNT(*) AS cnt FROM notifications WHERE is_read = 0");
 if ($nc && $nc_row = $nc->fetch_assoc()) {
     $notif_count = $nc_row['cnt'];
 }
@@ -161,7 +161,7 @@ if ($mc && $mc_row = $mc->fetch_assoc()) {
         </div>
 
         <a href="../admin/logout.php"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 hover:text-red-500">
+            class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-pink hover:bg-red-300 hover:text-red-500 ">
             <i class="fa-solid fa-arrow-right-from-bracket"></i>
             <span>Logout</span>
         </a>

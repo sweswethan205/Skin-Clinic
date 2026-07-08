@@ -137,6 +137,11 @@ $status_colors = [
                                 <p class="text-[10px] text-brand-textMuted uppercase tracking-wider mt-1">Booked <?php echo date('M d', strtotime($booking['booked_on'])); ?></p>
                             </div>
                         </div>
+                        <div class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-50">
+                            <a href="booking-details.php?id=<?= $booking['id'] ?>" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-pink bg-brand-lightPink px-3 py-1.5 rounded-lg hover:bg-brand-pink hover:text-white transition-all">
+                                <i class="fa-regular fa-eye"></i> View Details
+                            </a>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>

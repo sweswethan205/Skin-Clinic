@@ -92,6 +92,16 @@ if (isset($_SESSION['user_id'])) {
 }
 
 //Review
+// Fetch approved reviews from database
+$reviews_query = "SELECT name, rating, review_text, created_at FROM testimonials WHERE status = 'approved' ORDER BY created_at DESC";
+$reviews_result = $conn->query($reviews_query);
+$reviews = [];
+if ($reviews_result && $reviews_result->num_rows > 0) {
+    while ($row = $reviews_result->fetch_assoc()) {
+        $reviews[] = $row;
+    }
+}
+
 $notification = ''; // Variable to hold success/error alerts
 
 // 🚀 1. BACKEND PROCESSING: Run this ONLY when the form is submitted
@@ -108,6 +118,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               VALUES ($user_id, '$name', $rating, '$review_text', 'pending')";
 
     if ($conn->query($query)) {
+        $notif_title = 'New Review';
+        $notif_msg = "$name submitted a $rating-star review: " . substr($review_text, 0, 50) . (strlen($review_text) > 50 ? '...' : '');
+        $nid = ($user_id !== "NULL") ? intval($user_id) : 0;
+        $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'review')");
+        $nstmt->bind_param("iss", $nid, $notif_title, $notif_msg);
+        $nstmt->execute();
+        $nstmt->close();
         $notification = 'success';
     } else {
         $notification = 'error';
@@ -344,16 +361,16 @@ while ($row = $home_treatments->fetch_assoc()) {
     </section>
 
     <!-- TESTIMONIALS SECTION -->
-    <section class="max-w-7xl mx-auto px-6 py-12">
+    <section class="w-full mx-auto px-6 py-12 bg-brand-lightPink">
         <div class="text-center mb-12">
             <span class="text-xs font-semibold uppercase tracking-wider text-[#FF6584] block mb-1">What Our Clients Say</span>
             <h2 class="font-serif text-3xl text-slate-800">Real Stories, Real Results</h2>
         </div>
         
         <!-- Marquee Frame Wrapper -->
-        <div class="overflow-hidden w-full relative">
+        <div class="overflow-hidden max-w-7xl mx-auto px-6 py-12 relative ma">
             <!-- added w-max and flex-nowrap to prevent elements breaking into lines -->
-            <div class="flex flex-nowrap gap-6 animate-marquee w-max pb-4">
+            <div class="flex flex-nowrap gap-6 animate-marquee w-max pb-4 max-w-7xl">
                 <?php if (!empty($reviews)): ?>
                     <?php for ($i = 0; $i < 4; $i++): // Looping extra to ensure visual loop coverage ?>
                         <?php foreach ($reviews as $review): ?>
@@ -385,10 +402,10 @@ while ($row = $home_treatments->fetch_assoc()) {
             </div>
         </div>
 
-        <div class="bg-white max-w-7xl w-full p-8 md:p-14 rounded-[2.5rem] shadow-[0_20px_50px_rgba(255,101,132,0.04)] border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-12">
+        <div class="bg-white max-w-7xl mx-auto px-6 py-12 md:p-14 rounded-[2.5rem] shadow-[0_20px_50px_rgba(255,101,132,0.04)] border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-12">
             
             <!-- LEFT PANEL: Typography & Branding Content -->
-            <div class="md:col-span-5 space-y-5">
+            <div class="md:col-span-5 space-y-5 ">
                 <!-- Heart Icon Emblem -->
                 <div class="w-14 h-14 bg-[#FFF0F2] rounded-2xl flex items-center justify-center text-[#FF6584] text-xl shadow-xs">
                     <i class="fa-solid fa-heart-pulse"></i>
@@ -483,6 +500,7 @@ while ($row = $home_treatments->fetch_assoc()) {
             </div>
         </div>
     </section>
+
 
 
 

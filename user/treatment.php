@@ -38,7 +38,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                     <h3 class="font-serif text-lg text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
                     <p class="text-xs text-brand-textMuted leading-relaxed mb-6"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
                     <div class="flex justify-between items-center">
-                        <span class="text-brand-pink font-bold text-lg">$<?php echo number_format($treatment['price'], 2); ?></span>
+                        <span class="text-brand-pink font-bold text-lg"><?php echo number_format($treatment['price'], 2); ?>MMK</span>
                         <a href="../user/booking.php?treatment_id=<?php echo $treatment['id']; ?>" class="bg-brand-pink text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">Book Now</a>
                     </div>
                 </div>

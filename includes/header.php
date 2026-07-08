@@ -5,6 +5,11 @@ if (session_status() === PHP_SESSION_NONE) {
 $is_logged_in = isset($_SESSION['user_token']) && $_SESSION['user_token'] === 'authenticated_success_token';
 $user_name = $_SESSION['user_name'] ?? '';
 $user_photo = $_SESSION['user_photo'] ?? '';
+
+// Ensure DB connection for notification count
+if (!isset($conn) || $conn === null) {
+    include_once __DIR__ . '/../config/db.php';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,6 +64,21 @@ $user_photo = $_SESSION['user_photo'] ?? '';
         
         <div class="py-4 flex items-center gap-4">
             <?php if ($is_logged_in): ?>
+                <?php
+                // Fetch unread notification count for logged-in user
+                $unread_notif = 0;
+                if (isset($_SESSION['user_id'])) {
+                    $uid = intval($_SESSION['user_id']);
+                    $nq = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE user_id = $uid AND is_read = 0");
+                    if ($nq && $nr = $nq->fetch_assoc()) $unread_notif = $nr['c'];
+                }
+                ?>
+                <a href="../user/notifications.php" class="relative text-brand-textMuted hover:text-brand-pink transition text-lg p-1">
+                    <i class="fa-regular fa-bell"></i>
+                    <?php if ($unread_notif > 0): ?>
+                        <span class="absolute -top-1 -right-1 bg-brand-pink text-white text-[9px] font-bold h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full ring-2 ring-white"><?= $unread_notif ?></span>
+                    <?php endif; ?>
+                </a>
                 <div class="relative group">
                     <div class="flex items-center gap-3 cursor-pointer">
                         <div class="w-8 h-8 rounded-full bg-brand-pink flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
@@ -79,7 +99,7 @@ $user_photo = $_SESSION['user_photo'] ?? '';
                             <i class="fa-regular fa-calendar text-brand-pink"></i> My Appointments
                         </a>
                         <hr class="border-gray-100">
-                        <a href="../admin/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-b-lg transition">
+                        <a href="../auth/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-b-lg transition">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
                     </div>

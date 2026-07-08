@@ -43,6 +43,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param("issss", $user_id, $name, $email, $subject, $combined_message);
 
             if ($stmt->execute()) {
+                $message_id = $stmt->insert_id;
+                $notif_title = 'New Contact Message';
+                $notif_msg = "$name sent a contact message: " . substr($message_text, 0, 50) . (strlen($message_text) > 50 ? '...' : '');
+                $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (0, ?, ?, 'contact')");
+                $nstmt->bind_param("ss", $notif_title, $notif_msg);
+                $nstmt->execute();
+                $nstmt->close();
                 $_SESSION['contact_success'] = true;
                 header('Location: contact.php');
                 exit;

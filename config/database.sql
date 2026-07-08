@@ -105,6 +105,8 @@ CREATE TABLE appointments (
         'cancelled'
     ) DEFAULT 'pending',
 
+    receipt_image VARCHAR(255) NULL,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id)
@@ -135,7 +137,7 @@ VALUES
 ('KBZ Pay'),
 ('AYA Pay'),
 ('Wave Pay'),
-('Cash');
+('CB Pay');
 
 -- =====================================
 -- PAYMENTS
