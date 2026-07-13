@@ -47,6 +47,7 @@ $status_colors = [
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,15 +62,24 @@ $status_colors = [
             theme: {
                 extend: {
                     colors: {
-                        brand: { pink: '#FF6584', lightPink: '#FFF0F2', dark: '#2D2D2D', textMuted: '#666666' }
+                        brand: {
+                            pink: '#FF6584',
+                            lightPink: '#FFF0F2',
+                            dark: '#2D2D2D',
+                            textMuted: '#666666'
+                        }
                     },
-                    fontFamily: { sans: ['Inter', 'sans-serif'], serif: ['Playfair Display', 'serif'] }
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased min-h-screen flex flex-col">
+
+<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased min-h-screen flex flex-col">
     <?php include '../includes/header.php'; ?>
 
     <main class="flex-grow max-w-5xl mx-auto w-full px-6 py-12">
@@ -92,6 +102,18 @@ $status_colors = [
             </a>
         </div>
 
+        <div class="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_5px_20px_rgba(0,0,0,0.02)] flex items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-lightPink flex items-center justify-center">
+                    <i class="fa-regular fa-calendar-check text-brand-pink"></i>
+                </div>
+                <div>
+                    <span class="text-2xl font-bold text-brand-dark"><?= count($bookings) ?></span>
+                    <p class="text-xs text-brand-textMuted">Total Appointments</p>
+                </div>
+            </div>
+        </div>
+
         <?php if (empty($bookings)): ?>
             <div class="bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
                 <div class="w-16 h-16 bg-brand-lightPink rounded-full flex items-center justify-center mx-auto mb-4">
@@ -105,7 +127,7 @@ $status_colors = [
             </div>
         <?php else: ?>
             <div class="space-y-4">
-                <?php foreach ($bookings as $booking): 
+                <?php foreach ($bookings as $booking):
                     $color_class = $status_colors[$booking['status']] ?? 'bg-gray-50 text-gray-600 border-gray-200';
                 ?>
                     <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_5px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition">
@@ -150,4 +172,5 @@ $status_colors = [
 
     <?php include '../includes/footer.php'; ?>
 </body>
+
 </html>

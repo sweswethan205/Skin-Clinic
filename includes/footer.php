@@ -1,6 +1,6 @@
-<footer class="bg-brand-lightPink pt-16 pb-8 border-t border-pink-100 mt-20">
+<footer class="bg-brand-lightPink pt-10 pb-8 border-t border-pink-100 mt-10">
     <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10 text-sm mb-12">
-        <div class="space-y-4">
+        <div class="">
             <div class="flex items-center space-x-2 text-brand-pink">
                 <i class="fa-solid fa-spa text-2xl"></i>
                 <span class="font-serif font-bold text-xl tracking-wide text-brand-dark">GlowSkin</span>
@@ -55,11 +55,8 @@
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-6 pt-6 border-t border-pink-200/40 flex flex-col sm:flex-row justify-between text-[11px] text-brand-textMuted">
+    <div class="max-w-7xl mx-auto px-6 pt-6 border-t border-pink-200/40 flex sm:flex-row items-center justify-center text-[11px] text-brand-textMuted">
         <p>© 2026 GlowSkin Clinic. All Rights Reserved.</p>
-        <div class="space-x-4 mt-2 sm:mt-0">
-            <a href="#" class="hover:underline">Privacy Policy</a>
-            <a href="#" class="hover:underline">Terms & Conditions</a>
-        </div>
+        
     </div>
 </footer>

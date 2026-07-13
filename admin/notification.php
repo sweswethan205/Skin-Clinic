@@ -33,6 +33,7 @@ $sql = "SELECT n.*,
         LEFT JOIN users u ON n.user_id = u.id
         LEFT JOIN appointments a ON n.appointment_id = a.id
         LEFT JOIN treatments t ON a.treatment_id = t.id
+        WHERE n.target_role = 'admin'
         ORDER BY n.created_at DESC";
 
 $result = $conn->query($sql);
@@ -54,116 +55,131 @@ $result = $conn->query($sql);
             theme: {
                 extend: {
                     colors: {
-                        brand: { pink: '#FF6584', pinkHover: '#E04F6E', lightPink: '#FFF0F2', dark: '#0F172A', muted: '#64748B', canvas: '#F1F5F9' }
+                        brand: {
+                            pink: '#FF6584',
+                            pinkHover: '#E04F6E',
+                            lightPink: '#FFF0F2',
+                            dark: '#0F172A',
+                            muted: '#64748B',
+                            canvas: '#F1F5F9'
+                        }
                     },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .modal-bg { background: rgba(15, 23, 42, 0.5); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .modal-bg {
+            background: rgba(15, 23, 42, 0.5);
+        }
     </style>
 </head>
 
 <body class="bg-slate-50">
-    
-
-<div class="flex">
-
     <!-- SIDEBAR -->
     <?php include 'sidebar.php'; ?>
 
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 p-4 sm:p-6 lg:ml-64">
+    <div class="flex">
 
-        <h1 class="text-2xl font-bold text-slate-800 mb-6">
-            Notifications
-        </h1>
 
-        <!-- NOTIFICATION LIST -->
-        <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
 
-            <table class="w-full text-sm">
-                <thead class="bg-slate-100 text-slate-600">
-                    <tr>
-                        <th class="p-3 text-left">Type</th>
-                        <th class="p-3 text-left">Message</th>
-                        <th class="p-3 text-left">User</th>
-                        <th class="p-3 text-left">Status</th>
-                        <th class="p-3 text-left">Date</th>
-                        <th class="p-3 text-center">Actions</th>
-                    </tr>
-                </thead>
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 p-4 sm:p-6 lg:ml-64">
 
-                <tbody>
-                    <?php while ($row = $result->fetch_assoc()): 
-                        $type_colors = [
-                            'booking' => 'bg-blue-100 text-blue-600',
-                            'contact' => 'bg-amber-100 text-amber-600',
-                            'review' => 'bg-purple-100 text-purple-600',
-                            'status' => 'bg-emerald-100 text-emerald-600',
-                        ];
-                        $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600';
-                    ?>
-                        <tr class="border-b hover:bg-slate-50">
+            <h1 class="text-2xl font-bold text-slate-800 mb-6">
+                Notifications
+            </h1>
 
-                            <td class="p-3">
-                                <span class="px-2 py-1 text-xs font-bold rounded-full <?= $type_color ?>"><?= ucfirst($row['type']) ?></span>
-                            </td>
+            <!-- NOTIFICATION LIST -->
+            <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
 
-                            <td class="p-3">
-                                <div class="font-medium text-slate-800">
-                                    <?= htmlspecialchars($row['title']) ?>
-                                </div>
-                                <div class="text-xs text-slate-500">
-                                    <?= htmlspecialchars($row['message']) ?>
-                                </div>
-                            </td>
-
-                            <td class="p-3 text-slate-600">
-                                <?= $row['user_name'] ?? 'Guest' ?>
-                            </td>
-
-                            <td class="p-3">
-                                <?php if ($row['is_read'] == 0): ?>
-                                    <span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">Unread</span>
-                                <?php else: ?>
-                                    <span class="px-2 py-1 text-xs bg-green-100 text-green-600 rounded-full">Read</span>
-                                <?php endif; ?>
-                            </td>
-
-                            <td class="p-3 text-xs text-slate-500">
-                                <?= date('Y-m-d H:i', strtotime($row['created_at'])) ?>
-                            </td>
-
-                            <td class="p-3 text-center space-x-2">
-
-                                <?php if ($row['is_read'] == 0): ?>
-                                    <a href="?read_id=<?= $row['id'] ?>"
-                                       class="text-blue-500 hover:underline text-xs">
-                                        Mark Read
-                                    </a>
-                                <?php endif; ?>
-
-                                <a href="?delete_id=<?= $row['id'] ?>"
-                                   onclick="return confirm('Delete this notification?')"
-                                   class="text-red-500 hover:underline text-xs">
-                                    Delete
-                                </a>
-
-                            </td>
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-100 text-slate-600">
+                        <tr>
+                            <th class="p-3 text-left">Type</th>
+                            <th class="p-3 text-left">Message</th>
+                            <th class="p-3 text-left">User</th>
+                            <th class="p-3 text-left">Status</th>
+                            <th class="p-3 text-left">Date</th>
+                            <th class="p-3 text-center">Actions</th>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
+                    </thead>
 
-            </table>
+                    <tbody>
+                        <?php while ($row = $result->fetch_assoc()):
+                            $type_colors = [
+                                'booking' => 'bg-blue-100 text-blue-600',
+                                'contact' => 'bg-amber-100 text-amber-600',
+                                'review' => 'bg-purple-100 text-purple-600',
+                                'status' => 'bg-emerald-100 text-emerald-600',
+                            ];
+                            $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600';
+                        ?>
+                            <tr class="border-b hover:bg-slate-50">
+
+                                <td class="p-3">
+                                    <span class="px-2 py-1 text-xs font-bold rounded-full <?= $type_color ?>"><?= ucfirst($row['type']) ?></span>
+                                </td>
+
+                                <td class="p-3">
+                                    <div class="font-medium text-slate-800">
+                                        <?= htmlspecialchars($row['title']) ?>
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        <?= htmlspecialchars($row['message']) ?>
+                                    </div>
+                                </td>
+
+                                <td class="p-3 text-slate-600">
+                                    <?= $row['user_name'] ?? 'Guest' ?>
+                                </td>
+
+                                <td class="p-3">
+                                    <?php if ($row['is_read'] == 0): ?>
+                                        <span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">Unread</span>
+                                    <?php else: ?>
+                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-600 rounded-full">Read</span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <td class="p-3 text-xs text-slate-500">
+                                    <?= date('Y-m-d H:i', strtotime($row['created_at'])) ?>
+                                </td>
+
+                                <td class="p-3 text-center space-x-2">
+
+                                    <?php if ($row['is_read'] == 0): ?>
+                                        <a href="?read_id=<?= $row['id'] ?>"
+                                            class="text-blue-500 hover:underline text-xs">
+                                            Mark Read
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <a href="?delete_id=<?= $row['id'] ?>"
+                                        onclick="return confirm('Delete this notification?')"
+                                        class="text-red-500 hover:underline text-xs">
+                                        Delete
+                                    </a>
+
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
-
     </div>
-</div>
 
 </body>
+
 </html>

@@ -115,7 +115,12 @@ require '../includes/header.php';
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Password</label>
-                        <input type="password" id="password" name="password" required placeholder="Enter your password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-pink-400 transition-colors">
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required placeholder="Enter your password" class="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-pink-400 transition-colors">
+                            <button type="button" onclick="togglePassword('password', this)" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <button type="submit" class="w-full py-3.5 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-md shadow-pink-500/10 active:scale-[0.99] transition-all duration-150">
@@ -132,5 +137,20 @@ require '../includes/header.php';
 
     <?php require '../includes/footer.php'; ?>
 
+    <script>
+        function togglePassword(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>

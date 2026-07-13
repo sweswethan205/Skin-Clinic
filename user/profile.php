@@ -113,15 +113,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$appointment_count = 0;
-$count_stmt = $conn->prepare("SELECT COUNT(*) as total FROM appointments WHERE user_id = ?");
-$count_stmt->bind_param("i", $user_id);
-$count_stmt->execute();
-$count_result = $count_stmt->get_result();
-if ($count_row = $count_result->fetch_assoc()) {
-    $appointment_count = $count_row['total'];
-}
-$count_stmt->close();
+// $appointment_count = 0;
+// $count_stmt = $conn->prepare("SELECT COUNT(*) as total FROM appointments WHERE user_id = ?");
+// $count_stmt->bind_param("i", $user_id);
+// $count_stmt->execute();
+// $count_result = $count_stmt->get_result();
+// if ($count_row = $count_result->fetch_assoc()) {
+//     $appointment_count = $count_row['total'];
+//     <?php echo $appointment_count; 
+// }
+// $count_stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -147,7 +148,7 @@ $count_stmt->close();
         }
     </script>
 </head>
-<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased min-h-screen flex flex-col">
+<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased min-h-screen flex flex-col">
     <?php include '../includes/header.php'; ?>
 
     <main class="flex-grow max-w-4xl mx-auto w-full px-6 py-12">
@@ -201,13 +202,13 @@ $count_stmt->close();
                     <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Phone</label>
                     <input type="tel" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
-                <div>
+                <!-- <div>
                     <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Total Appointments</label>
                     <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <i class="fa-regular fa-calendar text-brand-pink"></i>
-                        <span class="text-sm font-medium"><?php echo $appointment_count; ?> bookings</span>
+                        <span class="text-sm font-medium"> bookings</span>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end">

@@ -40,7 +40,7 @@ if ($rev_result) { $row = $rev_result->fetch_assoc(); $total_revenue = $row['tot
 
 // Unread notifications count
 $unread_notif_count = 0;
-$nc = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE is_read = 0");
+$nc = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE is_read = 0 AND target_role = 'admin'");
 if ($nc && $ncr = $nc->fetch_assoc()) {
     $unread_notif_count = $ncr['c'];
 }
@@ -171,11 +171,6 @@ if ($msg_result = $conn->query($msg_query)) {
         <header class="h-16 sm:h-20 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-8 shrink-0 sticky top-0 z-50">
             <div class="flex items-center space-x-3 sm:space-x-4">
                 
-                <!-- MOBILE MENU TOGGLE ICON (Visible only on mobile/tablet) -->
-                <button id="mobile-menu-toggle" class="lg:hidden text-slate-600 hover:text-brand-pink text-xl p-1 focus:outline-none transition-colors">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold text-slate-800">Dashboard</h2>
                     <p class="text-[10px] sm:text-xs text-slate-400 font-medium">Welcome back, Admin!</p>
@@ -184,13 +179,6 @@ if ($msg_result = $conn->query($msg_query)) {
 
             <!-- Global Action Controls -->
             <div class="flex items-center space-x-3 sm:space-x-6">
-                <!-- Search (hidden on mobile) -->
-                <div class="relative w-64 hidden md:block">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input type="text" placeholder="Search..." class="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:border-brand-pink/50">
-                </div>
                 
                 <!-- Notification Bell -->
                 <a href="notification.php" class="relative inline-block text-slate-500 hover:text-brand-pink text-xl transition-colors p-1 shrink-0">

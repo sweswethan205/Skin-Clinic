@@ -41,7 +41,7 @@ while ($row = $doctors_result->fetch_assoc()) {
         }
     </script>
 </head>
-<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased min-h-screen flex flex-col justify-between">
     
     <?php include '../includes/header.php'; ?>
 
@@ -121,9 +121,7 @@ while ($row = $doctors_result->fetch_assoc()) {
 
     </main>
 
-    <footer class="bg-white border-t border-gray-100 py-6 text-center text-[11px] text-gray-400">
-        &copy; 2026 GlowSkin Skin Clinic. Verified operational credentials.
-    </footer>
+  <?php include '../includes/footer.php'; ?>
 
 </body>
 </html>

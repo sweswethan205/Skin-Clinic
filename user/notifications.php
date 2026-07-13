@@ -13,21 +13,21 @@ $user_id = intval($_SESSION['user_id']);
 // Mark single as read
 if (isset($_GET['read_id'])) {
     $id = intval($_GET['read_id']);
-    $conn->query("UPDATE notifications SET is_read = 1 WHERE id = $id AND user_id = $user_id");
+    $conn->query("UPDATE notifications SET is_read = 1 WHERE id = $id AND user_id = $user_id AND target_role = 'user'");
     header("Location: notifications.php");
     exit;
 }
 
 // Mark all as read
 if (isset($_GET['read_all'])) {
-    $conn->query("UPDATE notifications SET is_read = 1 WHERE user_id = $user_id AND is_read = 0");
+    $conn->query("UPDATE notifications SET is_read = 1 WHERE user_id = $user_id AND is_read = 0 AND target_role = 'user'");
     header("Location: notifications.php");
     exit;
 }
 
 // Fetch notifications
 $notifications = [];
-$result = $conn->query("SELECT * FROM notifications WHERE user_id = $user_id ORDER BY created_at DESC");
+$result = $conn->query("SELECT * FROM notifications WHERE user_id = $user_id AND target_role = 'user' ORDER BY created_at DESC");
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $notifications[] = $row;
@@ -41,6 +41,7 @@ foreach ($notifications as $n) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,15 +56,24 @@ foreach ($notifications as $n) {
             theme: {
                 extend: {
                     colors: {
-                        brand: { pink: '#FF6584', lightPink: '#FFF0F2', dark: '#2D2D2D', textMuted: '#666666' }
+                        brand: {
+                            pink: '#FF6584',
+                            lightPink: '#FFF0F2',
+                            dark: '#2D2D2D',
+                            textMuted: '#666666'
+                        }
                     },
-                    fontFamily: { sans: ['Inter', 'sans-serif'], serif: ['Playfair Display', 'serif'] }
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-brand-lightPink font-sans antialiased">
+
+<body class="bg-brand-lightPink/50 font-sans antialiased">
     <?php include '../includes/header.php'; ?>
 
     <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
@@ -116,4 +126,5 @@ foreach ($notifications as $n) {
 
     <?php include '../includes/footer.php'; ?>
 </body>
+
 </html>

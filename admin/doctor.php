@@ -178,7 +178,7 @@ while ($row = $doctors_result->fetch_assoc()) {
             </div>
 
             <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-                <div class="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
                     <?php if ($admin_photo): ?>
                         <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
                     <?php else: ?>
@@ -187,7 +187,7 @@ while ($row = $doctors_result->fetch_assoc()) {
                 </div>
                 <div>
                     <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
-                    <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span>
+                    <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
                 </div>
             </a>
         </header>

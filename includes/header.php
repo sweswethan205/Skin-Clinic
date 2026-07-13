@@ -44,9 +44,9 @@ if (!isset($conn) || $conn === null) {
         }
     </script>
 </head>
-<body class="bg-white font-sans text-brand-dark antialiased">
+<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased">
 
-    <header class="w-full px-10 flex items-center justify-between sticky top-0 z-50 bg-white shadow-sm border-b">
+    <header class="w-full px-10 flex items-center justify-between sticky top-0 z-50 bg-brand-lightPink shadow-sm border-b">
         <div class="flex items-center space-x-2 text-brand-pink py-4">
             <i class="fa-solid fa-spa text-2xl"></i>
             <span class="font-serif font-bold text-xl tracking-wide text-brand-dark">GlowSkin <span class="block text-xs font-sans font-semibold tracking-widest text-brand-pink -mt-1">SKIN CLINIC</span></span>
@@ -69,7 +69,7 @@ if (!isset($conn) || $conn === null) {
                 $unread_notif = 0;
                 if (isset($_SESSION['user_id'])) {
                     $uid = intval($_SESSION['user_id']);
-                    $nq = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE user_id = $uid AND is_read = 0");
+                    $nq = $conn->query("SELECT COUNT(*) AS c FROM notifications WHERE user_id = $uid AND is_read = 0 AND target_role = 'user'");
                     if ($nq && $nr = $nq->fetch_assoc()) $unread_notif = $nr['c'];
                 }
                 ?>

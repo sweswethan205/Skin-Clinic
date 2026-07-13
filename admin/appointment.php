@@ -4,6 +4,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include_once '../config/db.php';
 
+$admin = $conn->query("SELECT username, photo FROM admins ORDER BY id ASC LIMIT 1")->fetch_assoc();
+$admin_photo = $admin['photo'] ?? '';
+$admin_username = $admin['username'] ?? 'Admin';
+
 $message = '';
 $msg_type = '';
 
@@ -43,8 +47,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 $treatment_name = $app_info['treatment_name'];
                 $status_label = ucfirst($new_status);
                 $notif_msg = "Your \"$treatment_name\" appointment has been $status_label.";
-                $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type) VALUES (?, ?, ?, ?, 'status')");
-                $notif->bind_param("iiss", $app_info['user_id'], $id, $title, $notif_msg);
+                $target = 'user';
+                $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type, target_role) VALUES (?, ?, ?, ?, 'status', ?)");
+                $notif->bind_param("iisss", $app_info['user_id'], $id, $title, $notif_msg, $target);
                 $notif->execute();
                 $notif->close();
             }
@@ -135,7 +140,7 @@ foreach ($appointments as $a) {
     
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
         
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
+        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                 
                 <div>
@@ -152,13 +157,21 @@ foreach ($appointments as $a) {
                     <input type="text" id="search-input" placeholder="Search appointments..." class="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-pink focus:bg-white transition-all placeholder:text-slate-400">
                 </div>
 
-                <div class="flex items-center space-x-3 border-l pl-6 border-slate-200">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120" alt="Admin Profile" class="w-10 h-10 rounded-xl object-cover border border-slate-200">
-                    <div>
-                        <span class="text-xs font-bold text-brand-dark block leading-tight">Admin</span>
-                        <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span>
+                <div class="flex items-center space-x-6">
+                <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 hover:opacity-80 transition">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                        <?php if ($admin_photo): ?>
+                            <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
+                        <?php endif; ?>
                     </div>
-                </div>
+                    <div>
+                        <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                        <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
+                    </div>
+                </a>
+            </div>
             </div>
         </header>
 

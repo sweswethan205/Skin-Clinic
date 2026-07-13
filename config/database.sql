@@ -181,6 +181,7 @@ CREATE TABLE notifications (
     title VARCHAR(255),
     message TEXT,
     type VARCHAR(50),
+    target_role VARCHAR(10) NOT NULL DEFAULT 'user',
     is_read BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

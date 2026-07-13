@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         $errors[] = 'Invalid treatment selection.';
     }
 
-    // Map form payment method to payment_methods table
     $method_map = [
         'kbz_pay' => 'KBZ Pay',
         'wave_pay' => 'Wave Pay',
@@ -45,10 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         }
     }
     if ($payment_method_id <= 0) {
-        $payment_method_id = 1; // fallback to first method
+        $payment_method_id = 1;
     }
 
-    // Handle receipt upload
     $receipt_path = '';
     if (isset($_FILES['receipt_image']) && $_FILES['receipt_image']['error'] === UPLOAD_ERR_OK) {
         $upload_dir = '../uploads/receipts/';
@@ -70,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
     }
 
     if (empty($errors)) {
-        // Check if slot is already booked by another user
         $chk = $conn->prepare("SELECT is_booked FROM schedules WHERE id = ? LIMIT 1");
         $chk->bind_param("i", $schedule_id);
         $chk->execute();
@@ -81,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
             $errors[] = 'This time slot has already been booked by another patient.';
         }
 
-        // Check if user already booked this slot
         $dup = $conn->prepare("SELECT id FROM appointments WHERE user_id = ? AND schedule_id = ? AND status != 'cancelled' LIMIT 1");
         $dup->bind_param("ii", $user_id, $schedule_id);
         $dup->execute();
@@ -112,11 +108,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
             }
             $upd->close();
 
-            // Create notification
             $title = 'New Appointment';
             $msg = "User #$user_id booked appointment #$appointment_id.";
-            $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type) VALUES (?, ?, ?, ?, 'booking')");
-            $notif->bind_param("iiss", $user_id, $appointment_id, $title, $msg);
+            $target = 'admin';
+            $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type, target_role) VALUES (?, ?, ?, ?, 'booking', ?)");
+            $notif->bind_param("iisss", $user_id, $appointment_id, $title, $msg, $target);
             $notif->execute();
             $notif->close();
 
@@ -141,7 +137,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
 $schedule_id = isset($_GET['schedule_id']) ? intval($_GET['schedule_id']) : (isset($_SESSION['booking_schedule_id']) ? intval($_SESSION['booking_schedule_id']) : 0);
 $treatment_id = isset($_SESSION['booking_treatment_id']) ? intval($_SESSION['booking_treatment_id']) : 0;
 
-// Store in session for persistence
 if ($schedule_id > 0) {
     $_SESSION['booking_schedule_id'] = $schedule_id;
 }
@@ -261,9 +256,6 @@ if (isset($_SESSION['user_id'])) {
             <a href="booking.php" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-textMuted hover:text-brand-pink transition">
                 <i class="fa-solid fa-arrow-left"></i> Back to Schedule
             </a>
-            <div class="text-xs font-medium text-brand-textMuted tracking-wide">
-                Step <span class="text-brand-pink font-bold">2</span> of 3
-            </div>
         </div>
     </header>
 
@@ -318,39 +310,38 @@ if (isset($_SESSION['user_id'])) {
                     <label class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 block">Payment Method</label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="payment-methods-container">
                         
+                        <!-- KBZ PAY CARD -->
                         <label data-method="kbz_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border-2 border-[#005BAa] bg-[#005BAa] text-white">
                             <input type="radio" name="payment_method" value="kbz_pay" checked class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-white text-[#005BAa] flex flex-col items-center justify-center font-bold text-[11px] font-sans shrink-0 shadow-xs transition-colors group-hover:bg-slate-50">
-                                <span class="text-[8px] font-medium tracking-tighter opacity-90 leading-none">KBZ</span>
-                                <span class="font-extrabold text-xs -mt-0.5">Pay</span>
+                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                                <img src="../assets/images/kpay.png" alt="KBZ Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">KBZPay</span>
                         </label>
 
+                        <!-- WAVE PAY CARD -->
                         <label data-method="wave_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600">
                             <input type="radio" name="payment_method" value="wave_pay" class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-[#F9CC1A] flex items-center justify-center shrink-0 shadow-xs relative overflow-hidden transition-colors">
-                                <div class="w-7 h-7 rounded-full bg-[#004B93] flex items-center justify-center text-white text-[9px] font-bold font-serif">
-                                    w
-                                </div>
+                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                                <img src="../assets/images/wave.png" alt="Wave Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">WavePay</span>
                         </label>
 
+                        <!-- CB PAY CARD -->
                         <label data-method="cb_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600">
                             <input type="radio" name="payment_method" value="cb_pay" class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-[#006BB6] text-white flex flex-col items-center justify-center shrink-0 shadow-xs relative overflow-hidden transition-colors">
-                                <div class="w-8 h-4 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 absolute top-2 rounded-full opacity-75 blur-[1px]"></div>
-                                <span class="font-bold text-xs tracking-tighter z-10">CBPay</span>
+                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                                <img src="../assets/images/cbpay.png" alt="CB Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">CBPay</span>
                         </label>
 
+                        <!-- TRUSTY PAY CARD -->
                         <label data-method="trusty_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600">
                             <input type="radio" name="payment_method" value="trusty_pay" class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-[#5A1793] text-white flex flex-col items-center justify-center font-bold text-[9px] leading-none shrink-0 shadow-xs transition-colors">
-                                <span class="mb-0.5 font-light">$$$</span>
-                                <span class="text-[7px] uppercase tracking-tighter opacity-80">Trusty</span>
+                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                                <img src="../assets/images/trusty.png" alt="Trusty Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">TrustyPay</span>
                         </label>
@@ -374,27 +365,19 @@ if (isset($_SESSION['user_id'])) {
                 <form class="space-y-4" id="payment-form" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="schedule_id" value="<?= $schedule_id ?>">
                     
-                    <div id="qr-scan-window" class="bg-slate-50 rounded-2xl p-4 border border-gray-100 text-center space-y-3">
-                        <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-brand-pink">
+                    <div id="qr-scan-window" class="bg-[#005BAa]/5 rounded-2xl p-4 border border-[#005BAa]/20 text-center space-y-3 transition-colors duration-200">
+                        <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#005BAa]">
                             <i class="fa-solid fa-qrcode text-xs"></i> <span>Scan QR Code</span>
                         </div>
                         
-                        <div class="w-40 h-40 mx-auto bg-white border border-gray-200/60 rounded-xl p-2.5 flex items-center justify-center shadow-xs relative group">
+                        <div class="w-40 h-40 mx-auto bg-white border border border-gray-200/60 rounded-xl p-2.5 flex items-center justify-center shadow-xs relative group">
                             <img id="dynamic-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GlowSkin_<?= htmlspecialchars($user_name ?: 'Guest') ?>_Deposit" alt="Payment Scan Terminal" class="w-full h-full object-contain">
                         </div>
                         
                         <p class="text-[11px] text-brand-textMuted leading-normal">
-                            Open your <span id="active-wallet-label" class="font-bold text-brand-dark">KBZPay</span> app and scan this secure dynamic invoice window to finalize your checkout balance instantly.
+                            Open your <span id="active-wallet-label" class="font-bold text-[#005BAa] transition-colors duration-200">KBZPay</span> app and scan this secure dynamic invoice window to finalize your checkout balance instantly.
                         </p>
                     </div>
-
-                    <!-- <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">Sender Reference / Txn ID</label>
-                        <div class="relative flex items-center">
-                            <span class="absolute left-4 text-gray-400"><i class="fa-solid fa-receipt text-xs"></i></span>
-                            <input type="text" required name="txn_id" placeholder="Enter last 6 digits or Txn ID" class="w-full bg-white border border-gray-200 text-sm font-medium pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-pink focus:border-brand-pink transition">
-                        </div>
-                    </div> -->
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">Upload Receipt Screenshot</label>
@@ -425,8 +408,8 @@ if (isset($_SESSION['user_id'])) {
                     </div>
 
                     <div class="space-y-2 pt-4">
-                        <button type="submit" class="w-full bg-brand-pink text-white text-xs font-semibold tracking-wider uppercase py-4 rounded-xl shadow-md shadow-pink-100 hover:bg-opacity-95 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-circle-check text-xs"></i> I Have Paid
+                        <button type="submit" class="w-full bg-brand-pink text-white text-xs font-semibold tracking-wider uppercase py-4 rounded-xl shadow-md shadow-pink-100 hover:bg-opacity-95 transition-all flex items-center justify-center gap-2 hover:bg-pink-600">
+                            <i class="fa-solid fa-circle-check text-xs"></i> Payment
                         </button>
                         
                         <a href="../user/booking.php" class="w-full bg-white border border-gray-200 hover:border-gray-300 text-brand-textMuted hover:text-brand-dark text-xs font-semibold tracking-wider uppercase py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
@@ -454,16 +437,12 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-    <footer class="bg-white border-t border-gray-100 py-4 text-center text-[11px] text-gray-400">
-        &copy; 2026 GlowSkin Skin Clinic. All encrypted portals secure.
-    </footer>
+   <?php include '../includes/footer.php'; ?>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const cards = document.querySelectorAll('.payment-method-card');
         const paymentForm = document.getElementById('payment-form');
-        const modal = document.getElementById('success-modal');
-        const modalContent = modal.querySelector('.transform');
         
         const activeWalletLabel = document.getElementById('active-wallet-label');
         const dynamicQrImage = document.getElementById('dynamic-qr-image');
@@ -472,61 +451,60 @@ if (isset($_SESSION['user_id'])) {
         const receiptPreview = document.getElementById('receipt-preview');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
 
-        // Brand Configuration Objects for active states
+        // Configurations mapping color shifts dynamically
         const brandStyles = {
-            kbz_pay: { bg: 'bg-[#005BAa]', border: 'border-[#005BAa]', text: 'text-white', innerIconBg: 'bg-white' },
-            wave_pay: { bg: 'bg-[#F9CC1A]', border: 'border-[#F9CC1A]', text: 'text-slate-900', innerIconBg: 'bg-[#004B93]' },
-            cb_pay: { bg: 'bg-[#006BB6]', border: 'border-[#006BB6]', text: 'text-white', innerIconBg: 'bg-white' },
-            trusty_pay: { bg: 'bg-[#5A1793]', border: 'border-[#5A1793]', text: 'text-white', innerIconBg: 'bg-white' }
+            kbz_pay: { 
+                bg: 'bg-[#005BAa]', border: 'border-[#005BAa]', text: 'text-white',
+                qrBg: 'bg-[#005BAa]/5', qrBorder: 'border-[#005BAa]/20', qrText: 'text-[#005BAa]'
+            },
+            wave_pay: { 
+                bg: 'bg-[#F9CC1A]', border: 'border-[#F9CC1A]', text: 'text-slate-900',
+                qrBg: 'bg-[#F9CC1A]/5', qrBorder: 'border-[#F9CC1A]/20', qrText: 'text-[#D4A500]'
+            },
+            cb_pay: { 
+                bg: 'bg-[#006BB6]', border: 'border-[#006BB6]', text: 'text-white',
+                qrBg: 'bg-[#006BB6]/5', qrBorder: 'border-[#006BB6]/20', qrText: 'text-[#006BB6]'
+            },
+            trusty_pay: { 
+                bg: 'bg-[#5A1793]', border: 'border-[#5A1793]', text: 'text-white',
+                qrBg: 'bg-[#5A1793]/5', qrBorder: 'border-[#5A1793]/20', qrText: 'text-[#5A1793]'
+            }
         };
 
-        // Interactive Card Click Handler
         cards.forEach(card => {
             card.addEventListener('click', () => {
                 const selectedMethod = card.getAttribute('data-method');
 
-                // 1. Reset all cards to their unselected white state
+                // Clear styling on all payment options cards
                 cards.forEach(c => {
-                    const methodKey = c.getAttribute('data-method');
                     c.className = "payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600";
-                    
-                    // Reset internal icon badges back to normal fallback
-                    const innerIconBox = c.querySelector('.w-12');
-                    if(methodKey === 'kbz_pay') {
-                        innerIconBox.className = "w-12 h-12 rounded-lg bg-[#005BAa] text-white flex flex-col items-center justify-center font-bold text-[11px] font-sans shrink-0 shadow-xs";
-                    } else if(methodKey === 'wave_pay') {
-                        innerIconBox.className = "w-12 h-12 rounded-lg bg-[#F9CC1A] flex items-center justify-center shrink-0 shadow-xs relative overflow-hidden";
-                    } else if(methodKey === 'cb_pay') {
-                        innerIconBox.className = "w-12 h-12 rounded-lg bg-[#006BB6] text-white flex flex-col items-center justify-center shrink-0 shadow-xs relative overflow-hidden";
-                    } else if(methodKey === 'trusty_pay') {
-                        innerIconBox.className = "w-12 h-12 rounded-lg bg-[#5A1793] text-white flex flex-col items-center justify-center font-bold text-[9px] leading-none shrink-0 shadow-xs";
-                    }
                 });
 
-                // 2. Inject native active brand classes onto selected target card container
+                // Highlight selected card options
                 const style = brandStyles[selectedMethod];
                 card.className = `payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border-2 ${style.border} ${style.bg} ${style.text}`;
 
-                // Swap internal brand block text color nicely if needed for KBZPay layout adjustments
-                const activeInnerIconBox = card.querySelector('.w-12');
-                if (selectedMethod === 'kbz_pay') {
-                    activeInnerIconBox.className = "w-12 h-12 rounded-lg bg-white text-[#005BAa] flex flex-col items-center justify-center font-bold text-[11px] font-sans shrink-0 shadow-xs";
-                }
-
-                // 3. Sync radio button logic status
                 const radio = card.querySelector('input[type="radio"]');
                 radio.checked = true;
 
-                // 4. Update the side panel display text values
+                // Sync the label string update inside description sentences
                 const currentLabelText = card.querySelector('span:last-child').innerText;
                 activeWalletLabel.innerText = currentLabelText;
-
-                // 5. Load dynamic API QR Code matching string token values
+                
+                // Dynamically modify text color on selection text
+                activeWalletLabel.className = `font-bold transition-colors duration-200 ${style.qrText}`;
+                
                 dynamicQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GlowSkin_${selectedMethod}_Deposit_Token`;
+
+                // Update QR Layout Background and Header container styling classes
+                const qrContainer = document.getElementById('qr-scan-window');
+                const qrHeader = qrContainer.querySelector('.flex');
+
+                qrContainer.className = `${style.qrBg} rounded-2xl p-4 border ${style.qrBorder} text-center space-y-3 transition-colors duration-200`;
+                qrHeader.className = `flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${style.qrText}`;
             });
         });
 
-        // Live Upload Image Receipt Preview rendering pipeline
         receiptUploadInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -540,7 +518,6 @@ if (isset($_SESSION['user_id'])) {
             }
         });
 
-        // Form submit: show loading state and submit to server
         paymentForm.addEventListener('submit', (event) => {
             const submitBtn = paymentForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
@@ -551,7 +528,6 @@ if (isset($_SESSION['user_id'])) {
     function closeModal() {
         const modal = document.getElementById('success-modal');
         const modalContent = modal.querySelector('.transform');
-        
         modal.classList.add('opacity-0', 'pointer-events-none');
         modalContent.classList.remove('scale-100');
         modalContent.classList.add('scale-95');

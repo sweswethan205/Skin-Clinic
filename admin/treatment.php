@@ -164,8 +164,8 @@ while ($row = $treatments_result->fetch_assoc()) {
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
 
         <!-- HEADER -->
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
-            <div class="flex items-center space-x-4">
+        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+            <div class="flex items-center">
                 
                 <div>
                     <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Treatment Catalog</h2>
@@ -174,7 +174,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             </div>
 
             <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-                <div class="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
                     <?php if ($admin_photo): ?>
                         <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
                     <?php else: ?>

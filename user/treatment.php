@@ -26,7 +26,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             <?php else: ?>
             <?php foreach ($treatments as $treatment): ?>
             <!-- Card Container - flex-col h-full forces equal layout sizes -->
-            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group flex flex-col h-full">
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100  ease-out  hover:shadow-xl hover:border-pink-100 group flex flex-col h-full">
                 
                 <!-- Card Image Box -->
                 <div class="overflow-hidden aspect-video shrink-0">

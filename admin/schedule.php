@@ -11,33 +11,114 @@ $message_type = '';
 // Handle Create / Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $doctor_id = intval($_POST['doctor_id']);
-    $available_date = $_POST['available_date'];
-    $start_time = $_POST['start_time'];
-    $end_time = $_POST['end_time'];
 
     if ($_POST['action'] === 'create') {
+        $start_date = $_POST['start_date'];
+        $end_date = $_POST['end_date'];
+
+        if ($start_date > $end_date) {
+            $message = "Start date must be before end date!";
+            $message_type = "error";
+            header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
+            exit;
+        }
+
+        // 90-minute slots: 9:00-10:30, 10:30-12:00, 13:00-14:30, 14:30-16:00, 16:00-17:30, 17:30-19:00
+        $slots = [
+            ['09:00', '10:30'],
+            ['10:30', '12:00'],
+            ['13:00', '14:30'],
+            ['14:30', '16:00'],
+            ['16:00', '17:30'],
+            ['17:30', '19:00'],
+        ];
+
+        $current = new DateTime($start_date);
+        $end = new DateTime($end_date);
+        $end->modify('+1 day');
+        $inserted = 0;
+        $skipped = 0;
+
         $stmt = $conn->prepare("INSERT INTO schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("isss", $doctor_id, $available_date, $start_time, $end_time);
-        if ($stmt->execute()) {
-            $message = "Schedule added successfully!";
-            $message_type = "success";
-        } else {
-            $message = "Error adding schedule: " . $conn->error;
-            $message_type = "error";
+
+        while ($current < $end) {
+            $date_str = $current->format('Y-m-d');
+            foreach ($slots as $slot) {
+                // Skip if slot already exists for this doctor
+                $check = $conn->prepare("SELECT id FROM schedules WHERE doctor_id=? AND available_date=? AND start_time=?");
+                $check->bind_param("iss", $doctor_id, $date_str, $slot[0]);
+                $check->execute();
+                $result = $check->get_result();
+                if ($result->num_rows > 0) {
+                    $skipped++;
+                    $check->close();
+                    continue;
+                }
+                $check->close();
+
+                $stmt->bind_param("isss", $doctor_id, $date_str, $slot[0], $slot[1]);
+                if ($stmt->execute()) {
+                    $inserted++;
+                }
+            }
+            $current->modify('+1 day');
         }
         $stmt->close();
+
+        $msg_parts = "$inserted schedule(s) added successfully!";
+        if ($skipped > 0) {
+            $msg_parts .= " ($skipped duplicate slot(s) skipped)";
+        }
+        $message = $msg_parts;
+        $message_type = "success";
     } elseif ($_POST['action'] === 'update' && isset($_POST['id'])) {
-        $id = intval($_POST['id']);
-        $stmt = $conn->prepare("UPDATE schedules SET doctor_id=?, available_date=?, start_time=?, end_time=? WHERE id=?");
-        $stmt->bind_param("isssi", $doctor_id, $available_date, $start_time, $end_time, $id);
-        if ($stmt->execute()) {
-            $message = "Schedule updated successfully!";
-            $message_type = "success";
-        } else {
-            $message = "Error updating schedule: " . $conn->error;
+        $start_date = $_POST['start_date'];
+        $end_date = $_POST['end_date'];
+
+        if ($start_date > $end_date) {
+            $message = "Start date must be before end date!";
             $message_type = "error";
+            header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
+            exit;
+        }
+
+        // Delete all unbooked slots for this doctor
+        $del = $conn->prepare("DELETE FROM schedules WHERE doctor_id=? AND is_booked='no'");
+        $del->bind_param("i", $doctor_id);
+        $del->execute();
+        $del->close();
+
+        // Regenerate slots: 90-minute slots, 9AM-7PM, lunch 12-1PM
+        $slots = [
+            ['09:00', '10:30'],
+            ['10:30', '12:00'],
+            ['13:00', '14:30'],
+            ['14:30', '16:00'],
+            ['16:00', '17:30'],
+            ['17:30', '19:00'],
+        ];
+
+        $current = new DateTime($start_date);
+        $end = new DateTime($end_date);
+        $end->modify('+1 day');
+        $inserted = 0;
+
+        $stmt = $conn->prepare("INSERT INTO schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
+
+        while ($current < $end) {
+            $date_str = $current->format('Y-m-d');
+            foreach ($slots as $slot) {
+                $stmt->bind_param("isss", $doctor_id, $date_str, $slot[0], $slot[1]);
+                if ($stmt->execute()) {
+                    $inserted++;
+                }
+            }
+            $current->modify('+1 day');
         }
         $stmt->close();
+
+        $message = "Schedule updated! $inserted new slot(s) created for " . htmlspecialchars($_POST['start_date']) . " to " . htmlspecialchars($_POST['end_date']);
+        $message_type = "success";
     }
     header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
     exit;
@@ -154,7 +235,7 @@ if (isset($_GET['edit'])) {
             </div>
 
             <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-                <div class="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
                     <?php if ($admin_photo): ?>
                         <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
                     <?php else: ?>
@@ -163,7 +244,7 @@ if (isset($_GET['edit'])) {
                 </div>
                 <div>
                     <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
-                    <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span>
+                    <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
                 </div>
             </a>
         </header>
@@ -327,7 +408,7 @@ if (isset($_GET['edit'])) {
     <div id="createModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
             <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-                <h3 class="text-base font-extrabold text-brand-dark"><i class="fa-regular fa-calendar-plus text-brand-pink mr-2"></i> Add New Schedule</h3>
+                <h3 class="text-base font-extrabold text-brand-dark"><i class="fa-regular fa-calendar-plus text-brand-pink mr-2"></i> Add Monthly Schedule</h3>
                 <button onclick="closeCreateModal()" class="text-brand-muted hover:text-brand-dark text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form method="POST" action="schedule.php" class="p-6 space-y-5">
@@ -341,27 +422,50 @@ if (isset($_GET['edit'])) {
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Available Date</label>
-                    <input type="date" name="available_date" required min="<?php echo date('Y-m-d'); ?>"
-                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
-                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Start Time</label>
-                        <input type="time" name="start_time" required
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Start Date</label>
+                        <input type="date" name="start_date" id="create_start_date" required min="<?php echo date('Y-m-d'); ?>"
                             class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">End Time</label>
-                        <input type="time" name="end_time" required
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">End Date</label>
+                        <input type="date" name="end_date" id="create_end_date" required min="<?php echo date('Y-m-d'); ?>"
                             class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                 </div>
+
+                <!-- Slot Preview -->
+                <div id="slotPreview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark">
+                        <i class="fa-regular fa-clock text-brand-pink"></i> Time Slots (per day)
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted">
+                        <span>09:00 - 10:30</span>
+                        <span>10:30 - 12:00</span>
+                        <span>13:00 - 14:30</span>
+                        <span>14:30 - 16:00</span>
+                        <span>16:00 - 17:30</span>
+                        <span>17:30 - 19:00</span>
+                    </div>
+                    <div class="border-t border-slate-200 pt-2 mt-2">
+                        <span class="text-[11px] font-bold text-brand-dark">
+                            <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
+                            <span id="slotSummary">Lunch break: 12:00 - 13:00 | 6 slots per day | Each slot: 1 hour 30 minutes</span>
+                        </span>
+                    </div>
+                    <div id="slotCount" class="text-xs font-bold text-brand-pink"></div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[11px] font-medium text-blue-700">
+                    <i class="fa-solid fa-info-circle mr-1"></i>
+                    Time slots are auto-generated: <strong>9:00 AM - 7:00 PM</strong> with lunch break <strong>12:00 - 1:00 PM</strong>. Each treatment slot is <strong>1 hour 30 minutes</strong>. Duplicate slots will be skipped.
+                </div>
+
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeCreateModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
-                        <i class="fa-solid fa-plus mr-1"></i> Create Schedule
+                        <i class="fa-solid fa-plus mr-1"></i> Create Monthly Schedule
                     </button>
                 </div>
             </form>
@@ -372,7 +476,7 @@ if (isset($_GET['edit'])) {
     <div id="editModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
             <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-                <h3 class="text-base font-extrabold text-brand-dark"><i class="fa-regular fa-pen-to-square text-brand-pink mr-2"></i> Edit Schedule</h3>
+                <h3 class="text-base font-extrabold text-brand-dark"><i class="fa-regular fa-pen-to-square text-brand-pink mr-2"></i> Edit Monthly Schedule</h3>
                 <button onclick="closeEditModal()" class="text-brand-muted hover:text-brand-dark text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form method="POST" action="schedule.php" class="p-6 space-y-5">
@@ -387,23 +491,40 @@ if (isset($_GET['edit'])) {
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Available Date</label>
-                    <input type="date" name="available_date" id="edit_available_date" required
-                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
-                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Start Time</label>
-                        <input type="time" name="start_time" id="edit_start_time" required
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Start Date</label>
+                        <input type="date" name="start_date" id="edit_start_date" required
                             class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">End Time</label>
-                        <input type="time" name="end_time" id="edit_end_time" required
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">End Date</label>
+                        <input type="date" name="end_date" id="edit_end_date" required
                             class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                 </div>
+
+                <!-- Slot Preview -->
+                <div id="editSlotPreview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark">
+                        <i class="fa-regular fa-clock text-brand-pink"></i> Time Slots (per day)
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted">
+                        <span>09:00 - 10:30</span>
+                        <span>10:30 - 12:00</span>
+                        <span>13:00 - 14:30</span>
+                        <span>14:30 - 16:00</span>
+                        <span>16:00 - 17:30</span>
+                        <span>17:30 - 19:00</span>
+                    </div>
+                    <div id="editSlotCount" class="text-xs font-bold text-brand-pink"></div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-[11px] font-medium text-amber-700">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                    This will <strong>delete all unbooked slots</strong> for this doctor and regenerate new slots based on the new date range. Booked slots will not be affected.
+                </div>
+
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
@@ -441,22 +562,77 @@ if (isset($_GET['edit'])) {
 
         function closeCreateModal() {
             document.getElementById('createModal').classList.add('hidden');
+            document.getElementById('slotPreview').classList.add('hidden');
         }
+
+        // Calculate slot count when dates change
+        function updateSlotPreview() {
+            const start = document.getElementById('create_start_date').value;
+            const end = document.getElementById('create_end_date').value;
+            const preview = document.getElementById('slotPreview');
+            const countEl = document.getElementById('slotCount');
+
+            if (start && end) {
+                const startD = new Date(start);
+                const endD = new Date(end);
+                if (endD >= startD) {
+                    const diffTime = Math.abs(endD - startD);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    const totalSlots = diffDays * 6;
+                    preview.classList.remove('hidden');
+                    countEl.textContent = diffDays + ' day(s) x 6 slots = ' + totalSlots + ' total slots to create';
+                } else {
+                    preview.classList.add('hidden');
+                }
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('create_start_date').addEventListener('change', updateSlotPreview);
+        document.getElementById('create_end_date').addEventListener('change', updateSlotPreview);
 
         function openEditModal(id) {
             const schedule = schedulesData.find(s => s.id == id);
             if (!schedule) return;
             document.getElementById('edit_id').value = schedule.id;
             document.getElementById('edit_doctor_id').value = schedule.doctor_id;
-            document.getElementById('edit_available_date').value = schedule.available_date;
-            document.getElementById('edit_start_time').value = schedule.start_time;
-            document.getElementById('edit_end_time').value = schedule.end_time;
+            document.getElementById('edit_start_date').value = schedule.available_date;
+            document.getElementById('edit_end_date').value = schedule.available_date;
             document.getElementById('editModal').classList.remove('hidden');
+            updateEditSlotPreview();
         }
 
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editSlotPreview').classList.add('hidden');
         }
+
+        function updateEditSlotPreview() {
+            const start = document.getElementById('edit_start_date').value;
+            const end = document.getElementById('edit_end_date').value;
+            const preview = document.getElementById('editSlotPreview');
+            const countEl = document.getElementById('editSlotCount');
+
+            if (start && end) {
+                const startD = new Date(start);
+                const endD = new Date(end);
+                if (endD >= startD) {
+                    const diffTime = Math.abs(endD - startD);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    const totalSlots = diffDays * 6;
+                    preview.classList.remove('hidden');
+                    countEl.textContent = diffDays + ' day(s) x 6 slots = ' + totalSlots + ' total slots to create';
+                } else {
+                    preview.classList.add('hidden');
+                }
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('edit_start_date').addEventListener('change', updateEditSlotPreview);
+        document.getElementById('edit_end_date').addEventListener('change', updateEditSlotPreview);
 
         function confirmDelete(id) {
             document.getElementById('deleteConfirmBtn').href = 'schedule.php?delete=' + id;

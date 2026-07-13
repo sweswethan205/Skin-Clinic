@@ -68,7 +68,7 @@ while ($row = $treatments_result->fetch_assoc()) {
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <?php foreach ($treatments as $treatment): ?>
             <!-- Slimmed Card Container layout -->
-            <div class="treatment-card bg-white rounded-xl overflow-hidden shadow-xs border border-slate-100 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lg hover:border-pink-100 group">
+            <div class="treatment-card bg-white rounded-xl overflow-hidden shadow-xs border border-slate-100 transition-all duration-300 ease-out hover:shadow-lg hover:border-pink-100 group">
                 
                 <!-- Smaller Compact Image Section Height container framework -->
                 <div class="overflow-hidden h-44 relative bg-slate-50">

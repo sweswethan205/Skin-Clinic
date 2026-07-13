@@ -121,8 +121,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $notif_title = 'New Review';
         $notif_msg = "$name submitted a $rating-star review: " . substr($review_text, 0, 50) . (strlen($review_text) > 50 ? '...' : '');
         $nid = ($user_id !== "NULL") ? intval($user_id) : 0;
-        $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'review')");
-        $nstmt->bind_param("iss", $nid, $notif_title, $notif_msg);
+        $target = 'admin';
+        $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type, target_role) VALUES (?, ?, ?, 'review', ?)");
+        $nstmt->bind_param("isss", $nid, $notif_title, $notif_msg, $target);
         $nstmt->execute();
         $nstmt->close();
         $notification = 'success';
@@ -197,14 +198,14 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
        
     </style>
 </head>
-<body class="bg-brand-lightPink font-sans text-brand-dark antialiased">
+<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased">
 
 <?php include '../includes/header.php' ?>
 
 
     <!-- HERO SECTION -->
-    <section class="bg-brand-lightPink relative overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 items-center pt-12 pb-20 md:py-24">
+    <section class="relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 items-center pt-8 pb-10 md:py-10">
             <div class="space-y-6 max-w-xl z-10">
                 <span class="text-xs font-semibold uppercase tracking-wider text-brand-pink">Best Skin Clinic</span>
                 <h1 class="font-serif text-5xl md:text-6xl text-brand-dark leading-tight">
@@ -273,7 +274,7 @@ while ($row = $treatments_result->fetch_assoc()) {
 ?>
 
 <!-- POPULAR TREATMENTS SECTION -->
-    <section class="max-w-7xl mx-auto px-6 py-20">
+    <section class="max-w-7xl mx-auto px-6 py-12">
         <div class="flex justify-between items-end mb-10">
             <div>
                 <span class="text-xs font-semibold tracking-widest text-brand-pink uppercase block mb-2">Our Popular Treatments</span>
@@ -353,7 +354,7 @@ while ($row = $treatments_result->fetch_assoc()) {
     </section>
 
     <!-- STATS COUNTER SECTION -->
-    <section class="bg-[#FFF0F2] py-16 border-t border-b border-pink-100/40">
+    <section class="py-12 border-t border-b border-pink-100/40">
         <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
                 <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-regular fa-face-smile text-rose-400"></i></div>
@@ -362,31 +363,31 @@ while ($row = $treatments_result->fetch_assoc()) {
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
                 <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-solid fa-user-doctor text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="20">0</span>+</h3>
+                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="4">0</span>+</h3>
                 <p class="text-xs text-gray-500 font-medium mt-1">Expert Doctors</p>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
                 <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-solid fa-wand-magic-sparkles text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="50">0</span>+</h3>
+                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="10">0</span>+</h3>
                 <p class="text-xs text-gray-500 font-medium mt-1">Treatments</p>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
                 <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-solid fa-award text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="5">0</span>+</h3>
+                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="10">0</span>+</h3>
                 <p class="text-xs text-gray-500 font-medium mt-1">Years Experience</p>
             </div>
         </div>
     </section>
 
     <!-- TESTIMONIALS SECTION -->
-    <section class="w-full mx-auto px-6 py-12 bg-brand-lightPink">
-        <div class="text-center mb-12">
+    <section class="max-w-7xl mx-auto px-6 py-12">
+        <div class="text-center mb-10">
             <span class="text-xs font-semibold uppercase tracking-wider text-[#FF6584] block mb-1">What Our Clients Say</span>
             <h2 class="font-serif text-3xl text-slate-800">Real Stories, Real Results</h2>
         </div>
         
         <!-- Marquee Frame Wrapper -->
-        <div class="overflow-hidden max-w-7xl mx-auto px-6 py-12 relative ma">
+        <div class="overflow-hidden max-w-7xl mx-auto px-6 py-6 relative">
             <!-- added w-max and flex-nowrap to prevent elements breaking into lines -->
             <div class="flex flex-nowrap gap-6 animate-marquee w-max pb-4 max-w-7xl">
                 <?php if (!empty($reviews)): ?>
@@ -420,10 +421,10 @@ while ($row = $treatments_result->fetch_assoc()) {
             </div>
         </div>
 
-        <div class="bg-white max-w-7xl mx-auto px-6 py-12 md:p-14 rounded-[2.5rem] shadow-[0_20px_50px_rgba(255,101,132,0.04)] border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-12">
+        <div class="bg-white max-w-7xl mx-auto px-6 py-6 md:py-10 rounded-[2.5rem] shadow-sm border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-4">
             
             <!-- LEFT PANEL: Typography & Branding Content -->
-            <div class="md:col-span-5 space-y-5 ">
+            <div class="md:col-span-5">
                 <!-- Heart Icon Emblem -->
                 <div class="w-14 h-14 bg-[#FFF0F2] rounded-2xl flex items-center justify-center text-[#FF6584] text-xl shadow-xs">
                     <i class="fa-solid fa-heart-pulse"></i>
@@ -523,8 +524,8 @@ while ($row = $treatments_result->fetch_assoc()) {
 
 
 <!-- PREMIUM CONTACT US SECTION -->
-    <section class="max-w-7xl mx-auto px-6 py-20 bg-white">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-white rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40">
+    <section class="max-w-7xl mx-auto px-6 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-brand-lightPink/50 rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40">
         
         <!-- Left Side Aesthetic Info Banner -->
         <div class="lg:col-span-6 relative bg-brand-lightPink min-h-[450px] lg:min-h-[680px] flex flex-col justify-between">

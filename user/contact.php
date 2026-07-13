@@ -57,19 +57,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->execute()) {
                 $message_id = $stmt->insert_id;
                 
-                // 1. Title format for the layout
-                $notif_title = 'New Contact Message';
-                
-                // 2. Format message text: "Swe Swe sent a contact message: I want to get more treatment."
-                // Clean up line breaks for clean list rendering
-                $clean_user_msg = str_replace(array("\r", "\n"), ' ', $message_text);
-                $notif_msg = $name . " sent a contact message: " . $clean_user_msg;
-                
-                // 3. Insert into notifications table (Make sure type is 'contact' so your Admin filter captures it)
-                $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'contact')");
-                $nstmt->bind_param("iss", $user_id, $notif_title, $notif_msg);
-                $nstmt->execute();
-                $nstmt->close();
+                if ($user_id) {
+                    $notif_title = 'New Contact Message';
+                    $clean_user_msg = str_replace(array("\r", "\n"), ' ', $message_text);
+                    $notif_msg = $name . " sent a contact message: " . $clean_user_msg;
+                    $target = 'admin';
+                    $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type, target_role) VALUES (?, ?, ?, 'contact', ?)");
+                    $nstmt->bind_param("isss", $user_id, $notif_title, $notif_msg, $target);
+                    $nstmt->execute();
+                    $nstmt->close();
+                }
                 
                 $_SESSION['contact_success'] = true;
                 header('Location: contact.php');
@@ -111,7 +108,7 @@ if (isset($_SESSION['user_id'])) {
 }
 ?>
     
-<section class="max-w-7xl mx-auto px-6 py-20 bg-white">
+<section class="max-w-7xl mx-auto px-6 py-20">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-white rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40">
         
         <!-- Left Side Aesthetic Info Banner -->
