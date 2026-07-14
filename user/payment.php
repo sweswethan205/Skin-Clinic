@@ -363,6 +363,7 @@ if (isset($_SESSION['user_id'])) {
 
                 <form class="space-y-4" id="payment-form" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="schedule_id" value="<?= $schedule_id ?>">
+                    <input type="hidden" name="payment_method" id="payment_method_hidden" value="kbz_pay">
 
                     <div id="qr-scan-window" class="bg-[#005BAa]/5 rounded-2xl p-4 border border-[#005BAa]/20 text-center space-y-3 transition-colors duration-200">
                         <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#005BAa]">
@@ -501,6 +502,7 @@ if (isset($_SESSION['user_id'])) {
 
                     const radio = card.querySelector('input[type="radio"]');
                     radio.checked = true;
+                    document.getElementById('payment_method_hidden').value = selectedMethod;
 
                     // Sync the label string update inside description sentences
                     const currentLabelText = card.querySelector('span:last-child').innerText;

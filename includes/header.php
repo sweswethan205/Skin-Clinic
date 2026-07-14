@@ -50,7 +50,16 @@ if (!isset($conn) || $conn === null) {
             if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
             }
+            updateIcons();
         })();
+
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('icon-moon');
+            const sun = document.getElementById('icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
     </script>
 </head>
 <body class="bg-brand-lightPink/50 dark:bg-gray-950 font-sans text-brand-dark dark:text-gray-100 antialiased">
@@ -73,8 +82,8 @@ if (!isset($conn) || $conn === null) {
         
         <div class="py-4 flex items-center gap-4">
             <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="text-brand-textMuted dark:text-gray-400 hover:text-brand-pink dark:hover:text-brand-pink transition p-1 rounded-lg hover:bg-pink-50 dark:hover:bg-gray-800" title="Toggle dark mode">
-                <i class="fa-solid fa-moon text-lg dark:hidden"></i>
-                <i class="fa-solid fa-sun text-lg hidden dark:inline"></i>
+                <i class="fa-solid fa-moon text-lg" id="icon-moon"></i>
+                <i class="fa-solid fa-sun text-lg" id="icon-sun" style="display:none"></i>
             </button>
             <?php if ($is_logged_in): ?>
                 <?php
@@ -171,6 +180,7 @@ if (!isset($conn) || $conn === null) {
             const html = document.documentElement;
             html.classList.toggle('dark');
             localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
         }
     </script>
 

@@ -96,7 +96,7 @@ $status_colors = [
                 <h1 class="font-serif text-3xl md:text-4xl font-bold tracking-tight">My Bookings</h1>
                 <p class="text-sm text-brand-textMuted dark:text-gray-400 mt-1">View all your appointment history</p>
             </div>
-            <a href="../user/booking.php">
+            <a href="../user/treatment.php">
                 <button class="bg-brand-pink text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-opacity-90 transition flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> New Booking
                 </button>

@@ -234,7 +234,7 @@ foreach ($appointments as $a) {
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 font-bold"><?= htmlspecialchars($a['treatment_name']) ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-user-doctor text-brand-muted text-[11px]"></i> <?= htmlspecialchars($a['doctor_name']) ?></span>
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-user-doctor text-brand-muted text-[11px]"></i>Dr. <?= htmlspecialchars($a['doctor_name']) ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="block font-bold"><?= date("d M Y", strtotime($a['available_date'])) ?></span>
