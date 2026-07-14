@@ -59,6 +59,7 @@ $status_colors = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -79,7 +80,7 @@ $status_colors = [
     </script>
 </head>
 
-<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased min-h-screen flex flex-col">
+<body class="bg-brand-lightPink/50 dark:bg-gray-950 font-sans text-brand-dark dark:text-white antialiased min-h-screen flex flex-col dark:text-gray-100">
     <?php include '../includes/header.php'; ?>
 
     <main class="flex-grow max-w-5xl mx-auto w-full px-6 py-12">
@@ -93,7 +94,7 @@ $status_colors = [
         <div class="flex items-center justify-between mb-10">
             <div>
                 <h1 class="font-serif text-3xl md:text-4xl font-bold tracking-tight">My Bookings</h1>
-                <p class="text-sm text-brand-textMuted mt-1">View all your appointment history</p>
+                <p class="text-sm text-brand-textMuted dark:text-gray-400 mt-1">View all your appointment history</p>
             </div>
             <a href="../user/booking.php">
                 <button class="bg-brand-pink text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-opacity-90 transition flex items-center gap-2">
@@ -102,25 +103,25 @@ $status_colors = [
             </a>
         </div>
 
-        <div class="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-[0_5px_20px_rgba(0,0,0,0.02)] flex items-center gap-6">
+        <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-6 shadow-[0_5px_20px_rgba(0,0,0,0.02)] flex items-center gap-6">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-brand-lightPink flex items-center justify-center">
+                <div class="w-10 h-10 rounded-full bg-brand-lightPink dark:bg-gray-800 flex items-center justify-center">
                     <i class="fa-regular fa-calendar-check text-brand-pink"></i>
                 </div>
                 <div>
-                    <span class="text-2xl font-bold text-brand-dark"><?= count($bookings) ?></span>
-                    <p class="text-xs text-brand-textMuted">Total Appointments</p>
+                    <span class="text-2xl font-bold text-brand-dark dark:text-white"><?= count($bookings) ?></span>
+                    <p class="text-xs text-brand-textMuted dark:text-gray-400">Total Appointments</p>
                 </div>
             </div>
         </div>
 
         <?php if (empty($bookings)): ?>
-            <div class="bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-                <div class="w-16 h-16 bg-brand-lightPink rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-12 text-center shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+                <div class="w-16 h-16 bg-brand-lightPink dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fa-regular fa-calendar text-2xl text-brand-pink"></i>
                 </div>
-                <h3 class="font-serif text-xl font-bold text-brand-dark mb-2">No Bookings Yet</h3>
-                <p class="text-sm text-brand-textMuted mb-6">You haven't made any appointments yet.</p>
+                <h3 class="font-serif text-xl font-bold text-brand-dark dark:text-white mb-2">No Bookings Yet</h3>
+                <p class="text-sm text-brand-textMuted dark:text-gray-400 mb-6">You haven't made any appointments yet.</p>
                 <a href="../user/booking.php" class="inline-block bg-brand-pink text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-opacity-90 transition">
                     Book Your First Appointment
                 </a>
@@ -130,16 +131,16 @@ $status_colors = [
                 <?php foreach ($bookings as $booking):
                     $color_class = $status_colors[$booking['status']] ?? 'bg-gray-50 text-gray-600 border-gray-200';
                 ?>
-                    <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_5px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition">
+                    <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-[0_5px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition">
                         <div class="flex items-start justify-between">
                             <div class="space-y-3">
                                 <div class="flex items-center gap-3">
-                                    <h3 class="text-lg font-bold text-brand-dark"><?php echo htmlspecialchars($booking['treatment_name']); ?></h3>
+                                    <h3 class="text-lg font-bold text-brand-dark dark:text-white"><?php echo htmlspecialchars($booking['treatment_name']); ?></h3>
                                     <span class="text-xs font-semibold px-3 py-1 rounded-full border <?php echo $color_class; ?>">
                                         <?php echo ucfirst($booking['status']); ?>
                                     </span>
                                 </div>
-                                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-brand-textMuted">
+                                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-brand-textMuted dark:text-gray-400">
                                     <span class="flex items-center gap-2">
                                         <i class="fa-regular fa-calendar text-brand-pink text-xs"></i>
                                         <?php echo date('M d, Y', strtotime($booking['available_date'])); ?>
@@ -156,11 +157,11 @@ $status_colors = [
                             </div>
                             <div class="text-right">
                                 <span class="text-lg font-bold text-brand-pink">$<?php echo number_format($booking['price'], 2); ?></span>
-                                <p class="text-[10px] text-brand-textMuted uppercase tracking-wider mt-1">Booked <?php echo date('M d', strtotime($booking['booked_on'])); ?></p>
+                                <p class="text-[10px] text-brand-textMuted dark:text-gray-400 uppercase tracking-wider mt-1">Booked <?php echo date('M d', strtotime($booking['booked_on'])); ?></p>
                             </div>
                         </div>
-                        <div class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-50">
-                            <a href="booking-details.php?id=<?= $booking['id'] ?>" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-pink bg-brand-lightPink px-3 py-1.5 rounded-lg hover:bg-brand-pink hover:text-white transition-all">
+                        <div class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-50 dark:border-gray-800">
+                            <a href="booking-details.php?id=<?= $booking['id'] ?>" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-pink bg-brand-lightPink dark:bg-gray-800 px-3 py-1.5 rounded-lg hover:bg-brand-pink hover:text-white transition-all">
                                 <i class="fa-regular fa-eye"></i> View Details
                             </a>
                         </div>

@@ -25,6 +25,7 @@ if (!isset($conn) || $conn === null) {
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -43,16 +44,24 @@ if (!isset($conn) || $conn === null) {
             }
         }
     </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
 </head>
-<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased">
+<body class="bg-brand-lightPink/50 dark:bg-gray-950 font-sans text-brand-dark dark:text-gray-100 antialiased">
 
-    <header class="w-full px-10 flex items-center justify-between sticky top-0 z-50 bg-brand-lightPink shadow-sm border-b">
+    <header class="w-full px-10 flex items-center justify-between sticky top-0 z-50 bg-brand-lightPink dark:bg-gray-900 shadow-sm border-b border-pink-100 dark:border-gray-800">
         <div class="flex items-center space-x-2 text-brand-pink py-4">
             <i class="fa-solid fa-spa text-2xl"></i>
-            <span class="font-serif font-bold text-xl tracking-wide text-brand-dark">GlowSkin <span class="block text-xs font-sans font-semibold tracking-widest text-brand-pink -mt-1">SKIN CLINIC</span></span>
+            <span class="font-serif font-bold text-xl tracking-wide text-brand-dark dark:text-white">GlowSkin <span class="block text-xs font-sans font-semibold tracking-widest text-brand-pink -mt-1">SKIN CLINIC</span></span>
         </div>
         
-        <nav id="main-nav" class="hidden md:flex space-x-8 text-sm font-medium text-brand-dark items-center">
+        <nav id="main-nav" class="hidden md:flex space-x-8 text-sm font-medium text-brand-dark dark:text-gray-200 items-center">
             <a href="../user/index1.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Home</a>
             <a href="../user/treatment.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Treatments</a>
             <a href="../user/about.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">About Us</a>
@@ -63,6 +72,10 @@ if (!isset($conn) || $conn === null) {
         </nav>
         
         <div class="py-4 flex items-center gap-4">
+            <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="text-brand-textMuted dark:text-gray-400 hover:text-brand-pink dark:hover:text-brand-pink transition p-1 rounded-lg hover:bg-pink-50 dark:hover:bg-gray-800" title="Toggle dark mode">
+                <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                <i class="fa-solid fa-sun text-lg hidden dark:inline"></i>
+            </button>
             <?php if ($is_logged_in): ?>
                 <?php
                 // Fetch unread notification count for logged-in user
@@ -73,10 +86,10 @@ if (!isset($conn) || $conn === null) {
                     if ($nq && $nr = $nq->fetch_assoc()) $unread_notif = $nr['c'];
                 }
                 ?>
-                <a href="../user/notifications.php" class="relative text-brand-textMuted hover:text-brand-pink transition text-lg p-1">
+                <a href="../user/notifications.php" class="relative text-brand-textMuted dark:text-gray-400 hover:text-brand-pink transition text-lg p-1">
                     <i class="fa-regular fa-bell"></i>
                     <?php if ($unread_notif > 0): ?>
-                        <span class="absolute -top-1 -right-1 bg-brand-pink text-white text-[9px] font-bold h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full ring-2 ring-white"><?= $unread_notif ?></span>
+                        <span class="absolute -top-1 -right-1 bg-brand-pink text-white text-[9px] font-bold h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900"><?= $unread_notif ?></span>
                     <?php endif; ?>
                 </a>
                 <div class="relative group">
@@ -88,25 +101,25 @@ if (!isset($conn) || $conn === null) {
                                 <?php echo strtoupper(substr($user_name, 0, 1)); ?>
                             <?php endif; ?>
                         </div>
-                        <span class="text-sm font-medium text-brand-dark hidden sm:inline"><?php echo htmlspecialchars($user_name); ?></span>
-                        <i class="fa-solid fa-chevron-down text-xs text-brand-textMuted"></i>
+                        <span class="text-sm font-medium text-brand-dark dark:text-gray-200 hidden sm:inline"><?php echo htmlspecialchars($user_name); ?></span>
+                        <i class="fa-solid fa-chevron-down text-xs text-brand-textMuted dark:text-gray-500"></i>
                     </div>
-                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <a href="../user/profile.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark hover:bg-brand-lightPink rounded-t-lg transition">
+                    <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <a href="../user/profile.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark dark:text-gray-200 hover:bg-brand-lightPink dark:hover:bg-gray-700 rounded-t-lg transition">
                             <i class="fa-regular fa-user text-brand-pink"></i> My Profile
                         </a>
-                        <a href="../user/my-bookings.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark hover:bg-brand-lightPink transition">
+                        <a href="../user/my-bookings.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark dark:text-gray-200 hover:bg-brand-lightPink dark:hover:bg-gray-700 transition">
                             <i class="fa-regular fa-calendar text-brand-pink"></i> My Appointments
                         </a>
-                        <hr class="border-gray-100">
-                        <a href="../auth/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-b-lg transition">
+                        <hr class="border-gray-100 dark:border-gray-700">
+                        <a href="../auth/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-b-lg transition">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
                     </div>
                 </div>
             <?php else: ?>
                 <div class="relative group">
-                   <a href="../auth/re.php"> <button class="text-sm font-medium text-brand-dark hover:text-brand-pink transition flex items-center gap-1">
+                   <a href="../auth/re.php"> <button class="text-sm font-medium text-brand-dark dark:text-gray-200 hover:text-brand-pink transition flex items-center gap-1">
                         Sign Up 
                     </button></a>
                     <!-- <div class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
@@ -153,6 +166,12 @@ if (!isset($conn) || $conn === null) {
                 }
             }
         });
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        }
     </script>
 
 </body>

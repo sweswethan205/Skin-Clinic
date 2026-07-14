@@ -64,6 +64,7 @@ include '../includes/header.php';
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -96,12 +97,12 @@ include '../includes/header.php';
     </style>
 </head>
 
-<body class="bg-[#FFF0F2]/40 min-h-screen p-4 md:p-8">
+<body class="bg-[#FFF0F2]/40 min-h-screen p-4 md:p-8 dark:bg-gray-950 dark:text-gray-100">
 
     <section class="w-full mx-auto px-6 py-10">
         <div class="text-center mb-12">
             <span class="text-xs font-semibold uppercase tracking-wider text-[#FF6584] block mb-1">What Our Clients Say</span>
-            <h2 class="font-serif text-3xl text-slate-800">Real Stories, Real Results</h2>
+            <h2 class="font-serif text-3xl text-slate-800 dark:text-white">Real Stories, Real Results</h2>
         </div>
 
         <!-- Marquee Frame Wrapper -->
@@ -113,13 +114,13 @@ include '../includes/header.php';
                     ?>
                         <?php foreach ($reviews as $review): ?>
                             <!-- Specified definitive dimensions explicitly to ensure consistency -->
-                            <div class="w-72 sm:w-80 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-3 flex-shrink-0">
+                            <div class="w-72 sm:w-80 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-3 flex-shrink-0 dark:bg-gray-900 dark:border-gray-800">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-8 h-8 rounded-full bg-[#FF6584]/20 flex items-center justify-center text-[#FF6584] text-xs font-bold">
                                         <?= strtoupper(substr($review['name'], 0, 1)) ?>
                                     </div>
                                     <div>
-                                        <h4 class="font-semibold text-sm text-slate-800"><?= htmlspecialchars($review['name']) ?></h4>
+                                        <h4 class="font-semibold text-sm text-slate-800 dark:text-white"><?= htmlspecialchars($review['name']) ?></h4>
                                         <div class="text-amber-400 text-[10px]">
                                             <?php for ($s = 0; $s < intval($review['rating']); $s++): ?>
                                                 <i class="fa-solid fa-star"></i>
@@ -130,7 +131,7 @@ include '../includes/header.php';
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 italic leading-relaxed">"<?= htmlspecialchars($review['review_text']) ?>"</p>
+                                <p class="text-xs text-gray-500 italic leading-relaxed dark:text-gray-400">"<?= htmlspecialchars($review['review_text']) ?>"</p>
                             </div>
                         <?php endforeach; ?>
                     <?php endfor; ?>
@@ -140,7 +141,7 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <div class="bg-white max-w-7xl mx-auto px-6 py-12 md:p-14 rounded-[2.5rem] shadow-[0_20px_50px_rgba(255,101,132,0.04)] border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-12">
+        <div class="bg-white max-w-7xl mx-auto px-6 py-12 md:p-14 rounded-[2.5rem] shadow-[0_20px_50px_rgba(255,101,132,0.04)] border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-12 dark:bg-gray-900">
 
             <!-- LEFT PANEL: Typography & Branding Content -->
             <div class="md:col-span-5 space-y-5 ">
@@ -150,17 +151,17 @@ include '../includes/header.php';
                 </div>
 
                 <div class="space-y-3">
-                    <h2 class="font-serif text-3xl md:text-4xl lg:text-[40px] font-bold tracking-tight text-[#2D2D2D] leading-[1.15]">
+                    <h2 class="font-serif text-3xl md:text-4xl lg:text-[40px] font-bold tracking-tight text-[#2D2D2D] leading-[1.15] dark:text-white">
                         Share Your Glow Experience
                     </h2>
-                    <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-sm">
+                    <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-sm dark:text-gray-400">
                         Your feedback helps us refine our skin treatments and assists others in finding their perfect skincare journey.
                     </p>
                 </div>
             </div>
 
             <!-- RIGHT PANEL: Contextual Embedded Form Box -->
-            <div class="md:col-span-7 bg-brand-lightPink border border-gray-100/80 p-6 md:p-8 rounded-[2rem]">
+            <div class="md:col-span-7 bg-brand-lightPink border border-gray-100/80 p-6 md:p-8 rounded-[2rem] dark:bg-gray-800 dark:border-gray-700">
 
                 <?php if ($notification === 'success'): ?>
                     <div class="bg-emerald-50 text-emerald-600 border border-emerald-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
@@ -179,14 +180,14 @@ include '../includes/header.php';
 
                         <!-- Name input row -->
                         <div class="sm:col-span-7 space-y-1.5">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Name</label>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">Your Name</label>
                             <input type="text" name="name" required value="<?= htmlspecialchars($user_name) ?>" placeholder="Swe Swe"
-                                class="w-full px-4 py-3 text-xs font-medium bg-white border border-gray-200/80 rounded-xl outline-none focus:border-[#FF6584] transition-all">
+                                class="w-full px-4 py-3 text-xs font-medium bg-white border border-gray-200/80 rounded-xl outline-none focus:border-[#FF6584] transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200">
                         </div>
 
                         <!-- Rating stars field align right stack -->
                         <div class="sm:col-span-5 space-y-1.5">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Rating</label>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">Rating</label>
 
                             <!-- Star visual markup grid stack reverse list orientation -->
                             <div class="flex flex-row-reverse justify-end items-center gap-1 text-2xl text-gray-200 py-1">
@@ -222,9 +223,9 @@ include '../includes/header.php';
 
                     <!-- Textarea submission row wrapper box -->
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Review</label>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">Your Review</label>
                         <textarea name="review_text" rows="4" required placeholder="How was your clinic visit or your treatment results? Tell us..."
-                            class="w-full px-4 py-3 text-xs font-medium bg-white border border-gray-200/80 rounded-xl outline-none focus:border-[#FF6584] resize-none transition-all leading-relaxed"></textarea>
+                            class="w-full px-4 py-3 text-xs font-medium bg-white border border-gray-200/80 rounded-xl outline-none focus:border-[#FF6584] resize-none transition-all leading-relaxed dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200"></textarea>
                     </div>
 
                     <!-- Action interaction bottom row positioning -->

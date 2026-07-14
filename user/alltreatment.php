@@ -20,6 +20,7 @@ while ($row = $treatments_result->fetch_assoc()) {
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -39,17 +40,17 @@ while ($row = $treatments_result->fetch_assoc()) {
         }
     </script>
 </head>
-<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased">
+<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased dark:bg-gray-950 dark:text-gray-100">
 
 <?php include '../includes/header.php' ?>
 
-    <section class="bg-brand-lightPink/50 border-b border-pink-100/30 relative overflow-hidden">
+    <section class="bg-brand-lightPink/50 border-b border-pink-100/30 dark:bg-gray-900 dark:border-gray-800 relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-6 pt-16 pb-20 text-center relative z-10">
             <span class="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3 block">Clinical Solutions</span>
-            <h1 class="font-serif text-4xl md:text-5xl text-brand-dark font-bold leading-tight mb-4">
+            <h1 class="font-serif text-4xl md:text-5xl text-brand-dark dark:text-white font-bold leading-tight mb-4">
                 Our Professional <span class="text-brand-pink italic font-normal">Treatments</span>
             </h1>
-            <p class="text-brand-textMuted max-w-xl mx-auto text-sm leading-relaxed">
+            <p class="text-brand-textMuted dark:text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
                 Explore our selection of state-of-the-art dermatological procedures customized completely to target your unique skin requirements.
             </p>
         </div>
@@ -60,18 +61,18 @@ while ($row = $treatments_result->fetch_assoc()) {
     <section class="max-w-7xl mx-auto px-6 py-16">
         <?php if (empty($treatments)): ?>
         <div class="text-center py-20">
-            <i class="fa-regular fa-hand-back-fist text-4xl text-gray-300 mb-4 block"></i>
-            <p class="text-sm text-gray-400 font-medium">No treatments available at the moment.</p>
+            <i class="fa-regular fa-hand-back-fist text-4xl text-gray-300 dark:text-gray-600 mb-4 block"></i>
+            <p class="text-sm text-gray-400 dark:text-gray-600 font-medium">No treatments available at the moment.</p>
         </div>
         <?php else: ?>
         <!-- Adjusted layout columns grid to support 4 rows cleanly (sm:2, md:3, lg:4) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <?php foreach ($treatments as $treatment): ?>
             <!-- Slimmed Card Container layout -->
-            <div class="treatment-card bg-white rounded-xl overflow-hidden shadow-xs border border-slate-100 transition-all duration-300 ease-out hover:shadow-lg hover:border-pink-100 group">
+            <div class="treatment-card bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-xs border border-slate-100 dark:border-gray-800 transition-all duration-300 ease-out hover:shadow-lg hover:border-pink-100 group">
                 
                 <!-- Smaller Compact Image Section Height container framework -->
-                <div class="overflow-hidden h-44 relative bg-slate-50">
+                <div class="overflow-hidden h-44 relative bg-slate-50 dark:bg-gray-800">
                     <?php if (!empty($treatment['image'])): ?>
                     <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
                     <?php else: ?>
@@ -84,11 +85,11 @@ while ($row = $treatments_result->fetch_assoc()) {
                 <!-- Balanced Smaller Text Padding Body content box -->
                 <div class="p-4 flex flex-col justify-between min-h-[180px]">
                     <div>
-                        <h3 class="font-serif text-base text-brand-dark font-bold mb-1.5 line-clamp-1">
+                        <h3 class="font-serif text-base text-brand-dark dark:text-white font-bold mb-1.5 line-clamp-1">
                             <?php echo htmlspecialchars($treatment['treatment_name']); ?>
                         </h3>
                         <!-- Added line-clamp to prevent messy mismatched card heights -->
-                        <p class="text-[11px] text-brand-textMuted leading-normal mb-4 line-clamp-3">
+                        <p class="text-[11px] text-brand-textMuted dark:text-gray-400 leading-normal mb-4 line-clamp-3">
                             <?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
                     </div>
 
@@ -109,10 +110,10 @@ while ($row = $treatments_result->fetch_assoc()) {
     </section>
 
     <section class="max-w-7xl mx-auto px-6 pb-24">
-        <div class="bg-brand-dark text-white rounded-3xl p-8 md:p-12 grid md:grid-cols-12 gap-8 items-center justify-between shadow-xl">
+        <div class="bg-brand-dark dark:bg-gray-800 text-white rounded-3xl p-8 md:p-12 grid md:grid-cols-12 gap-8 items-center justify-between shadow-xl">
             <div class="md:col-span-8 space-y-3">
-                <h3 class="font-serif text-2xl md:text-3xl font-semibold">Not sure which treatment suits your skin type?</h3>
-                <p class="text-xs text-gray-300 max-w-lg leading-relaxed font-light">
+                <h3 class="font-serif text-2xl md:text-3xl font-semibold dark:text-white">Not sure which treatment suits your skin type?</h3>
+                <p class="text-xs text-gray-300 dark:text-gray-400 max-w-lg leading-relaxed font-light">
                     Schedule a private skin assessment consultation. Our clinic experts will analyze your pores completely.
                 </p>
             </div>

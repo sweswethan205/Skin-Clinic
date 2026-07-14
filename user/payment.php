@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         'kbz_pay' => 'KBZ Pay',
         'wave_pay' => 'Wave Pay',
         'cb_pay' => 'CB Pay',
-        'trusty_pay' => 'Trusty Pay',
+        'aya_pay' => 'AYA Pay', // 👈 Updated to AYA Pay
     ];
     $method_name = $method_map[$payment_method_val] ?? '';
     $payment_method_id = 0;
@@ -217,6 +217,7 @@ if (isset($_SESSION['user_id'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -225,10 +226,11 @@ if (isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&family=Playfair+Display:ital,wght=0,600;0,700;1,400&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght=0,600;0,700;1,400&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -248,10 +250,11 @@ if (isset($_SESSION['user_id'])) {
         }
     </script>
 </head>
-<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased min-h-screen flex flex-col justify-between relative">
+
+<body class="bg-[#FAF9F6] dark:bg-gray-950 font-sans text-brand-dark dark:text-gray-100 antialiased min-h-screen flex flex-col justify-between relative">
     <?php include '../includes/header.php'; ?>
 
-    <header class="bg-white border-b border-gray-100 py-4 px-6 shadow-xs">
+    <header class="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 py-4 px-6 shadow-xs">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <a href="booking.php" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-textMuted hover:text-brand-pink transition">
                 <i class="fa-solid fa-arrow-left"></i> Back to Schedule
@@ -269,35 +272,35 @@ if (isset($_SESSION['user_id'])) {
 
         <div class="mb-10">
             <h1 class="font-serif text-3xl md:text-4xl font-bold tracking-tight mb-2">Secure Payment Method</h1>
-            <p class="text-sm text-brand-textMuted">Choose your preferred transaction system to securely hold your clinical session slot.</p>
+            <p class="text-sm text-brand-textMuted dark:text-gray-400">Choose your preferred transaction system to securely hold your clinical session slot.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             <div class="lg:col-span-7 space-y-6">
-                
-                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(0,0,0,0.01)] relative overflow-hidden">
+
+                <div class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-[0_10px_30px_rgba(0,0,0,0.01)] relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-brand-lightPink text-brand-pink text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-bl-xl border-l border-b border-pink-100/30">
                         Confirmed Slot
                     </div>
                     <h2 class="text-xs font-bold uppercase tracking-widest text-brand-pink mb-4">Booking Summary</h2>
-                    
+
                     <div class="grid grid-cols-2 gap-y-4 gap-x-2">
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Selected Treatment</span>
-                            <span class="text-sm font-semibold text-brand-dark"><?= htmlspecialchars($booking['treatment_name'] ?? 'N/A') ?></span>
+                            <span class="text-sm font-semibold text-brand-dark dark:text-white"><?= htmlspecialchars($booking['treatment_name'] ?? 'N/A') ?></span>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Assigned Doctor</span>
-                            <span class="text-sm font-semibold text-brand-dark">Dr. <?= htmlspecialchars($booking['doctor_name'] ?? 'N/A') ?></span>
+                            <span class="text-sm font-semibold text-brand-dark dark:text-white">Dr. <?= htmlspecialchars($booking['doctor_name'] ?? 'N/A') ?></span>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Patient Name</span>
-                            <span class="text-sm font-semibold text-brand-dark"><?= htmlspecialchars($user_name ?: 'N/A') ?></span>
+                            <span class="text-sm font-semibold text-brand-dark dark:text-white"><?= htmlspecialchars($user_name ?: 'N/A') ?></span>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Date & Timestamp</span>
-                            <span class="text-xs font-medium text-brand-textMuted"><?= isset($booking['available_date']) ? date("M d, Y", strtotime($booking['available_date'])) : 'N/A' ?> • <?= isset($booking['start_time']) ? date("h:i A", strtotime($booking['start_time'])) : 'N/A' ?></span>
+                            <span class="text-xs font-medium text-brand-textMuted dark:text-gray-400"><?= isset($booking['available_date']) ? date("M d, Y", strtotime($booking['available_date'])) : 'N/A' ?> • <?= isset($booking['start_time']) ? date("h:i A", strtotime($booking['start_time'])) : 'N/A' ?></span>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Total Value</span>
@@ -307,81 +310,77 @@ if (isset($_SESSION['user_id'])) {
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 block">Payment Method</label>
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 mb-4 block">Payment Method</label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="payment-methods-container">
-                        
-                        <!-- KBZ PAY CARD -->
+
                         <label data-method="kbz_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border-2 border-[#005BAa] bg-[#005BAa] text-white">
                             <input type="radio" name="payment_method" value="kbz_pay" checked class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                            <div class="w-12 h-12 rounded-lg bg-white dark:bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
                                 <img src="../assets/images/kpay.png" alt="KBZ Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">KBZPay</span>
                         </label>
 
-                        <!-- WAVE PAY CARD -->
-                        <label data-method="wave_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600">
+                        <label data-method="wave_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300">
                             <input type="radio" name="payment_method" value="wave_pay" class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                            <div class="w-12 h-12 rounded-lg bg-white dark:bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
                                 <img src="../assets/images/wave.png" alt="Wave Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">WavePay</span>
                         </label>
 
-                        <!-- CB PAY CARD -->
-                        <label data-method="cb_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600">
+                        <label data-method="cb_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300">
                             <input type="radio" name="payment_method" value="cb_pay" class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                            <div class="w-12 h-12 rounded-lg bg-white dark:bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
                                 <img src="../assets/images/cbpay.png" alt="CB Pay" class="w-full h-full object-cover">
                             </div>
                             <span class="text-sm font-semibold tracking-wide transition-colors">CBPay</span>
                         </label>
 
-                        <!-- TRUSTY PAY CARD -->
-                        <label data-method="trusty_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600">
-                            <input type="radio" name="payment_method" value="trusty_pay" class="hidden">
-                            <div class="w-12 h-12 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
-                                <img src="../assets/images/trusty.png" alt="Trusty Pay" class="w-full h-full object-cover">
+                        <label data-method="aya_pay" class="payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300">
+                            <input type="radio" name="payment_method" value="aya_pay" class="hidden">
+                            <div class="w-12 h-12 rounded-lg bg-white dark:bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                                <img src="../assets/images/aya.png" alt="AYA Pay" class="w-full h-full object-cover">
                             </div>
-                            <span class="text-sm font-semibold tracking-wide transition-colors">TrustyPay</span>
+                            <span class="text-sm font-semibold tracking-wide transition-colors">AYAPay</span>
                         </label>
 
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-5 bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)]">
-                
-                <div class="flex items-center gap-3 bg-[#FAFAF8] rounded-xl p-3 border border-gray-100 mb-6">
-                    <div class="text-emerald-500 bg-emerald-50 w-8 h-8 rounded-lg flex items-center justify-center text-xs">
+            <div class="lg:col-span-5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)]">
+
+                <div class="flex items-center gap-3 bg-[#FAFAF8] dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 mb-6">
+                    <div class="text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 w-8 h-8 rounded-lg flex items-center justify-center text-xs">
                         <i class="fa-solid fa-lock"></i>
                     </div>
                     <div>
-                        <h4 class="text-xs font-bold text-brand-dark">Secure Local Gateway</h4>
+                        <h4 class="text-xs font-bold text-brand-dark dark:text-white">Secure Local Gateway</h4>
                         <p class="text-[10px] text-gray-400">Your payments are fully protected and encrypted.</p>
                     </div>
                 </div>
 
                 <form class="space-y-4" id="payment-form" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="schedule_id" value="<?= $schedule_id ?>">
-                    
+
                     <div id="qr-scan-window" class="bg-[#005BAa]/5 rounded-2xl p-4 border border-[#005BAa]/20 text-center space-y-3 transition-colors duration-200">
                         <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#005BAa]">
                             <i class="fa-solid fa-qrcode text-xs"></i> <span>Scan QR Code</span>
                         </div>
-                        
-                        <div class="w-40 h-40 mx-auto bg-white border border border-gray-200/60 rounded-xl p-2.5 flex items-center justify-center shadow-xs relative group">
+
+                        <div class="w-40 h-40 mx-auto bg-white dark:bg-gray-800 border border border-gray-200/60 dark:border-gray-700 rounded-xl p-2.5 flex items-center justify-center shadow-xs relative group">
                             <img id="dynamic-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GlowSkin_<?= htmlspecialchars($user_name ?: 'Guest') ?>_Deposit" alt="Payment Scan Terminal" class="w-full h-full object-contain">
                         </div>
-                        
-                        <p class="text-[11px] text-brand-textMuted leading-normal">
+
+                        <p class="text-[11px] text-brand-textMuted dark:text-gray-400 leading-normal">
                             Open your <span id="active-wallet-label" class="font-bold text-[#005BAa] transition-colors duration-200">KBZPay</span> app and scan this secure dynamic invoice window to finalize your checkout balance instantly.
                         </p>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">Upload Receipt Screenshot</label>
-                        <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-gray-200 border-dashed rounded-xl cursor-pointer bg-white hover:bg-slate-50/50 transition relative overflow-hidden group">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-brand-textMuted dark:text-gray-400 mb-1.5">Upload Receipt Screenshot</label>
+                        <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-gray-200 dark:border-gray-700 border-dashed rounded-xl cursor-pointer bg-white dark:bg-gray-800 hover:bg-slate-50/50 dark:hover:bg-gray-700 transition relative overflow-hidden group">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4" id="upload-placeholder">
                                 <i class="fa-solid fa-cloud-arrow-up text-gray-400 text-xl mb-2 group-hover:text-brand-pink transition-colors"></i>
                                 <p class="text-[11px] text-gray-500 font-medium"><span class="text-brand-pink font-semibold">Click to upload</span> or drag and drop</p>
@@ -392,17 +391,17 @@ if (isset($_SESSION['user_id'])) {
                         </label>
                     </div>
 
-                    <div class="border-t border-gray-100 pt-5 mt-6 space-y-2.5">
+                    <div class="border-t border-gray-100 dark:border-gray-800 pt-5 mt-6 space-y-2.5">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-brand-textMuted font-light">Consultation Base Fee</span>
-                            <span class="font-medium text-brand-dark">$<?= isset($booking['price']) ? number_format($booking['price'], 2) : '0.00' ?></span>
+                            <span class="text-brand-textMuted dark:text-gray-400 font-light">Consultation Base Fee</span>
+                            <span class="font-medium text-brand-dark dark:text-white">$<?= isset($booking['price']) ? number_format($booking['price'], 2) : '0.00' ?></span>
                         </div>
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-brand-textMuted font-light">Service Processing Surcharge</span>
+                            <span class="text-brand-textMuted dark:text-gray-400 font-light">Service Processing Surcharge</span>
                             <span class="font-medium text-emerald-500">FREE</span>
                         </div>
-                        <div class="flex justify-between items-center pt-3 border-t border-dashed border-gray-100">
-                            <span class="font-serif text-sm font-bold text-brand-dark">Total Net Payable</span>
+                        <div class="flex justify-between items-center pt-3 border-t border-dashed border-gray-100 dark:border-gray-700">
+                            <span class="font-serif text-sm font-bold text-brand-dark dark:text-white">Total Net Payable</span>
                             <span class="text-xl font-bold text-brand-pink">$<?= isset($booking['price']) ? number_format($booking['price'], 2) : '0.00' ?></span>
                         </div>
                     </div>
@@ -411,8 +410,8 @@ if (isset($_SESSION['user_id'])) {
                         <button type="submit" class="w-full bg-brand-pink text-white text-xs font-semibold tracking-wider uppercase py-4 rounded-xl shadow-md shadow-pink-100 hover:bg-opacity-95 transition-all flex items-center justify-center gap-2 hover:bg-pink-600">
                             <i class="fa-solid fa-circle-check text-xs"></i> Payment
                         </button>
-                        
-                        <a href="../user/booking.php" class="w-full bg-white border border-gray-200 hover:border-gray-300 text-brand-textMuted hover:text-brand-dark text-xs font-semibold tracking-wider uppercase py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+
+                        <a href="../user/booking.php" class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-brand-textMuted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white text-xs font-semibold tracking-wider uppercase py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
                             Cancel Process
                         </a>
                     </div>
@@ -423,115 +422,132 @@ if (isset($_SESSION['user_id'])) {
     </main>
 
     <div id="success-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
-            <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-emerald-100">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-emerald-100 dark:border-emerald-800">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            
-            <h3 class="font-serif text-2xl font-bold text-brand-dark mb-2">Booking Successful!</h3>
-            <p class="text-xs text-brand-textMuted mb-6 leading-relaxed">Your professional clinic treatment session has been locked. Check your email for appointment notification receipts.</p>
-            
+
+            <h3 class="font-serif text-2xl font-bold text-brand-dark dark:text-white mb-2">Booking Successful!</h3>
+            <p class="text-xs text-brand-textMuted dark:text-gray-400 mb-6 leading-relaxed">Your professional clinic treatment session has been locked. Check your email for appointment notification receipts.</p>
+
             <button onclick="closeModal()" class="w-full bg-brand-pink hover:bg-opacity-95 text-white text-xs font-bold tracking-wider uppercase py-3.5 rounded-xl transition">
                 Perfect, Thank You
             </button>
         </div>
     </div>
 
-   <?php include '../includes/footer.php'; ?>
+    <?php include '../includes/footer.php'; ?>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const cards = document.querySelectorAll('.payment-method-card');
-        const paymentForm = document.getElementById('payment-form');
-        
-        const activeWalletLabel = document.getElementById('active-wallet-label');
-        const dynamicQrImage = document.getElementById('dynamic-qr-image');
-        
-        const receiptUploadInput = document.getElementById('receipt-upload');
-        const receiptPreview = document.getElementById('receipt-preview');
-        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.payment-method-card');
+            const paymentForm = document.getElementById('payment-form');
 
-        // Configurations mapping color shifts dynamically
-        const brandStyles = {
-            kbz_pay: { 
-                bg: 'bg-[#005BAa]', border: 'border-[#005BAa]', text: 'text-white',
-                qrBg: 'bg-[#005BAa]/5', qrBorder: 'border-[#005BAa]/20', qrText: 'text-[#005BAa]'
-            },
-            wave_pay: { 
-                bg: 'bg-[#F9CC1A]', border: 'border-[#F9CC1A]', text: 'text-slate-900',
-                qrBg: 'bg-[#F9CC1A]/5', qrBorder: 'border-[#F9CC1A]/20', qrText: 'text-[#D4A500]'
-            },
-            cb_pay: { 
-                bg: 'bg-[#006BB6]', border: 'border-[#006BB6]', text: 'text-white',
-                qrBg: 'bg-[#006BB6]/5', qrBorder: 'border-[#006BB6]/20', qrText: 'text-[#006BB6]'
-            },
-            trusty_pay: { 
-                bg: 'bg-[#5A1793]', border: 'border-[#5A1793]', text: 'text-white',
-                qrBg: 'bg-[#5A1793]/5', qrBorder: 'border-[#5A1793]/20', qrText: 'text-[#5A1793]'
-            }
-        };
+            const activeWalletLabel = document.getElementById('active-wallet-label');
+            const dynamicQrImage = document.getElementById('dynamic-qr-image');
 
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                const selectedMethod = card.getAttribute('data-method');
+            const receiptUploadInput = document.getElementById('receipt-upload');
+            const receiptPreview = document.getElementById('receipt-preview');
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
 
-                // Clear styling on all payment options cards
-                cards.forEach(c => {
-                    c.className = "payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 bg-white text-slate-600";
+            // Configurations mapping color shifts dynamically (with AYA Red style)
+            const brandStyles = {
+                kbz_pay: {
+                    bg: 'bg-[#005BAa]',
+                    border: 'border-[#005BAa]',
+                    text: 'text-white',
+                    qrBg: 'bg-[#005BAa]/5',
+                    qrBorder: 'border-[#005BAa]/20',
+                    qrText: 'text-[#005BAa]'
+                },
+                wave_pay: {
+                    bg: 'bg-[#F9CC1A]',
+                    border: 'border-[#F9CC1A]',
+                    text: 'text-slate-900',
+                    qrBg: 'bg-[#F9CC1A]/5',
+                    qrBorder: 'border-[#F9CC1A]/20',
+                    qrText: 'text-[#D4A500]'
+                },
+                cb_pay: {
+                    bg: 'bg-[#006BB6]',
+                    border: 'border-[#006BB6]',
+                    text: 'text-white',
+                    qrBg: 'bg-[#006BB6]/5',
+                    qrBorder: 'border-[#006BB6]/20',
+                    qrText: 'text-[#006BB6]'
+                },
+                aya_pay: {
+                    bg: 'bg-[#E11C23]',
+                    border: 'border-[#E11C23]',
+                    text: 'text-white',
+                    qrBg: 'bg-[#E11C23]/5',
+                    qrBorder: 'border-[#E11C23]/20',
+                    qrText: 'text-[#E11C23]'
+                }
+            };
+
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const selectedMethod = card.getAttribute('data-method');
+
+                    // Clear styling on all payment options cards
+                    cards.forEach(c => {
+                        c.className = "payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border border-gray-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300";
+                    });
+
+                    // Highlight selected card options
+                    const style = brandStyles[selectedMethod];
+                    card.className = `payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border-2 ${style.border} ${style.bg} ${style.text}`;
+
+                    const radio = card.querySelector('input[type="radio"]');
+                    radio.checked = true;
+
+                    // Sync the label string update inside description sentences
+                    const currentLabelText = card.querySelector('span:last-child').innerText;
+                    activeWalletLabel.innerText = currentLabelText;
+
+                    // Dynamically modify text color on selection text
+                    activeWalletLabel.className = `font-bold transition-colors duration-200 ${style.qrText}`;
+
+                    dynamicQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GlowSkin_${selectedMethod}_Deposit_Token`;
+
+                    // Update QR Layout Background and Header container styling classes
+                    const qrContainer = document.getElementById('qr-scan-window');
+                    const qrHeader = qrContainer.querySelector('.flex');
+
+                    qrContainer.className = `${style.qrBg} rounded-2xl p-4 border ${style.qrBorder} text-center space-y-3 transition-colors duration-200`;
+                    qrHeader.className = `flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${style.qrText}`;
                 });
+            });
 
-                // Highlight selected card options
-                const style = brandStyles[selectedMethod];
-                card.className = `payment-method-card flex items-center gap-4 p-5 rounded-xl cursor-pointer transition-all duration-200 group border-2 ${style.border} ${style.bg} ${style.text}`;
+            receiptUploadInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.addEventListener('load', function() {
+                        receiptPreview.setAttribute('src', this.result);
+                        receiptPreview.classList.remove('hidden');
+                        uploadPlaceholder.classList.add('hidden');
+                    });
+                    reader.readAsDataURL(file);
+                }
+            });
 
-                const radio = card.querySelector('input[type="radio"]');
-                radio.checked = true;
-
-                // Sync the label string update inside description sentences
-                const currentLabelText = card.querySelector('span:last-child').innerText;
-                activeWalletLabel.innerText = currentLabelText;
-                
-                // Dynamically modify text color on selection text
-                activeWalletLabel.className = `font-bold transition-colors duration-200 ${style.qrText}`;
-                
-                dynamicQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GlowSkin_${selectedMethod}_Deposit_Token`;
-
-                // Update QR Layout Background and Header container styling classes
-                const qrContainer = document.getElementById('qr-scan-window');
-                const qrHeader = qrContainer.querySelector('.flex');
-
-                qrContainer.className = `${style.qrBg} rounded-2xl p-4 border ${style.qrBorder} text-center space-y-3 transition-colors duration-200`;
-                qrHeader.className = `flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${style.qrText}`;
+            paymentForm.addEventListener('submit', (event) => {
+                const submitBtn = paymentForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Processing...';
             });
         });
 
-        receiptUploadInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.addEventListener('load', function() {
-                    receiptPreview.setAttribute('src', this.result);
-                    receiptPreview.classList.remove('hidden');
-                    uploadPlaceholder.classList.add('hidden');
-                });
-                reader.readAsDataURL(file);
-            }
-        });
-
-        paymentForm.addEventListener('submit', (event) => {
-            const submitBtn = paymentForm.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Processing...';
-        });
-    });
-
-    function closeModal() {
-        const modal = document.getElementById('success-modal');
-        const modalContent = modal.querySelector('.transform');
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        modalContent.classList.remove('scale-100');
-        modalContent.classList.add('scale-95');
-    }
+        function closeModal() {
+            const modal = document.getElementById('success-modal');
+            const modalContent = modal.querySelector('.transform');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+        }
     </script>
 </body>
+
 </html>

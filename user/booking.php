@@ -117,6 +117,7 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -181,10 +182,14 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
             font-size: 12px;
         }
         .cal-nav-btn:hover { background: #f1f5f9; }
+        .dark .cal-day { color: #94a3b8; }
+        .dark .cal-day.past { color: #475569; }
+        .dark .cal-day.available { color: #e2e8f0; background: #1a2e1a; border: 1px solid #166534; }
+        .dark .cal-day.available:hover { background: #14532d; }
     </style>
 </head>
 
-<body class="bg-[#FAF9F6] min-h-screen text-slate-800">
+<body class="bg-[#FAF9F6] dark:bg-gray-950 min-h-screen text-slate-800 dark:text-gray-100">
     <?php include '../includes/header.php'; ?>
 
     <div class="max-w-6xl mx-auto px-4 py-12">
@@ -196,15 +201,15 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
 
                 <div class="flex flex-col items-center relative z-10">
                     <div id="step1-icon" class="w-9 h-9 rounded-full bg-brand-pink text-white flex items-center justify-center font-bold shadow-md shadow-pink-200 text-sm">1</div>
-                    <span class="text-xs font-semibold mt-2 text-slate-700">Doctor</span>
+                    <span class="text-xs font-semibold mt-2 text-slate-700 dark:text-gray-200">Doctor</span>
                 </div>
                 <div class="flex flex-col items-center relative z-10">
-                    <div id="step2-icon" class="w-9 h-9 rounded-full bg-white border-2 border-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm">2</div>
-                    <span class="text-xs font-semibold mt-2 text-slate-400">Date</span>
+                    <div id="step2-icon" class="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border-2 border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-500 flex items-center justify-center font-bold text-sm">2</div>
+                    <span class="text-xs font-semibold mt-2 text-slate-400 dark:text-gray-500">Date</span>
                 </div>
                 <div class="flex flex-col items-center relative z-10">
-                    <div id="step3-icon" class="w-9 h-9 rounded-full bg-white border-2 border-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm">3</div>
-                    <span class="text-xs font-semibold mt-2 text-slate-400">Time</span>
+                    <div id="step3-icon" class="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border-2 border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-500 flex items-center justify-center font-bold text-sm">3</div>
+                    <span class="text-xs font-semibold mt-2 text-slate-400 dark:text-gray-500">Time</span>
                 </div>
             </div>
         </div>
@@ -213,8 +218,8 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
             
             <div>
                 <div class="mb-5">
-                    <h2 class="text-xl font-bold tracking-tight text-slate-800">Choose Your Doctor</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Select a dermatologist to view available consultation timelines.</p>
+                    <h2 class="text-xl font-bold tracking-tight text-slate-800 dark:text-white">Choose Your Doctor</h2>
+                    <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">Select a dermatologist to view available consultation timelines.</p>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -230,73 +235,73 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                             $specialization = !empty($doc['description']) ? $doc['description'] : 'Dermatologist';
                         ?>
                         <button onclick="selectDoctor(this, <?= $doc['id'] ?>, '<?= htmlspecialchars($photo, ENT_QUOTES) ?>', '<?= htmlspecialchars($doc['name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($specialization, ENT_QUOTES) ?>')"
-                            class="doctor-card group bg-white p-3 rounded-2xl border border-slate-200/60 text-left hover:shadow-lg relative">
-                            <div class="absolute top-4 right-4 w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center bg-white group-hover:border-brand-pink check-indicator">
+                            class="doctor-card group bg-white dark:bg-gray-900 p-3 rounded-2xl border border-slate-200/60 dark:border-gray-700 text-left hover:shadow-lg relative">
+                            <div class="absolute top-4 right-4 w-5 h-5 rounded-full border-2 border-slate-300 dark:border-gray-600 flex items-center justify-center bg-white dark:bg-gray-800 group-hover:border-brand-pink check-indicator">
                                 <div class="w-2.5 h-2.5 rounded-full bg-brand-pink scale-0 inner-circle"></div>
                             </div>
-                            <div class="aspect-[1/1] w-full rounded-xl overflow-hidden bg-slate-100 mb-3">
+                            <div class="aspect-[1/1] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-gray-700 mb-3">
                                 <img src="<?= htmlspecialchars($photo) ?>" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
                             </div>
-                            <h3 class="font-bold text-sm text-slate-800 group-hover:text-brand-pink truncate">Dr.<?= htmlspecialchars($doc['name']) ?></h3>
-                            <p class="text-[11px] text-slate-400 font-medium mt-0.5 truncate"><?= htmlspecialchars($specialization) ?></p>
+                            <h3 class="font-bold text-sm text-slate-800 dark:text-white group-hover:text-brand-pink truncate">Dr.<?= htmlspecialchars($doc['name']) ?></h3>
+                            <p class="text-[11px] text-slate-400 dark:text-gray-500 font-medium mt-0.5 truncate"><?= htmlspecialchars($specialization) ?></p>
                         </button>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <p class="col-span-4 text-center text-slate-400 py-8">No doctors available at the moment.</p>
+                        <p class="col-span-4 text-center text-slate-400 dark:text-gray-500 py-8">No doctors available at the moment.</p>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm p-6 md:p-8">
-                <h2 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b border-slate-100 flex items-center gap-2">
+            <div class="bg-white dark:bg-gray-900 rounded-[24px] border border-slate-100 dark:border-gray-800 shadow-sm p-6 md:p-8">
+                <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-5 pb-3 border-b border-slate-100 dark:border-gray-700 flex items-center gap-2">
                     <i class="fa-regular fa-calendar-check text-brand-pink"></i>
                     Appointment Detail
                 </h2>
 
                 <div class="grid md:grid-cols-12 gap-6 items-start">
                     
-                    <div class="md:col-span-4 bg-slate-50 border border-slate-100 p-4 rounded-xl sticky top-4">
+                    <div class="md:col-span-4 bg-slate-50 border border-slate-100 dark:bg-gray-800 dark:border-gray-700 p-4 rounded-xl sticky top-4">
                         <?php if ($treatment_name): ?>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Selected Treatment</p>
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Selected Treatment</p>
                         <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
                             <div class="w-12 h-12 rounded-xl bg-brand-pink/10 flex items-center justify-center text-brand-pink text-lg">
                                 <i class="fa-regular fa-spa"></i>
                             </div>
                             <div class="min-w-0">
-                                <h3 class="font-bold text-sm text-slate-800 truncate"><?= htmlspecialchars($treatment_name) ?></h3>
-                                <p class="text-[11px] text-slate-500 font-medium">$<?= number_format($treatment_price, 2) ?></p>
+                                <h3 class="font-bold text-sm text-slate-800 dark:text-white truncate"><?= htmlspecialchars($treatment_name) ?></h3>
+                                <p class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">$<?= number_format($treatment_price, 2) ?></p>
                             </div>
                         </div>
                         <?php endif; ?>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Selected Professional</p>
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Selected Professional</p>
                         <div class="flex items-center gap-3">
-                            <img id="doctor-image" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="w-12 h-12 rounded-full object-cover ring-4 ring-white shadow-sm">
+                            <img id="doctor-image" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="w-12 h-12 rounded-full object-cover ring-4 ring-white dark:ring-gray-900 shadow-sm">
                             <div class="min-w-0">
-                                <h3 id="display-name" class="font-bold text-sm text-slate-800 truncate">Select Doctor</h3>
-                                <p id="display-title" class="text-[11px] text-slate-500 font-medium truncate">Choose specialist above</p>
+                                <h3 id="display-name" class="font-bold text-sm text-slate-800 dark:text-white truncate">Select Doctor</h3>
+                                <p id="display-title" class="text-[11px] text-slate-500 dark:text-gray-400 font-medium truncate">Choose specialist above</p>
                             </div>
                         </div>
                     </div>
 
                     <div id="calendar-section" class="md:col-span-4 opacity-40 pointer-events-none">
-                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <h3 class="text-xs font-bold text-slate-700 dark:text-gray-200 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-brand-pink"></span> Choose Date
                         </h3>
-                        <div class="bg-slate-50/60 p-3 rounded-xl border border-slate-100">
-                            <div class="bg-white rounded-xl border border-slate-200 p-3">
+                        <div class="bg-slate-50/60 dark:bg-gray-800 p-3 rounded-xl border border-slate-100 dark:border-gray-700">
+                            <div class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-700 p-3">
                                 <div class="flex items-center justify-between mb-3">
                                     <button type="button" class="cal-nav-btn" onclick="calPrev()"><i class="fa-solid fa-chevron-left"></i></button>
-                                    <span id="cal-month-label" class="text-xs font-bold text-slate-700"></span>
+                                    <span id="cal-month-label" class="text-xs font-bold text-slate-700 dark:text-gray-200"></span>
                                     <button type="button" class="cal-nav-btn" onclick="calNext()"><i class="fa-solid fa-chevron-right"></i></button>
                                 </div>
                                 <div class="cal-grid mb-1">
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Sun</div>
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Mon</div>
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Tue</div>
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Wed</div>
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Thu</div>
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Fri</div>
-                                    <div class="text-center text-[10px] font-bold text-slate-400 py-1">Sat</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Sun</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Mon</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Tue</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Wed</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Thu</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Fri</div>
+                                    <div class="text-center text-[10px] font-bold text-slate-400 dark:text-gray-500 py-1">Sat</div>
                                 </div>
                                 <div id="cal-days" class="cal-grid"></div>
                             </div>
@@ -304,7 +309,7 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                     </div>
 
                     <div id="time-slots-container" class="md:col-span-4 opacity-40 pointer-events-none">
-                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <h3 class="text-xs font-bold text-slate-700 dark:text-gray-200 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-brand-pink"></span> Choose Time
                         </h3>
 
@@ -314,10 +319,10 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
 
                         
                         <div id="slots-dynamic-grid" class="grid grid-cols-2 gap-2">
-                            <p class="text-xs text-slate-400 text-center col-span-2 py-4">Choose a practitioner and date first.</p>
+<p class="text-xs text-slate-400 dark:text-gray-500 text-center col-span-2 py-4">Choose a practitioner and date first.</p>
                         </div>
 
-                        <div id="slots-legend" class="hidden gap-4 mt-4 text-[11px] text-slate-500 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100 justify-center">
+                        <div id="slots-legend" class="hidden gap-4 mt-4 text-[11px] text-slate-500 dark:text-gray-400 font-medium bg-slate-50 dark:bg-gray-800 p-2.5 rounded-xl border border-slate-100 dark:border-gray-700 justify-center">
                             <div class="flex items-center gap-1.5">
                                 <div class="w-2 h-2 bg-emerald-500 rounded-full"></div> Available
                             </div>
@@ -332,18 +337,18 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
         </div>
 
         <div id="auth-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center shadow-2xl border border-slate-100 relative">
-                <button type="button" onclick="closeAuthModal()" class="absolute top-5 right-6 text-slate-400 hover:text-brand-pink p-1 rounded-full hover:bg-slate-50">
+            <div class="bg-white dark:bg-gray-900 rounded-[2rem] p-8 max-w-sm w-full text-center shadow-2xl border border-slate-100 dark:border-gray-700 relative">
+                <button type="button" onclick="closeAuthModal()" class="absolute top-5 right-6 text-slate-400 dark:text-gray-500 hover:text-brand-pink p-1 rounded-full hover:bg-slate-50 dark:hover:bg-gray-800">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
-                <div class="w-14 h-14 bg-pink-50 rounded-full flex items-center justify-center text-brand-pink mx-auto mb-4">
+                <div class="w-14 h-14 bg-pink-50 dark:bg-pink-900/20 rounded-full flex items-center justify-center text-brand-pink mx-auto mb-4">
                     <i class="fa-solid fa-user-lock text-xl"></i>
                 </div>
-                <h2 class="text-xl font-bold text-slate-800 mb-2">Account Required</h2>
-                <p class="text-sm text-slate-500 mb-6 leading-relaxed">Please log in or sign up to finalize your slot verification details.</p>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Account Required</h2>
+                <p class="text-sm text-slate-500 dark:text-gray-400 mb-6 leading-relaxed">Please log in or sign up to finalize your slot verification details.</p>
                 <div class="flex flex-col gap-3">
                     <a id="auth-signin-btn" href="../auth/login.php" class="bg-brand-pink text-white py-3 rounded-xl font-semibold text-sm shadow-lg shadow-pink-200 hover:bg-opacity-95 text-center">Login</a>
-                    <a id="auth-signup-btn" href="../auth/re.php" class="bg-slate-50 text-slate-700 py-3 rounded-xl font-semibold text-sm border border-slate-200 hover:bg-slate-100 text-center">Register</a>
+                    <a id="auth-signup-btn" href="../auth/re.php" class="bg-slate-50 text-slate-700 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 py-3 rounded-xl font-semibold text-sm border border-slate-200 hover:bg-slate-100 text-center">Register</a>
                 </div>
             </div>
         </div>
@@ -518,7 +523,7 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
 if (slots.length === 0) {
 
     message.classList.remove("hidden");
-    message.className = "mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium text-center";
+    message.className = "mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium text-center";
     message.innerHTML = "❌No available schedule for this date.";
 
     grid.innerHTML = "";
@@ -538,10 +543,10 @@ message.classList.add("hidden");
 
                         if (item.is_booked) {
                             btn.disabled = true;
-                            btn.className = "w-full py-2.5 bg-blue-50/70 border border-blue-100 text-blue-400 font-medium rounded-xl text-xs cursor-not-allowed flex items-center justify-center gap-1.5";
+                            btn.className = "w-full py-2.5 bg-blue-50/70 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-blue-400 dark:text-blue-500 font-medium rounded-xl text-xs cursor-not-allowed flex items-center justify-center gap-1.5";
                             btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-300"></span> ${item.time}`;
                         } else {
-                            btn.className = "w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 time-slot-btn";
+                            btn.className = "w-full py-2.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 time-slot-btn";
                             btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 indicator-dot"></span> ${item.time}`;
                             btn.onclick = function() {
                                 handleBooking(this, item.schedule_id);

@@ -109,21 +109,21 @@ if (isset($_SESSION['user_id'])) {
 ?>
     
 <section class="max-w-7xl mx-auto px-6 py-20">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-white rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40 dark:border-gray-800">
         
         <!-- Left Side Aesthetic Info Banner -->
-        <div class="lg:col-span-6 relative bg-brand-lightPink min-h-[450px] lg:min-h-[680px] flex flex-col justify-between">
+        <div class="lg:col-span-6 relative bg-brand-lightPink dark:bg-gray-800 min-h-[450px] lg:min-h-[680px] flex flex-col justify-between">
             <div class="p-12 z-10 space-y-6 relative">
                 <div class="flex items-center space-x-2">
-                    <span class="font-serif tracking-wide text-xs uppercase font-semibold text-brand-dark">Glow Skin Clinic</span>
+                    <span class="font-serif tracking-wide text-xs uppercase font-semibold text-brand-dark dark:text-white">Glow Skin Clinic</span>
                 </div>
 
                 <div class="space-y-3 max-w-xs pt-8">
-                    <h2 class="font-serif text-4xl text-brand-dark font-normal leading-tight tracking-wide">
+                    <h2 class="font-serif text-4xl text-brand-dark dark:text-white font-normal leading-tight tracking-wide">
                         Healthy Skin, <br>Confident You
                     </h2>
                     <div class="w-12 h-[1px] bg-brand-pink my-4"></div>
-                    <p class="text-xs text-brand-textMuted tracking-wide font-light leading-relaxed">
+                    <p class="text-xs text-brand-textMuted dark:text-gray-400 tracking-wide font-light leading-relaxed">
                         Professional care for your natural beauty.
                     </p>
                 </div>
@@ -136,11 +136,11 @@ if (isset($_SESSION['user_id'])) {
         </div>
 
         <!-- Right Side Form Controls -->
-        <div class="lg:col-span-6 p-8 md:p-14 flex flex-col justify-between bg-white z-10">
+        <div class="lg:col-span-6 p-8 md:p-14 flex flex-col justify-between bg-white dark:bg-gray-900 z-10">
             <div class="text-center max-w-md mx-auto w-full">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-brand-pink block mb-2">Contact Us</span>
-                <h3 class="font-serif text-2xl md:text-3xl text-brand-dark font-medium tracking-tight">We'd Love to Hear From You</h3>
-                <p class="text-[11px] text-brand-textMuted mt-3 font-light leading-relaxed">
+                <h3 class="font-serif text-2xl md:text-3xl text-brand-dark dark:text-white font-medium tracking-tight">We'd Love to Hear From You</h3>
+                <p class="text-[11px] text-brand-textMuted dark:text-gray-400 mt-3 font-light leading-relaxed">
                     Have questions or want to book a consultation?<br>Fill out the form below and our team will get back to you.
                 </p>
                 
@@ -167,23 +167,23 @@ if (isset($_SESSION['user_id'])) {
 
             <form action="contact.php" method="POST" class="space-y-3.5 max-w-md mx-auto w-full">
                 <div class="relative flex items-center">
-                    <input type="text" name="name" required value="<?= htmlspecialchars($prefilled_name) ?>" placeholder="Your Name" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark">
+                    <input type="text" name="name" required value="<?= htmlspecialchars($prefilled_name) ?>" placeholder="Your Name" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-center">
-                    <input type="email" name="email" required value="<?= htmlspecialchars($prefilled_email) ?>" placeholder="Email Address" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark">
+                    <input type="email" name="email" required value="<?= htmlspecialchars($prefilled_email) ?>" placeholder="Email Address" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-center">
-                    <input type="tel" name="phone" required placeholder="Phone Number" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark">
+                    <input type="tel" name="phone" required placeholder="Phone Number" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-center">
-                    <input type="text" name="preferred_date" placeholder="Preferred Date (Optional)" onfocus="(this.type='date')" onblur="(this.type='text')" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-textMuted">
+                    <input type="text" name="preferred_date" placeholder="Preferred Date (Optional)" onfocus="(this.type='date')" onblur="(this.type='text')" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-textMuted dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-start">
-                    <textarea name="message_text" rows="4" required placeholder="Your Message" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 resize-none transition-all font-light text-brand-dark"></textarea>
+                    <textarea name="message_text" rows="4" required placeholder="Your Message" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 resize-none transition-all font-light text-brand-dark dark:text-gray-200"></textarea>
                 </div>
 
                 <div class="pt-2">
@@ -193,7 +193,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
             </form>
 
-            <div class="border-t border-pink-100/50 mt-8 pt-5 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-[10px] text-brand-textMuted font-light max-w-md mx-auto w-full">
+            <div class="border-t border-pink-100/50 dark:border-gray-800 mt-8 pt-5 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-[10px] text-brand-textMuted dark:text-gray-500 font-light max-w-md mx-auto w-full">
                 <div>+95 9 123 456 789</div>
                 <div class="text-pink-100">|</div>
                 <div>info@glowskinclinic.com</div>

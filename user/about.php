@@ -4,12 +4,12 @@
         <div class="space-y-6">
             <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-brand-pink block mb-1">About GlowSkin</span>
-                <h2 class="font-serif text-3xl text-brand-dark mb-4">We Care About Your Skin</h2>
-                <p class="text-sm text-brand-textMuted leading-relaxed">
+                <h2 class="font-serif text-3xl text-brand-dark dark:text-white mb-4">We Care About Your Skin</h2>
+                <p class="text-sm text-brand-textMuted dark:text-gray-400 leading-relaxed">
                     At GlowSkin Clinic, we combine advanced technology with expert care to deliver safe, effective, and personalized skincare treatments.
                 </p>
             </div>
-            <ul class="space-y-2.5 text-sm text-brand-dark">
+            <ul class="space-y-2.5 text-sm text-brand-dark dark:text-gray-200">
                 <li class="flex items-center space-x-2"><i class="fa-regular fa-circle-check text-brand-pink"></i> <span>Expert Dermatologists</span></li>
                 <li class="flex items-center space-x-2"><i class="fa-regular fa-circle-check text-brand-pink"></i> <span>Advanced Technology</span></li>
                 <li class="flex items-center space-x-2"><i class="fa-regular fa-circle-check text-brand-pink"></i> <span>Personalized Skin Care</span></li>

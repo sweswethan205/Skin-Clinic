@@ -137,6 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -148,13 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 </head>
-<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased min-h-screen flex flex-col">
+<body class="bg-brand-lightPink/50 dark:bg-gray-950 font-sans text-brand-dark dark:text-white antialiased min-h-screen flex flex-col dark:text-gray-100">
     <?php include '../includes/header.php'; ?>
 
     <main class="flex-grow max-w-4xl mx-auto w-full px-6 py-12">
         <div class="mb-10">
             <h1 class="font-serif text-3xl md:text-4xl font-bold tracking-tight">My Profile</h1>
-            <p class="text-sm text-brand-textMuted mt-1">Manage your personal information</p>
+            <p class="text-sm text-brand-textMuted dark:text-gray-400 mt-1">Manage your personal information</p>
         </div>
 
         <?php if ($message): ?>
@@ -168,8 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="POST" enctype="multipart/form-data" class="bg-white border border-gray-100 rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-            <div class="flex items-center gap-6 pb-8 border-b border-gray-100">
+        <form method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-6 pb-8 border-b border-gray-100 dark:border-gray-800">
                 <div class="relative">
                     <div class="w-20 h-20 rounded-full bg-brand-pink flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                         <?php if (!empty($user['photo'])): ?>
@@ -184,26 +185,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="file" id="photo-upload" name="photo" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden">
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-brand-dark"><?php echo htmlspecialchars($user['name'] ?? 'User'); ?></h2>
-                    <p class="text-sm text-brand-textMuted">Member since <?php echo isset($user['created_at']) ? date('M Y', strtotime($user['created_at'])) : 'N/A'; ?></p>
+                    <h2 class="text-xl font-bold text-brand-dark dark:text-white"><?php echo htmlspecialchars($user['name'] ?? 'User'); ?></h2>
+                    <p class="text-sm text-brand-textMuted dark:text-gray-400">Member since <?php echo isset($user['created_at']) ? date('M Y', strtotime($user['created_at'])) : 'N/A'; ?></p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Full Name</label>
-                    <input type="text" name="name" required value="<?php echo htmlspecialchars($user['name'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-brand-pink focus:bg-white transition">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">Full Name</label>
+                    <input type="text" name="name" required value="<?php echo htmlspecialchars($user['name'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-200 font-medium outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Email</label>
-                    <input type="email" name="email" required value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-brand-pink focus:bg-white transition">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">Email</label>
+                    <input type="email" name="email" required value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-200 font-medium outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Phone</label>
-                    <input type="tel" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-brand-pink focus:bg-white transition">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">Phone</label>
+                    <input type="tel" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-200 font-medium outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
                 <!-- <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Total Appointments</label>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">Total Appointments</label>
                     <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <i class="fa-regular fa-calendar text-brand-pink"></i>
                         <span class="text-sm font-medium"> bookings</span>
@@ -211,33 +212,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div> -->
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+            <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex justify-end">
                 <button type="submit" class="bg-brand-pink text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-opacity-90 transition flex items-center gap-2">
                     <i class="fa-solid fa-save"></i> Save Changes
                 </button>
             </div>
         </form>
 
-        <form method="POST" class="bg-white border border-gray-100 rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] mt-8">
+        <form method="POST" class="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] mt-8">
             <input type="hidden" name="action" value="password">
-            <h2 class="text-lg font-bold text-brand-dark mb-6 flex items-center gap-2">
+            <h2 class="text-lg font-bold text-brand-dark dark:text-white mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-lock text-brand-pink"></i> Change Password
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Current Password</label>
-                    <input type="password" name="current_password" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-brand-pink focus:bg-white transition">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">Current Password</label>
+                    <input type="password" name="current_password" required class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-200 outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">New Password</label>
-                    <input type="password" name="new_password" required minlength="6" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-brand-pink focus:bg-white transition">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">New Password</label>
+                    <input type="password" name="new_password" required minlength="6" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-200 outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted mb-2">Confirm New Password</label>
-                    <input type="password" name="confirm_password" required minlength="6" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-brand-pink focus:bg-white transition">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-brand-textMuted dark:text-gray-400 mb-2">Confirm New Password</label>
+                    <input type="password" name="confirm_password" required minlength="6" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-200 outline-none focus:border-brand-pink focus:bg-white transition">
                 </div>
             </div>
-            <div class="mt-6 pt-6 border-t border-gray-100 flex justify-end">
+            <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex justify-end">
                 <button type="submit" class="bg-gray-800 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-900 transition flex items-center gap-2">
                     <i class="fa-solid fa-key"></i> Update Password
                 </button>

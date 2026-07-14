@@ -53,6 +53,7 @@ foreach ($notifications as $n) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -73,17 +74,17 @@ foreach ($notifications as $n) {
     </script>
 </head>
 
-<body class="bg-brand-lightPink/50 font-sans antialiased">
+<body class="bg-brand-lightPink/50 font-sans antialiased dark:bg-gray-950 dark:text-gray-100">
     <?php include '../includes/header.php'; ?>
 
     <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h1 class="text-2xl font-bold text-brand-dark">Notifications</h1>
-                <p class="text-sm text-brand-textMuted mt-1">Stay updated on your appointment status</p>
+                <h1 class="text-2xl font-bold text-brand-dark dark:text-white">Notifications</h1>
+                <p class="text-sm text-brand-textMuted mt-1 dark:text-gray-400">Stay updated on your appointment status</p>
             </div>
             <?php if ($unread_count > 0): ?>
-                <a href="?read_all=1" class="text-xs font-semibold text-brand-pink bg-brand-lightPink px-4 py-2 rounded-lg hover:opacity-80 transition">
+                <a href="?read_all=1" class="text-xs font-semibold text-brand-pink bg-brand-lightPink px-4 py-2 rounded-lg hover:opacity-80 transition dark:bg-gray-800">
                     Mark All as Read
                 </a>
             <?php endif; ?>
@@ -92,15 +93,15 @@ foreach ($notifications as $n) {
         <?php if (count($notifications) > 0): ?>
             <div class="space-y-3">
                 <?php foreach ($notifications as $n): ?>
-                    <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start justify-between shadow-sm <?= $n['is_read'] ? '' : 'border-l-4 border-l-brand-pink' ?>">
+                    <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start justify-between shadow-sm dark:bg-gray-900 dark:border-gray-800 <?= $n['is_read'] ? '' : 'border-l-4 border-l-brand-pink' ?>">
                         <div class="flex items-start gap-3 flex-1 min-w-0">
-                            <div class="w-10 h-10 rounded-full <?= $n['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-brand-lightPink text-brand-pink' ?> flex items-center justify-center shrink-0">
+                            <div class="w-10 h-10 rounded-full <?= $n['is_read'] ? 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500' : 'bg-brand-lightPink text-brand-pink' ?> flex items-center justify-center shrink-0">
                                 <i class="<?= $n['type'] === 'status' ? 'fa-solid fa-rotate' : 'fa-regular fa-calendar-check' ?>"></i>
                             </div>
                             <div class="min-w-0">
-                                <h4 class="text-sm font-bold text-brand-dark"><?= htmlspecialchars($n['title']) ?></h4>
-                                <p class="text-xs text-brand-textMuted mt-0.5"><?= htmlspecialchars($n['message']) ?></p>
-                                <span class="text-[10px] text-gray-400 font-medium mt-1 block">
+                                <h4 class="text-sm font-bold text-brand-dark dark:text-white"><?= htmlspecialchars($n['title']) ?></h4>
+                                <p class="text-xs text-brand-textMuted mt-0.5 dark:text-gray-400"><?= htmlspecialchars($n['message']) ?></p>
+                                <span class="text-[10px] text-gray-400 font-medium mt-1 block dark:text-gray-500">
                                     <i class="fa-regular fa-clock mr-1"></i><?= date('d M Y, h:i A', strtotime($n['created_at'])) ?>
                                 </span>
                             </div>
@@ -114,12 +115,12 @@ foreach ($notifications as $n) {
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <div class="bg-white rounded-xl border border-gray-100 p-12 text-center">
-                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-xl border border-gray-100 p-12 text-center dark:bg-gray-900 dark:border-gray-800">
+                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-gray-800">
                     <i class="fa-regular fa-bell-slash text-2xl text-gray-300"></i>
                 </div>
-                <h3 class="text-base font-bold text-brand-dark">No Notifications</h3>
-                <p class="text-sm text-brand-textMuted mt-1">You're all caught up!</p>
+                <h3 class="text-base font-bold text-brand-dark dark:text-white">No Notifications</h3>
+                <p class="text-sm text-brand-textMuted mt-1 dark:text-gray-400">You're all caught up!</p>
             </div>
         <?php endif; ?>
     </main>

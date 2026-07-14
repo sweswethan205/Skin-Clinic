@@ -20,6 +20,7 @@ while ($row = $treatments_result->fetch_assoc()) {
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -39,17 +40,17 @@ while ($row = $treatments_result->fetch_assoc()) {
         }
     </script>
 </head>
-<body class="bg-[#FAF9F6] font-sans text-brand-dark antialiased">
+<body class="bg-[#FAF9F6] dark:bg-gray-950 font-sans text-brand-dark dark:text-gray-100 antialiased">
 
 <?php include '../includes/header.php' ?>
 
-    <section class="bg-brand-lightPink/50 border-b border-pink-100/30 relative overflow-hidden">
+    <section class="bg-brand-lightPink/50 dark:bg-gray-900 border-b border-pink-100/30 dark:border-gray-800 relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-6 pt-16 pb-20 text-center relative z-10">
             <span class="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3 block">Clinical Solutions</span>
-            <h1 class="font-serif text-4xl md:text-5xl text-brand-dark font-bold leading-tight mb-4">
+            <h1 class="font-serif text-4xl md:text-5xl text-brand-dark dark:text-white font-bold leading-tight mb-4">
                 Our Professional <span class="text-brand-pink italic font-normal">Treatments</span>
             </h1>
-            <p class="text-brand-textMuted max-w-xl mx-auto text-sm leading-relaxed">
+            <p class="text-brand-textMuted dark:text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
                 Explore our selection of state-of-the-art dermatological procedures customized completely to target your unique skin requirements.
             </p>
         </div>
@@ -65,20 +66,20 @@ while ($row = $treatments_result->fetch_assoc()) {
         <?php else: ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <?php foreach ($treatments as $treatment): ?>
-            <div class="treatment-card bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
+            <div class="treatment-card bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group opacity-100">
                 <div class="overflow-hidden aspect-[4/3] relative">
                     <?php if (!empty($treatment['image'])): ?>
                     <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
                     <?php else: ?>
-                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink text-brand-pink text-5xl">
+                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink dark:bg-gray-800 text-brand-pink text-5xl">
                         <i class="fa-solid fa-hand-holding-medical"></i>
                     </div>
                     <?php endif; ?>
                 </div>
                 <div class="p-6">
-                    <h3 class="font-serif text-xl text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
-                    <p class="text-xs text-brand-textMuted leading-relaxed mb-6"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-50">
+                    <h3 class="font-serif text-xl text-brand-dark dark:text-white font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
+                    <p class="text-xs text-brand-textMuted dark:text-gray-400 leading-relaxed mb-6"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-50 dark:border-gray-800">
                         <div>
                             <span class="text-xs text-gray-400 block font-light">Price from</span>
                             <span class="text-brand-pink font-bold text-xl">$<?php echo number_format($treatment['price'], 2); ?></span>

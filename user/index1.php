@@ -151,6 +151,7 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -198,7 +199,7 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
        
     </style>
 </head>
-<body class="bg-brand-lightPink/50 font-sans text-brand-dark antialiased">
+<body class="bg-brand-lightPink/50 dark:bg-gray-950 font-sans text-brand-dark dark:text-gray-100 antialiased">
 
 <?php include '../includes/header.php' ?>
 
@@ -208,10 +209,10 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
         <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 items-center pt-8 pb-10 md:py-10">
             <div class="space-y-6 max-w-xl z-10">
                 <span class="text-xs font-semibold uppercase tracking-wider text-brand-pink">Best Skin Clinic</span>
-                <h1 class="font-serif text-5xl md:text-6xl text-brand-dark leading-tight">
+                <h1 class="font-serif text-5xl md:text-6xl text-brand-dark dark:text-white leading-tight">
                     Reveal Your <br><span class="text-brand-pink italic font-normal">Natural Glow</span>
                 </h1>
-                <p class="text-brand-textMuted leading-relaxed text-sm md:text-base">
+                <p class="text-brand-textMuted dark:text-gray-400 leading-relaxed text-sm md:text-base">
                     We help you achieve healthy, radiant skin with advanced treatments and personalized care.
                 </p>
                 <div class="flex space-x-4 pt-2">
@@ -222,26 +223,26 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
                     </a>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-4 pt-8 border-t border-pink-200/60">
+                <div class="grid grid-cols-3 gap-4 pt-8 border-t border-pink-200/60 dark:border-gray-800">
                     <div class="flex items-start space-x-2">
-                        <div class="text-brand-pink p-1 bg-white rounded-full"><i class="fa-solid fa-user-doctor text-xs"></i></div>
+                        <div class="text-brand-pink p-1 bg-white dark:bg-gray-800 rounded-full"><i class="fa-solid fa-user-doctor text-xs"></i></div>
                         <div>
-                            <h4 class="text-xs font-semibold">Expert Doctors</h4>
-                            <p class="text-[10px] text-brand-textMuted">Highly Qualified</p>
+                            <h4 class="text-xs font-semibold dark:text-gray-200">Expert Doctors</h4>
+                            <p class="text-[10px] text-brand-textMuted dark:text-gray-500">Highly Qualified</p>
                         </div>
                     </div>
                     <div class="flex items-start space-x-2">
-                        <div class="text-brand-pink p-1 bg-white rounded-full"><i class="fa-solid fa-microscope text-xs"></i></div>
+                        <div class="text-brand-pink p-1 bg-white dark:bg-gray-800 rounded-full"><i class="fa-solid fa-microscope text-xs"></i></div>
                         <div>
-                            <h4 class="text-xs font-semibold">Advanced Tech</h4>
-                            <p class="text-[10px] text-brand-textMuted">Latest Equipment</p>
+                            <h4 class="text-xs font-semibold dark:text-gray-200">Advanced Tech</h4>
+                            <p class="text-[10px] text-brand-textMuted dark:text-gray-500">Latest Equipment</p>
                         </div>
                     </div>
                     <div class="flex items-start space-x-2">
-                        <div class="text-brand-pink p-1 bg-white rounded-full"><i class="fa-solid fa-heart text-xs"></i></div>
+                        <div class="text-brand-pink p-1 bg-white dark:bg-gray-800 rounded-full"><i class="fa-solid fa-heart text-xs"></i></div>
                         <div>
-                            <h4 class="text-xs font-semibold">Personal Care</h4>
-                            <p class="text-[10px] text-brand-textMuted">For You</p>
+                            <h4 class="text-xs font-semibold dark:text-gray-200">Personal Care</h4>
+                            <p class="text-[10px] text-brand-textMuted dark:text-gray-500">For You</p>
                         </div>
                     </div>
                 </div>
@@ -253,9 +254,9 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
                 <img class="w-full h-full object-cover mix-blend-multiply opacity-90" data-alt="A serene portrait of a young woman with radiant, healthy skin, looking upwards with a peaceful expression. She is softly lit in a high-key studio setting with a warm, minimalist cream background that aligns with a clinical luxury aesthetic. Soft shadows and a slight texture capture a natural, clean, and medical-grade beauty atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0LSo_Lt2DM3W98ekrBBqcOw3rou2DkgnJrkJicEhAVXbJ0bbJaU6otnUqxAe-yF5xY5dnJWRXxoHsAxunU2paPECTiCUjZBwfmN8UPCJToX3nmz7xJFISgZxrBsNz0PWVNSuDHMkEIlc0FzTPkF62BaK2AGXKFNwr_SQYM-sBque3YXVa4TrM0ZP0TEQQ505wzqy7v-ylQYBHp-u154pnSGnHAemeOBOez8nlDmk4vwkXpn_JESgk3Fq62cjecxfvtoc3P1Lta2A" style="border-radius: 42% 58% 40% 60% / 40% 43% 57% 60%">
                 
                 <!-- Badge Card: Placed Right-Center with Infinite Float Animation -->
-                <div class="absolute -right-12 top-1/2 bg-white/95 backdrop-blur-xs py-4 px-6 rounded-xl shadow-lg border border-pink-200 text-center min-w-[190px] z-20 animate-float">
-                    <h4 class="font-serif text-base text-brand-dark font-semibold tracking-tight text-[#1A2E26]">Acne Expertise</h4>
-                    <p class="text-[10px] text-brand-textMuted italic mb-2">You Can Trust</p>
+                <div class="absolute -right-12 top-1/2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xs py-4 px-6 rounded-xl shadow-lg border border-pink-200 dark:border-gray-700 text-center min-w-[190px] z-20 animate-float">
+                    <h4 class="font-serif text-base text-brand-dark dark:text-white font-semibold tracking-tight text-[#1A2E26]">Acne Expertise</h4>
+                    <p class="text-[10px] text-brand-textMuted dark:text-gray-400 italic mb-2">You Can Trust</p>
                     <div class="text-emerald-800 text-[10px] space-x-0.5">
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                     </div>
@@ -278,7 +279,7 @@ while ($row = $treatments_result->fetch_assoc()) {
         <div class="flex justify-between items-end mb-10">
             <div>
                 <span class="text-xs font-semibold tracking-widest text-brand-pink uppercase block mb-2">Our Popular Treatments</span>
-                <h2 class="font-serif text-3xl text-brand-dark font-bold">Advanced Care for Radiant Skin</h2>
+                <h2 class="font-serif text-3xl text-brand-dark dark:text-white font-bold">Advanced Care for Radiant Skin</h2>
             </div>
             <a href="../user/alltreatment.php" class="text-brand-pink hover:underline font-medium text-sm flex items-center gap-1">
                 View All Treatments →
@@ -291,14 +292,14 @@ while ($row = $treatments_result->fetch_assoc()) {
             <?php else: ?>
             <?php foreach ($treatments as $treatment): ?>
             <!-- Card Container - flex-col h-full forces equal layout sizes -->
-            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-pink-100 group flex flex-col h-full">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 ease-out hover:shadow-xl hover:border-pink-100 dark:hover:border-pink-900/50 group flex flex-col h-full">
                 
                 <!-- Card Image Box -->
                 <div class="overflow-hidden aspect-video shrink-0">
                     <?php if (!empty($treatment['image'])): ?>
                     <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" alt="<?php echo htmlspecialchars($treatment['treatment_name']); ?>" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
                     <?php else: ?>
-                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink text-brand-pink text-3xl">
+                    <div class="w-full h-full flex items-center justify-center bg-brand-lightPink dark:bg-gray-800 text-brand-pink text-3xl">
                         <i class="fa-solid fa-hand-holding-medical"></i>
                     </div>
                     <?php endif; ?>
@@ -307,13 +308,13 @@ while ($row = $treatments_result->fetch_assoc()) {
                 <!-- Content & Button Container -->
                 <div class="p-5 flex flex-col flex-grow justify-between">
                     <div>
-                        <h3 class="font-serif text-lg text-brand-dark font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
+                        <h3 class="font-serif text-lg text-brand-dark dark:text-white font-bold mb-2"><?php echo htmlspecialchars($treatment['treatment_name']); ?></h3>
                         <!-- line-clamp-3 forces multi-line descriptions to match perfectly across rows -->
-                        <p class="text-xs text-brand-textMuted leading-relaxed mb-6 line-clamp-3"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
+                        <p class="text-xs text-brand-textMuted dark:text-gray-400 leading-relaxed mb-6 line-clamp-3"><?php echo htmlspecialchars($treatment['description'] ?? ''); ?></p>
                     </div>
                     
                     <!-- Bottom Action Footer Row -->
-                    <div class="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">
+                    <div class="flex justify-between items-end mt-auto pt-4 border-t border-gray-50 dark:border-gray-800">
                         <div>
                             <span class="text-[10px] text-gray-400 block font-light leading-none mb-1">Price from</span>
                             <span class="text-brand-pink font-bold text-lg">$<?php echo number_format($treatment['price'], 2); ?></span>
@@ -335,12 +336,12 @@ while ($row = $treatments_result->fetch_assoc()) {
         <div class="space-y-6">
             <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-brand-pink block mb-1">About GlowSkin</span>
-                <h2 class="font-serif text-3xl text-brand-dark mb-4">We Care About Your Skin</h2>
-                <p class="text-sm text-brand-textMuted leading-relaxed">
+                <h2 class="font-serif text-3xl text-brand-dark dark:text-white mb-4">We Care About Your Skin</h2>
+                <p class="text-sm text-brand-textMuted dark:text-gray-400 leading-relaxed">
                     At GlowSkin Clinic, we combine advanced technology with expert care to deliver safe, effective, and personalized skincare treatments.
                 </p>
             </div>
-            <ul class="space-y-2.5 text-sm text-brand-dark">
+            <ul class="space-y-2.5 text-sm text-brand-dark dark:text-gray-200">
                 <li class="flex items-center space-x-2"><i class="fa-regular fa-circle-check text-brand-pink"></i> <span>Expert Dermatologists</span></li>
                 <li class="flex items-center space-x-2"><i class="fa-regular fa-circle-check text-brand-pink"></i> <span>Advanced Technology</span></li>
                 <li class="flex items-center space-x-2"><i class="fa-regular fa-circle-check text-brand-pink"></i> <span>Personalized Skin Care</span></li>
@@ -354,27 +355,27 @@ while ($row = $treatments_result->fetch_assoc()) {
     </section>
 
     <!-- STATS COUNTER SECTION -->
-    <section class="py-12 border-t border-b border-pink-100/40">
+    <section class="py-12 border-t border-b border-pink-100/40 dark:border-gray-800">
         <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-regular fa-face-smile text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="10000">0</span>+</h3>
-                <p class="text-xs text-gray-500 font-medium mt-1">Happy Clients</p>
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-pink-100/30 dark:border-gray-800 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] dark:bg-gray-800 rounded-full"><i class="fa-regular fa-face-smile text-rose-400"></i></div>
+                <h3 class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight"><span class="counter" data-target="10000">0</span>+</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Happy Clients</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-solid fa-user-doctor text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="4">0</span>+</h3>
-                <p class="text-xs text-gray-500 font-medium mt-1">Expert Doctors</p>
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-pink-100/30 dark:border-gray-800 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] dark:bg-gray-800 rounded-full"><i class="fa-solid fa-user-doctor text-rose-400"></i></div>
+                <h3 class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight"><span class="counter" data-target="4">0</span>+</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Expert Doctors</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-solid fa-wand-magic-sparkles text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="10">0</span>+</h3>
-                <p class="text-xs text-gray-500 font-medium mt-1">Treatments</p>
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-pink-100/30 dark:border-gray-800 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] dark:bg-gray-800 rounded-full"><i class="fa-solid fa-wand-magic-sparkles text-rose-400"></i></div>
+                <h3 class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight"><span class="counter" data-target="10">0</span>+</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Treatments</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] rounded-full"><i class="fa-solid fa-award text-rose-400"></i></div>
-                <h3 class="text-3xl font-bold text-gray-800 tracking-tight"><span class="counter" data-target="10">0</span>+</h3>
-                <p class="text-xs text-gray-500 font-medium mt-1">Years Experience</p>
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-pink-100/30 dark:border-gray-800 flex flex-col items-center justify-center text-center transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div class="text-3xl mb-3 flex justify-center w-12 h-12 items-center bg-[#FFF0F2] dark:bg-gray-800 rounded-full"><i class="fa-solid fa-award text-rose-400"></i></div>
+                <h3 class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight"><span class="counter" data-target="10">0</span>+</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Years Experience</p>
             </div>
         </div>
     </section>
@@ -383,7 +384,7 @@ while ($row = $treatments_result->fetch_assoc()) {
     <section class="max-w-7xl mx-auto px-6 py-12">
         <div class="text-center mb-10">
             <span class="text-xs font-semibold uppercase tracking-wider text-[#FF6584] block mb-1">What Our Clients Say</span>
-            <h2 class="font-serif text-3xl text-slate-800">Real Stories, Real Results</h2>
+            <h2 class="font-serif text-3xl text-slate-800 dark:text-white">Real Stories, Real Results</h2>
         </div>
         
         <!-- Marquee Frame Wrapper -->
@@ -394,13 +395,13 @@ while ($row = $treatments_result->fetch_assoc()) {
                     <?php for ($i = 0; $i < 4; $i++): // Looping extra to ensure visual loop coverage ?>
                         <?php foreach ($reviews as $review): ?>
                             <!-- Specified definitive dimensions explicitly to ensure consistency -->
-                            <div class="w-72 sm:w-80 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-3 flex-shrink-0">
+                            <div class="w-72 sm:w-80 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs space-y-3 flex-shrink-0">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-8 h-8 rounded-full bg-[#FF6584]/20 flex items-center justify-center text-[#FF6584] text-xs font-bold">
                                         <?= strtoupper(substr($review['name'], 0, 1)) ?>
                                     </div>
                                     <div>
-                                        <h4 class="font-semibold text-sm text-slate-800"><?= htmlspecialchars($review['name']) ?></h4>
+                                        <h4 class="font-semibold text-sm text-slate-800 dark:text-white"><?= htmlspecialchars($review['name']) ?></h4>
                                         <div class="text-amber-400 text-[10px]">
                                             <?php for ($s = 0; $s < intval($review['rating']); $s++): ?>
                                                 <i class="fa-solid fa-star"></i>
@@ -411,7 +412,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 italic leading-relaxed">"<?= htmlspecialchars($review['review_text']) ?>"</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 italic leading-relaxed">"<?= htmlspecialchars($review['review_text']) ?>"</p>
                             </div>
                         <?php endforeach; ?>
                     <?php endfor; ?>
@@ -421,7 +422,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             </div>
         </div>
 
-        <div class="bg-white max-w-7xl mx-auto px-6 py-6 md:py-10 rounded-[2.5rem] shadow-sm border border-pink-100/30 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-4">
+        <div class="bg-white dark:bg-gray-900 max-w-7xl mx-auto px-6 py-6 md:py-10 rounded-[2.5rem] shadow-sm border border-pink-100/30 dark:border-gray-800 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center mt-4">
             
             <!-- LEFT PANEL: Typography & Branding Content -->
             <div class="md:col-span-5">
@@ -431,17 +432,17 @@ while ($row = $treatments_result->fetch_assoc()) {
                 </div>
                 
                 <div class="space-y-3">
-                    <h2 class="font-serif text-3xl md:text-4xl lg:text-[40px] font-bold tracking-tight text-[#2D2D2D] leading-[1.15]">
+                    <h2 class="font-serif text-3xl md:text-4xl lg:text-[40px] font-bold tracking-tight text-[#2D2D2D] dark:text-white leading-[1.15]">
                         Share Your Glow Experience
                     </h2>
-                    <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-sm">
+                    <p class="text-[13px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-sm">
                         Your feedback helps us refine our skin treatments and assists others in finding their perfect skincare journey.
                     </p>
                 </div>
             </div>
 
             <!-- RIGHT PANEL: Contextual Embedded Form Box -->
-            <div class="md:col-span-7 bg-brand-lightPink border border-gray-100/80 p-6 md:p-8 rounded-[2rem]">
+            <div class="md:col-span-7 bg-brand-lightPink dark:bg-gray-800 border border-gray-100/80 dark:border-gray-700 p-6 md:p-8 rounded-[2rem]">
                 
                 <?php if($notification === 'success'): ?>
                     <div class="bg-emerald-50 text-emerald-600 border border-emerald-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
@@ -462,7 +463,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                         <div class="sm:col-span-7 space-y-1.5">
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Name</label>
                             <input type="text" name="name" required value="<?= htmlspecialchars($user_name) ?>" placeholder="Swe Swe" 
-                                   class="w-full px-4 py-3 text-xs font-medium bg-white border border-gray-200/80 rounded-xl outline-none focus:border-[#FF6584] transition-all">
+                                   class="w-full px-4 py-3 text-xs font-medium bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[#FF6584] transition-all dark:text-gray-200">
                         </div>
 
                         <!-- Rating stars field align right stack -->
@@ -505,7 +506,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Review</label>
                         <textarea name="review_text" rows="4" required placeholder="How was your clinic visit or your treatment results? Tell us..." 
-                                  class="w-full px-4 py-3 text-xs font-medium bg-white border border-gray-200/80 rounded-xl outline-none focus:border-[#FF6584] resize-none transition-all leading-relaxed"></textarea>
+                                  class="w-full px-4 py-3 text-xs font-medium bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[#FF6584] resize-none transition-all leading-relaxed dark:text-gray-200"></textarea>
                     </div>
 
                     <!-- Action interaction bottom row positioning -->
@@ -525,21 +526,21 @@ while ($row = $treatments_result->fetch_assoc()) {
 
 <!-- PREMIUM CONTACT US SECTION -->
     <section class="max-w-7xl mx-auto px-6 py-12">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-brand-lightPink/50 rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 bg-brand-lightPink/50 dark:bg-gray-900 rounded-3xl overflow-hidden shadow-2xl shadow-pink-100/30 border border-pink-100/40 dark:border-gray-800">
         
         <!-- Left Side Aesthetic Info Banner -->
-        <div class="lg:col-span-6 relative bg-brand-lightPink min-h-[450px] lg:min-h-[680px] flex flex-col justify-between">
+        <div class="lg:col-span-6 relative bg-brand-lightPink dark:bg-gray-800 min-h-[450px] lg:min-h-[680px] flex flex-col justify-between">
             <div class="p-12 z-10 space-y-6 relative">
                 <div class="flex items-center space-x-2">
-                    <span class="font-serif tracking-wide text-xs uppercase font-semibold text-brand-dark">Glow Skin Clinic</span>
+                    <span class="font-serif tracking-wide text-xs uppercase font-semibold text-brand-dark dark:text-white">Glow Skin Clinic</span>
                 </div>
 
                 <div class="space-y-3 max-w-xs pt-8">
-                    <h2 class="font-serif text-4xl text-brand-dark font-normal leading-tight tracking-wide">
+                    <h2 class="font-serif text-4xl text-brand-dark dark:text-white font-normal leading-tight tracking-wide">
                         Healthy Skin, <br>Confident You
                     </h2>
                     <div class="w-12 h-[1px] bg-brand-pink my-4"></div>
-                    <p class="text-xs text-brand-textMuted tracking-wide font-light leading-relaxed">
+                    <p class="text-xs text-brand-textMuted dark:text-gray-400 tracking-wide font-light leading-relaxed">
                         Professional care for your natural beauty.
                     </p>
                 </div>
@@ -552,11 +553,11 @@ while ($row = $treatments_result->fetch_assoc()) {
         </div>
 
         <!-- Right Side Form Controls -->
-        <div class="lg:col-span-6 p-8 md:p-14 flex flex-col justify-between bg-white z-10">
+        <div class="lg:col-span-6 p-8 md:p-14 flex flex-col justify-between bg-white dark:bg-gray-900 z-10">
             <div class="text-center max-w-md mx-auto w-full">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-brand-pink block mb-2">Contact Us</span>
-                <h3 class="font-serif text-2xl md:text-3xl text-brand-dark font-medium tracking-tight">We'd Love to Hear From You</h3>
-                <p class="text-[11px] text-brand-textMuted mt-3 font-light leading-relaxed">
+                <h3 class="font-serif text-2xl md:text-3xl text-brand-dark dark:text-white font-medium tracking-tight">We'd Love to Hear From You</h3>
+                <p class="text-[11px] text-brand-textMuted dark:text-gray-400 mt-3 font-light leading-relaxed">
                     Have questions or want to book a consultation?<br>Fill out the form below and our team will get back to you.
                 </p>
                 
@@ -583,23 +584,23 @@ while ($row = $treatments_result->fetch_assoc()) {
 
             <form action="contact.php" method="POST" class="space-y-3.5 max-w-md mx-auto w-full">
                 <div class="relative flex items-center">
-                    <input type="text" name="name" required value="<?= htmlspecialchars($prefilled_name) ?>" placeholder="Your Name" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark">
+                    <input type="text" name="name" required value="<?= htmlspecialchars($prefilled_name) ?>" placeholder="Your Name" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-center">
-                    <input type="email" name="email" required value="<?= htmlspecialchars($prefilled_email) ?>" placeholder="Email Address" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark">
+                    <input type="email" name="email" required value="<?= htmlspecialchars($prefilled_email) ?>" placeholder="Email Address" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-center">
-                    <input type="tel" name="phone" required placeholder="Phone Number" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark">
+                    <input type="tel" name="phone" required placeholder="Phone Number" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-dark dark:text-gray-200">
                 </div>
 
                 <div class="relative flex items-center">
-                    <input type="text" name="preferred_date" placeholder="Preferred Date (Optional)" onfocus="(this.type='date')" onblur="(this.type='text')" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-textMuted">
+                    <input type="text" name="preferred_date" placeholder="Preferred Date (Optional)" onfocus="(this.type='date')" onblur="(this.type='text')" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 transition-all font-light text-brand-textMuted dark:text-gray-400">
                 </div>
 
                 <div class="relative flex items-start">
-                    <textarea name="message_text" rows="4" required placeholder="Your Message" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 border-2 border-pink-100/60 rounded-lg placeholder-gray-400 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 resize-none transition-all font-light text-brand-dark"></textarea>
+                    <textarea name="message_text" rows="4" required placeholder="Your Message" class="w-full text-xs px-4 py-3.5 bg-brand-lightPink/10 dark:bg-gray-800 border-2 border-pink-100/60 dark:border-gray-700 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:outline-none focus:border-brand-pink focus:ring-1 focus:ring-brand-pink/30 resize-none transition-all font-light text-brand-dark dark:text-gray-200"></textarea>
                 </div>
 
                 <div class="pt-2">
@@ -609,7 +610,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                 </div>
             </form>
 
-            <div class="border-t border-pink-100/50 mt-8 pt-5 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-[10px] text-brand-textMuted font-light max-w-md mx-auto w-full">
+            <div class="border-t border-pink-100/50 dark:border-gray-800 mt-8 pt-5 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-[10px] text-brand-textMuted dark:text-gray-500 font-light max-w-md mx-auto w-full">
                 <div>+95 9 123 456 789</div>
                 <div class="text-pink-100">|</div>
                 <div>info@glowskinclinic.com</div>

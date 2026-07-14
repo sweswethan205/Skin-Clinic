@@ -12,6 +12,7 @@
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -34,7 +35,7 @@
         }
     </style>
 </head>
-<body class="bg-[#FFF0F2]/30 min-h-screen text-slate-800 antialiased">
+<body class="bg-[#FFF0F2]/30 dark:bg-gray-950 min-h-screen text-slate-800 dark:text-gray-100 antialiased">
 
     <?php include '../includes/header.php'; ?>
 
@@ -42,10 +43,10 @@
         
         <div class="text-center max-w-2xl mx-auto mb-12">
             <span class="text-xs font-bold uppercase tracking-wider text-[#FF6584] block mb-2">Our Visual Journey</span>
-            <h1 class="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-slate-800 tracking-tight leading-tight">
+            <h1 class="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-slate-800 dark:text-white tracking-tight leading-tight">
                 Clinic Gallery & Results
             </h1>
-            <p class="text-xs md:text-sm text-slate-400 mt-3 font-medium leading-relaxed">
+            <p class="text-xs md:text-sm text-slate-400 dark:text-gray-400 mt-3 font-medium leading-relaxed">
                 Take a virtual tour of our state-of-the-art clinic spaces, explore advanced treatments, and discover inspiring real patient transformations.
             </p>
         </div>
@@ -54,13 +55,13 @@
             <button onclick="filterGallery('all')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-slate-900 text-white shadow-sm transition-all duration-300">
                 All Media
             </button>
-            <button onclick="filterGallery('clinic')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-white text-slate-500 border border-slate-100 hover:bg-slate-50 transition-all duration-300">
+            <button onclick="filterGallery('clinic')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-slate-500 dark:text-gray-400 border border-slate-100 dark:border-gray-700 hover:bg-slate-50 transition-all duration-300">
                 Clinic Spaces
             </button>
-            <button onclick="filterGallery('treatment')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-white text-slate-500 border border-slate-100 hover:bg-slate-50 transition-all duration-300">
+            <button onclick="filterGallery('treatment')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-slate-500 dark:text-gray-400 border border-slate-100 dark:border-gray-700 hover:bg-slate-50 transition-all duration-300">
                 Treatments
             </button>
-            <button onclick="filterGallery('results')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-white text-slate-500 border border-slate-100 hover:bg-slate-50 transition-all duration-300">
+            <button onclick="filterGallery('results')" class="filter-btn px-5 py-2.5 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 text-slate-500 dark:text-gray-400 border border-slate-100 dark:border-gray-700 hover:bg-slate-50 transition-all duration-300">
                 Before & After
             </button>
         </div>
@@ -76,11 +77,11 @@
                 </div>
                 <div class="p-4">
                     <span class="text-[9px] font-bold tracking-wider uppercase text-[#FF6584]">Clinic Spaces</span>
-                    <h3 class="font-bold text-sm text-slate-800 mt-0.5">Consultation Room 1</h3>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white mt-0.5">Consultation Room 1</h3>
                 </div>
             </div>
 
-            <div class="gallery-item group relative bg-white rounded-2xl overflow-hidden border border-pink-100/30 shadow-xs cursor-pointer" data-category="treatment" onclick="openLightbox(this)">
+            <div class="gallery-item group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-pink-100/30 dark:border-gray-800 shadow-xs cursor-pointer" data-category="treatment" onclick="openLightbox(this)">
                 <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&q=80&w=800" alt="Facial Therapy Routine" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -89,11 +90,11 @@
                 </div>
                 <div class="p-4">
                     <span class="text-[9px] font-bold tracking-wider uppercase text-[#FF6584]">Treatments</span>
-                    <h3 class="font-bold text-sm text-slate-800 mt-0.5">Laser Skin Resurfacing</h3>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white mt-0.5">Laser Skin Resurfacing</h3>
                 </div>
             </div>
 
-            <div class="gallery-item group relative bg-white rounded-2xl overflow-hidden border border-pink-100/30 shadow-xs cursor-pointer" data-category="results" onclick="openLightbox(this)">
+            <div class="gallery-item group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-pink-100/30 dark:border-gray-800 shadow-xs cursor-pointer" data-category="results" onclick="openLightbox(this)">
                 <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=800" alt="Acne Clear Progress Case" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -102,11 +103,11 @@
                 </div>
                 <div class="p-4">
                     <span class="text-[9px] font-bold tracking-wider uppercase text-[#FF6584]">Before & After</span>
-                    <h3 class="font-bold text-sm text-slate-800 mt-0.5">Acne Scar Repair Program</h3>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white mt-0.5">Acne Scar Repair Program</h3>
                 </div>
             </div>
 
-            <div class="gallery-item group relative bg-white rounded-2xl overflow-hidden border border-pink-100/30 shadow-xs cursor-pointer" data-category="clinic" onclick="openLightbox(this)">
+            <div class="gallery-item group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-pink-100/30 dark:border-gray-800 shadow-xs cursor-pointer" data-category="clinic" onclick="openLightbox(this)">
                 <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800" alt="Clinic Front Lounge Lobby Area" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -115,11 +116,11 @@
                 </div>
                 <div class="p-4">
                     <span class="text-[9px] font-bold tracking-wider uppercase text-[#FF6584]">Clinic Spaces</span>
-                    <h3 class="font-bold text-sm text-slate-800 mt-0.5">Reception & Lounge Area</h3>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white mt-0.5">Reception & Lounge Area</h3>
                 </div>
             </div>
 
-            <div class="gallery-item group relative bg-white rounded-2xl overflow-hidden border border-pink-100/30 shadow-xs cursor-pointer" data-category="treatment" onclick="openLightbox(this)">
+            <div class="gallery-item group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-pink-100/30 dark:border-gray-800 shadow-xs cursor-pointer" data-category="treatment" onclick="openLightbox(this)">
                 <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800" alt="Hydrafacial Skin Peeling Procedure" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -128,11 +129,11 @@
                 </div>
                 <div class="p-4">
                     <span class="text-[9px] font-bold tracking-wider uppercase text-[#FF6584]">Treatments</span>
-                    <h3 class="font-bold text-sm text-slate-800 mt-0.5">Deep Detox Hydrafacial</h3>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white mt-0.5">Deep Detox Hydrafacial</h3>
                 </div>
             </div>
 
-            <div class="gallery-item group relative bg-white rounded-2xl overflow-hidden border border-pink-100/30 shadow-xs cursor-pointer" data-category="results" onclick="openLightbox(this)">
+            <div class="gallery-item group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-pink-100/30 dark:border-gray-800 shadow-xs cursor-pointer" data-category="results" onclick="openLightbox(this)">
                 <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                     <img src="https://images.unsplash.com/photo-1614859324967-bdf461fcf769?auto=format&fit=crop&q=80&w=800" alt="Anti aging Skin Tone Glow Treatment" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -141,7 +142,7 @@
                 </div>
                 <div class="p-4">
                     <span class="text-[9px] font-bold tracking-wider uppercase text-[#FF6584]">Before & After</span>
-                    <h3 class="font-bold text-sm text-slate-800 mt-0.5">Anti-Aging Glow Lifting</h3>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white mt-0.5">Anti-Aging Glow Lifting</h3>
                 </div>
             </div>
 

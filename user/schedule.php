@@ -35,26 +35,26 @@ while ($row = $schedules_result->fetch_assoc()) {
     </style>
 </head>
 
-<body class="bg-[#FAF9F6] min-h-screen text-slate-800">
+<body class="bg-[#FAF9F6] dark:bg-gray-950 min-h-screen text-slate-800 dark:text-gray-100">
     <?php include '../includes/header.php'; ?>
 
     <!-- Hero -->
-    <section class="bg-gradient-to-br from-brand-lightPink to-pink-50 py-16">
+    <section class="bg-gradient-to-br from-brand-lightPink to-pink-50 dark:from-gray-900 dark:to-gray-800 py-16">
         <div class="max-w-6xl mx-auto px-6 text-center">
             <span class="text-xs font-semibold tracking-widest text-brand-pink uppercase block mb-3">Doctor Availability</span>
-            <h1 class="font-serif text-4xl text-brand-dark font-bold mb-3">Doctor Schedules</h1>
-            <p class="text-sm text-brand-textMuted max-w-xl mx-auto">Check available time slots and book your appointment with our specialist doctors.</p>
+            <h1 class="font-serif text-4xl text-brand-dark dark:text-white font-bold mb-3">Doctor Schedules</h1>
+            <p class="text-sm text-brand-textMuted dark:text-gray-400 max-w-xl mx-auto">Check available time slots and book your appointment with our specialist doctors.</p>
         </div>
     </section>
 
     <div class="max-w-6xl mx-auto px-6 py-12">
 
         <!-- Filter -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-8 flex items-center justify-between">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-100 dark:border-gray-800 shadow-sm p-4 mb-8 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <span class="text-sm font-bold text-slate-700">Filter by Doctor</span>
+                <span class="text-sm font-bold text-slate-700 dark:text-gray-200">Filter by Doctor</span>
                 <form method="GET" action="schedule.php" class="flex items-center gap-2">
-                    <select name="doctor_id" onchange="this.form.submit()" class="text-xs border border-slate-200 rounded-lg px-3 py-2 font-semibold text-slate-500 bg-white focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none">
+                    <select name="doctor_id" onchange="this.form.submit()" class="text-xs border border-slate-200 dark:border-gray-700 rounded-lg px-3 py-2 font-semibold text-slate-500 dark:text-gray-400 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none">
                         <option value="0">All Doctors</option>
                         <?php foreach ($doctors as $doc): ?>
                         <option value="<?php echo $doc['id']; ?>" <?php echo $doctor_filter === (int)$doc['id'] ? 'selected' : ''; ?>>
@@ -74,18 +74,18 @@ while ($row = $schedules_result->fetch_assoc()) {
 
         <!-- Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+                <div class="w-10 h-10 bg-pink-50 dark:bg-gray-800 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-day"></i></div>
                 <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Schedules</span>
-                    <span class="text-xl font-extrabold text-slate-800"><?php echo count($schedules); ?></span>
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider block">Total Schedules</span>
+                    <span class="text-xl font-extrabold text-slate-800 dark:text-white"><?php echo count($schedules); ?></span>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check-circle"></i></div>
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+                <div class="w-10 h-10 bg-emerald-50 dark:bg-gray-800 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check-circle"></i></div>
                 <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Available</span>
-                    <span class="text-xl font-extrabold text-slate-800">
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider block">Available</span>
+                    <span class="text-xl font-extrabold text-slate-800 dark:text-white">
                         <?php
                         $avail = array_filter($schedules, fn($s) => $s['is_booked'] === 'no');
                         echo count($avail);
@@ -93,11 +93,11 @@ while ($row = $schedules_result->fetch_assoc()) {
                     </span>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-bookmark"></i></div>
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
+                <div class="w-10 h-10 bg-blue-50 dark:bg-gray-800 text-blue-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-bookmark"></i></div>
                 <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Booked</span>
-                    <span class="text-xl font-extrabold text-slate-800">
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider block">Booked</span>
+                    <span class="text-xl font-extrabold text-slate-800 dark:text-white">
                         <?php
                         $booked = array_filter($schedules, fn($s) => $s['is_booked'] === 'yes');
                         echo count($booked);
@@ -108,7 +108,7 @@ while ($row = $schedules_result->fetch_assoc()) {
         </div>
 
         <!-- Schedules List -->
-        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl border border-slate-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <?php if (empty($schedules)): ?>
             <div class="py-16 text-center">
                 <div class="text-slate-300">
@@ -121,7 +121,7 @@ while ($row = $schedules_result->fetch_assoc()) {
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        <tr class="bg-slate-50/70 dark:bg-gray-800 border-b border-slate-100 dark:border-gray-700 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">
                             <th class="py-4 px-6">Doctor</th>
                             <th class="py-4 px-6">Date</th>
                             <th class="py-4 px-6">Time</th>
@@ -129,9 +129,9 @@ while ($row = $schedules_result->fetch_assoc()) {
                             <th class="py-4 px-6 text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-50 text-xs font-semibold text-slate-700">
+                    <tbody class="divide-y divide-slate-50 dark:divide-gray-800 text-xs font-semibold text-slate-700 dark:text-gray-300">
                         <?php foreach ($schedules as $schedule): ?>
-                        <tr class="hover:bg-slate-50/60 transition-colors group">
+                        <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/60 transition-colors group">
                             <td class="py-4 px-6">
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-full overflow-hidden bg-brand-lightPink flex items-center justify-center text-brand-pink text-xs font-bold shrink-0">
