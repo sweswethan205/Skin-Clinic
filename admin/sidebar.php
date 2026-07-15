@@ -23,8 +23,8 @@ if ($mc && $mc_row = $mc->fetch_assoc()) {
 <aside id="sidebar"
     class="fixed top-0 left-0 z-50
 w-64 h-screen
-bg-white
-border-r border-slate-100
+bg-white dark:bg-gray-900
+border-r border-slate-100 dark:border-gray-800
 flex flex-col justify-between
 overflow-y-auto
 px-6
@@ -32,7 +32,7 @@ transform -translate-x-full lg:translate-x-0
 transition-transform duration-300">
 
     <!-- Logo -->
-    <div class="sticky top-0 z-50 bg-white py-6 border-b border-slate-100">
+    <div class="sticky top-0 z-50 bg-white dark:bg-gray-900 py-6 border-b border-slate-100 dark:border-gray-800">
         <div class="flex items-center justify-between w-full">
 
             <!-- Logo -->
@@ -40,10 +40,10 @@ transition-transform duration-300">
                 <i class="fa-solid fa-spa text-3xl text-brand-pink"></i>
 
                 <div>
-                    <h1 class="font-bold text-lg text-slate-800">
+                    <h1 class="font-bold text-lg text-slate-800 dark:text-white">
                         GlowSkin
                     </h1>
-                    <p class="text-xs text-slate-400">
+                    <p class="text-xs text-slate-400 dark:text-gray-500">
                         Admin Panel
                     </p>
                 </div>
@@ -58,8 +58,8 @@ transition-transform duration-300">
         <a href="../admin/dashboard.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "dashboard.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-solid fa-chart-pie"></i>
             <span>Dashboard</span>
         </a>
@@ -67,8 +67,8 @@ transition-transform duration-300">
         <a href="../admin/appointment.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "appointment.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-regular fa-calendar-check"></i>
             <span>Appointments</span>
         </a>
@@ -76,8 +76,8 @@ transition-transform duration-300">
         <a href="../admin/patient.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "patient.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-regular fa-address-book"></i>
             <span>Users</span>
         </a>
@@ -85,8 +85,8 @@ transition-transform duration-300">
         <a href="../admin/doctor.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "doctor.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-solid fa-user-doctor"></i>
             <span>Doctors</span>
         </a>
@@ -94,8 +94,8 @@ transition-transform duration-300">
         <a href="../admin/treatment.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "treatment.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-solid fa-hand-holding-medical"></i>
             <span>Treatments</span>
         </a>
@@ -103,8 +103,8 @@ transition-transform duration-300">
         <a href="../admin/schedule.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "schedule.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-regular fa-clock"></i>
             <span>Schedules</span>
         </a>
@@ -112,8 +112,8 @@ transition-transform duration-300">
         <a href="../admin/testimonial.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "testimonial.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-regular fa-comment-dots"></i>
             <span>Testimonials</span>
         </a>
@@ -121,8 +121,8 @@ transition-transform duration-300">
         <a href="../admin/message.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "message.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-regular fa-envelope"></i>
             <span>Messages</span>
             <?php if ($msg_unread > 0): ?>
@@ -133,8 +133,8 @@ transition-transform duration-300">
         <a href="../admin/notification.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "notification.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-regular fa-bell"></i>
             <span>Notifications</span>
             <?php if ($notif_count > 0): ?>
@@ -145,8 +145,8 @@ transition-transform duration-300">
         <a href="../admin/report.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "report.php")
-                    ? "bg-brand-lightPink text-brand-pink border-l-4 border-brand-pink font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-pink"; ?>">
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
             <i class="fa-solid fa-chart-column"></i>
             <span>Reports</span>
         </a>
@@ -158,12 +158,12 @@ transition-transform duration-300">
 
     <div class="space-y-8 sticky bottom-0">
 
-        <div class="bg-brand-lightPink rounded-2xl p-4 text-center border border-pink-100">
-            <div class="w-10 h-10 rounded-full bg-white mx-auto flex items-center justify-center shadow">
+        <div class="bg-brand-lightPink dark:bg-pink-900/20 rounded-2xl p-4 text-center border border-pink-100 dark:border-pink-800/30">
+            <div class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 mx-auto flex items-center justify-center shadow">
                 <i class="fa-solid fa-headset text-brand-pink"></i>
             </div>
 
-            <h4 class="mt-3 font-bold text-sm">
+            <h4 class="mt-3 font-bold text-sm dark:text-white">
                 Need Help?
             </h4>
 

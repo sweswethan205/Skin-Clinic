@@ -193,6 +193,7 @@ if (isset($_GET['edit'])) {
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -216,8 +217,30 @@ if (isset($_GET['edit'])) {
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .modal-bg { background: rgba(15, 23, 42, 0.5); }
     </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+    </script>
 </head>
-<body class="bg-brand-canvas text-slate-700 min-h-screen flex antialiased">
+<body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <?php include 'sidebar.php'; ?>
 
@@ -225,36 +248,39 @@ if (isset($_GET['edit'])) {
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
 
         <!-- HEADER -->
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                
                 <div>
-                    <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Doctor Schedules</h2>
-                    <p class="text-xs text-brand-muted font-medium">Manage doctor availability and time slots.</p>
+            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Doctor Schedules</h2>
+            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Manage doctor availability and time slots.</p>
                 </div>
-            </div>
+    </div>
 
-            <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-                <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
-                    <?php if ($admin_photo): ?>
-                        <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
-                    <?php else: ?>
-                        <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
-                    <?php endif; ?>
-                </div>
-                <div>
-                    <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
-                    <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
-                </div>
-            </a>
-        </header>
+    <div class="flex items-center space-x-4">
+        <?php include 'header-actions.php'; ?>
+        <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
+            <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-gray-700 bg-brand-lightPink dark:bg-pink-900/20 flex items-center justify-center text-brand-pink font-bold text-sm">
+                <?php if ($admin_photo): ?>
+                    <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
+                <?php else: ?>
+                    <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
+                <?php endif; ?>
+            </div>
+            <div>
+                <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                <!-- <span class="text-[10px] font-medium text-brand-muted dark:text-gray-400">Clinic Supervisor</span> -->
+            </div>
+        </a>
+    </div>
+</header>
 
         <!-- MAIN -->
         <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
 
             <!-- Message Alert -->
             <?php if ($message): ?>
-            <div class="px-5 py-3.5 rounded-xl border text-sm font-bold flex items-center gap-3 <?php echo $message_type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'; ?>">
+            <div class="px-5 py-3.5 rounded-xl border text-sm font-bold flex items-center gap-3 <?php echo $message_type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'; ?>">
                 <i class="fa-solid <?php echo $message_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
                 <span><?php echo htmlspecialchars($message); ?></span>
                 <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
@@ -263,25 +289,25 @@ if (isset($_GET['edit'])) {
 
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-day"></i></div>
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-pink-50 dark:bg-pink-900/20 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-day"></i></div>
                     <div>
-                        <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Total Schedules</span>
-                        <span class="text-xl font-extrabold text-brand-dark"><?php echo count($schedules); ?></span>
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Total Schedules</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-white"><?php echo count($schedules); ?></span>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-users"></i></div>
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 text-amber-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-users"></i></div>
                     <div>
-                        <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Active Doctors</span>
-                        <span class="text-xl font-extrabold text-brand-dark"><?php echo count($doctors); ?></span>
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Active Doctors</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-white"><?php echo count($doctors); ?></span>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check-circle"></i></div>
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check-circle"></i></div>
                     <div>
-                        <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Available</span>
-                        <span class="text-xl font-extrabold text-brand-dark">
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Available</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-white">
                             <?php
                             $avail = array_filter($schedules, fn($s) => $s['is_booked'] === 'no');
                             echo count($avail);
@@ -289,11 +315,11 @@ if (isset($_GET['edit'])) {
                         </span>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-bookmark"></i></div>
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-bookmark"></i></div>
                     <div>
-                        <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Booked</span>
-                        <span class="text-xl font-extrabold text-brand-dark">
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Booked</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-white">
                             <?php
                             $booked = array_filter($schedules, fn($s) => $s['is_booked'] === 'yes');
                             echo count($booked);
@@ -304,11 +330,11 @@ if (isset($_GET['edit'])) {
             </div>
 
             <!-- Toolbar -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                 <div class="flex items-center gap-4">
-                    <span class="text-sm font-bold text-brand-dark px-2">Schedule Directory</span>
+                    <span class="text-sm font-bold text-brand-dark dark:text-white px-2">Schedule Directory</span>
                     <form method="GET" action="schedule.php" class="flex items-center gap-2">
-                        <select name="doctor_id" onchange="this.form.submit()" class="text-xs border border-slate-200 rounded-lg px-3 py-2 font-semibold text-brand-muted bg-white focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none">
+                        <select name="doctor_id" onchange="this.form.submit()" class="text-xs border border-slate-200 dark:border-gray-700 rounded-lg px-3 py-2 font-semibold text-brand-muted dark:text-gray-400 bg-white dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none">
                             <option value="0">All Doctors</option>
                             <?php foreach ($doctors as $doc): ?>
                             <option value="<?php echo $doc['id']; ?>" <?php echo $doctor_filter === $doc['id'] ? 'selected' : ''; ?>>
@@ -317,7 +343,7 @@ if (isset($_GET['edit'])) {
                             <?php endforeach; ?>
                         </select>
                         <?php if ($doctor_filter > 0): ?>
-                        <a href="schedule.php" class="text-[11px] text-brand-muted hover:text-brand-pink font-semibold"><i class="fa-solid fa-xmark"></i> Clear</a>
+                        <a href="schedule.php" class="text-[11px] text-brand-muted dark:text-gray-400 hover:text-brand-pink font-semibold"><i class="fa-solid fa-xmark"></i> Clear</a>
                         <?php endif; ?>
                     </form>
                 </div>
@@ -327,11 +353,11 @@ if (isset($_GET['edit'])) {
             </div>
 
             <!-- Schedules Table -->
-            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
+            <div class="bg-white dark:bg-gray-900 rounded-3xl border border-slate-200/60 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                            <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Doctor</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Date</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Start Time</th>
@@ -340,11 +366,11 @@ if (isset($_GET['edit'])) {
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                        <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($schedules)): ?>
                             <tr>
                                 <td colspan="6" class="py-12 text-center">
-                                    <div class="text-brand-muted">
+                                    <div class="text-brand-muted dark:text-gray-400">
                                         <i class="fa-regular fa-calendar-xmark text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No schedules found</span>
                                         <p class="text-[11px] font-medium mt-1">Add a new schedule to get started.</p>
@@ -353,17 +379,17 @@ if (isset($_GET['edit'])) {
                             </tr>
                             <?php else: ?>
                             <?php foreach ($schedules as $schedule): ?>
-                            <tr class="hover:bg-slate-50/60 transition-colors group">
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800 transition-colors group">
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 bg-brand-lightPink rounded-xl flex items-center justify-center text-brand-pink text-xs font-bold">
+                                        <div class="w-9 h-9 bg-brand-lightPink dark:bg-pink-900/20 rounded-xl flex items-center justify-center text-brand-pink text-xs font-bold">
                                             <?php echo strtoupper(substr($schedule['doctor_name'], 0, 2)); ?>
                                         </div>
-                                        <span class="font-bold text-brand-dark group-hover:text-brand-pink transition-colors"><?php echo htmlspecialchars($schedule['doctor_name']); ?></span>
+                                        <span class="font-bold text-brand-dark dark:text-white group-hover:text-brand-pink transition-colors"><?php echo htmlspecialchars($schedule['doctor_name']); ?></span>
                                     </div>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <span class="font-medium text-slate-600"><?php echo date('M d, Y', strtotime($schedule['available_date'])); ?></span>
+                                    <span class="font-medium text-slate-600 dark:text-gray-400"><?php echo date('M d, Y', strtotime($schedule['available_date'])); ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="font-mono text-sm"><?php echo date('h:i A', strtotime($schedule['start_time'])); ?></span>
@@ -373,20 +399,20 @@ if (isset($_GET['edit'])) {
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
                                     <?php if ($schedule['is_booked'] === 'yes'): ?>
-                                    <span class="px-2 py-1 bg-red-50 text-red-600 border border-red-100 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
+                                    <span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
                                         <i class="fa-solid fa-circle text-[7px]"></i> Booked
                                     </span>
                                     <?php else: ?>
-                                    <span class="px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
+                                    <span class="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
                                         <i class="fa-solid fa-circle text-[7px]"></i> Available
                                     </span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
-                                    <button onclick="openEditModal(<?php echo $schedule['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors" title="Edit Schedule">
+                                    <button onclick="openEditModal(<?php echo $schedule['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white rounded-lg transition-colors" title="Edit Schedule">
                                         <i class="fa-regular fa-pen-to-square"></i>
                                     </button>
-                                    <button onclick="confirmDelete(<?php echo $schedule['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors" title="Delete Schedule">
+                                    <button onclick="confirmDelete(<?php echo $schedule['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-red-50 dark:bg-gray-800 dark:hover:bg-red-900/30 text-brand-muted dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors" title="Delete Schedule">
                                         <i class="fa-regular fa-trash-can"></i>
                                     </button>
                                 </td>
@@ -397,7 +423,7 @@ if (isset($_GET['edit'])) {
                     </table>
                 </div>
 
-                <div class="bg-slate-50/50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold">
+                <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-4 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
                     <span>Showing <?php echo count($schedules); ?> schedule<?php echo count($schedules) !== 1 ? 's' : ''; ?></span>
                 </div>
             </div>
@@ -406,16 +432,16 @@ if (isset($_GET['edit'])) {
 
     <!-- CREATE MODAL -->
     <div id="createModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
-            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-                <h3 class="text-base font-extrabold text-brand-dark"><i class="fa-regular fa-calendar-plus text-brand-pink mr-2"></i> Add Monthly Schedule</h3>
-                <button onclick="closeCreateModal()" class="text-brand-muted hover:text-brand-dark text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
+            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 dark:border-gray-800">
+                <h3 class="text-base font-extrabold text-brand-dark dark:text-white"><i class="fa-regular fa-calendar-plus text-brand-pink mr-2"></i> Add Monthly Schedule</h3>
+                <button onclick="closeCreateModal()" class="text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form method="POST" action="schedule.php" class="p-6 space-y-5">
                 <input type="hidden" name="action" value="create">
                 <div>
-                    <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Doctor</label>
-                    <select name="doctor_id" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark bg-white focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Doctor</label>
+                    <select name="doctor_id" required class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white bg-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                         <option value="">Select Doctor</option>
                         <?php foreach ($doctors as $doc): ?>
                         <option value="<?php echo $doc['id']; ?>"><?php echo htmlspecialchars($doc['name']); ?></option>
@@ -424,23 +450,23 @@ if (isset($_GET['edit'])) {
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Start Date</label>
+                        <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Start Date</label>
                         <input type="date" name="start_date" id="create_start_date" required min="<?php echo date('Y-m-d'); ?>"
-                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">End Date</label>
+                        <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">End Date</label>
                         <input type="date" name="end_date" id="create_end_date" required min="<?php echo date('Y-m-d'); ?>"
-                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                 </div>
 
                 <!-- Slot Preview -->
-                <div id="slotPreview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
-                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark">
+                <div id="slotPreview" class="hidden bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark dark:text-white">
                         <i class="fa-regular fa-clock text-brand-pink"></i> Time Slots (per day)
                     </div>
-                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted">
+                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted dark:text-gray-400">
                         <span>09:00 - 10:30</span>
                         <span>10:30 - 12:00</span>
                         <span>13:00 - 14:30</span>
@@ -448,8 +474,8 @@ if (isset($_GET['edit'])) {
                         <span>16:00 - 17:30</span>
                         <span>17:30 - 19:00</span>
                     </div>
-                    <div class="border-t border-slate-200 pt-2 mt-2">
-                        <span class="text-[11px] font-bold text-brand-dark">
+                    <div class="border-t border-slate-200 dark:border-gray-700 pt-2 mt-2">
+                        <span class="text-[11px] font-bold text-brand-dark dark:text-white">
                             <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
                             <span id="slotSummary">Lunch break: 12:00 - 13:00 | 6 slots per day | Each slot: 1 hour 30 minutes</span>
                         </span>
@@ -457,13 +483,13 @@ if (isset($_GET['edit'])) {
                     <div id="slotCount" class="text-xs font-bold text-brand-pink"></div>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[11px] font-medium text-blue-700">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 text-[11px] font-medium text-blue-700 dark:text-blue-400">
                     <i class="fa-solid fa-info-circle mr-1"></i>
                     Time slots are auto-generated: <strong>9:00 AM - 7:00 PM</strong> with lunch break <strong>12:00 - 1:00 PM</strong>. Each treatment slot is <strong>1 hour 30 minutes</strong>. Duplicate slots will be skipped.
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeCreateModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
+                    <button type="button" onclick="closeCreateModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-brand-dark dark:text-white text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
                         <i class="fa-solid fa-plus mr-1"></i> Create Monthly Schedule
                     </button>
@@ -474,17 +500,17 @@ if (isset($_GET['edit'])) {
 
     <!-- EDIT MODAL -->
     <div id="editModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
-            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-                <h3 class="text-base font-extrabold text-brand-dark"><i class="fa-regular fa-pen-to-square text-brand-pink mr-2"></i> Edit Monthly Schedule</h3>
-                <button onclick="closeEditModal()" class="text-brand-muted hover:text-brand-dark text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
+            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 dark:border-gray-800">
+                <h3 class="text-base font-extrabold text-brand-dark dark:text-white"><i class="fa-regular fa-pen-to-square text-brand-pink mr-2"></i> Edit Monthly Schedule</h3>
+                <button onclick="closeEditModal()" class="text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form method="POST" action="schedule.php" class="p-6 space-y-5">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="id" id="edit_id" value="">
                 <div>
-                    <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Doctor</label>
-                    <select name="doctor_id" id="edit_doctor_id" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark bg-white focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Doctor</label>
+                    <select name="doctor_id" id="edit_doctor_id" required class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white bg-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                         <option value="">Select Doctor</option>
                         <?php foreach ($doctors as $doc): ?>
                         <option value="<?php echo $doc['id']; ?>"><?php echo htmlspecialchars($doc['name']); ?></option>
@@ -493,23 +519,23 @@ if (isset($_GET['edit'])) {
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Start Date</label>
+                        <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Start Date</label>
                         <input type="date" name="start_date" id="edit_start_date" required
-                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">End Date</label>
+                        <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">End Date</label>
                         <input type="date" name="end_date" id="edit_end_date" required
-                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                 </div>
 
                 <!-- Slot Preview -->
-                <div id="editSlotPreview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
-                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark">
+                <div id="editSlotPreview" class="hidden bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark dark:text-white">
                         <i class="fa-regular fa-clock text-brand-pink"></i> Time Slots (per day)
                     </div>
-                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted">
+                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted dark:text-gray-400">
                         <span>09:00 - 10:30</span>
                         <span>10:30 - 12:00</span>
                         <span>13:00 - 14:30</span>
@@ -520,13 +546,13 @@ if (isset($_GET['edit'])) {
                     <div id="editSlotCount" class="text-xs font-bold text-brand-pink"></div>
                 </div>
 
-                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-[11px] font-medium text-amber-700">
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl p-3 text-[11px] font-medium text-amber-700 dark:text-amber-400">
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i>
                     This will <strong>delete all unbooked slots</strong> for this doctor and regenerate new slots based on the new date range. Booked slots will not be affected.
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
+                    <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-brand-dark dark:text-white text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
                         <i class="fa-solid fa-floppy-disk mr-1"></i> Update Schedule
                     </button>
@@ -537,14 +563,14 @@ if (isset($_GET['edit'])) {
 
     <!-- DELETE CONFIRM MODAL -->
     <div id="deleteModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-3xl w-full max-w-sm mx-4 shadow-2xl p-6 text-center">
-            <div class="w-14 h-14 mx-auto bg-red-50 rounded-2xl flex items-center justify-center text-red-500 text-2xl mb-4">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-sm mx-4 shadow-2xl p-6 text-center">
+            <div class="w-14 h-14 mx-auto bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center text-red-500 text-2xl mb-4">
                 <i class="fa-regular fa-trash-can"></i>
             </div>
-            <h3 class="text-base font-extrabold text-brand-dark mb-2">Delete Schedule?</h3>
-            <p class="text-xs font-medium text-brand-muted mb-6">This action cannot be undone. Are you sure you want to delete this schedule?</p>
+            <h3 class="text-base font-extrabold text-brand-dark dark:text-white mb-2">Delete Schedule?</h3>
+            <p class="text-xs font-medium text-brand-muted dark:text-gray-300 mb-6">This action cannot be undone. Are you sure you want to delete this schedule?</p>
             <div class="flex justify-center gap-3">
-                <button onclick="closeDeleteModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
+                <button onclick="closeDeleteModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-brand-dark dark:text-white text-xs font-bold rounded-xl transition-all">Cancel</button>
                 <a href="#" id="deleteConfirmBtn" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(239,68,68,0.25)]">
                     <i class="fa-solid fa-trash-can mr-1"></i> Delete
                 </a>

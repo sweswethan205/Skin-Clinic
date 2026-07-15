@@ -63,6 +63,7 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -77,34 +78,59 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .modal-bg { background: rgba(15, 23, 42, 0.5); }
     </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+    </script>
 </head>
-<body class="bg-brand-canvas text-slate-700 min-h-screen flex antialiased">
+<body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <?php include 'sidebar.php'; ?>
 
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                 
                 <div>
-                    <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Testimonials</h2>
-                    <p class="text-xs text-brand-muted font-medium">Manage patient reviews and feedback</p>
+            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Testimonials</h2>
+            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Manage patient reviews and feedback</p>
                 </div>
+    </div>
+    <div class="flex items-center space-x-4">
+        <?php include 'header-actions.php'; ?>
+        <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
+            <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                <?php if ($admin_photo): ?>
+                    <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
+                <?php else: ?>
+                    <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
+                <?php endif; ?>
             </div>
-            <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-                <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
-                    <?php if ($admin_photo): ?>
-                        <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
-                    <?php else: ?>
-                        <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
-                    <?php endif; ?>
-                </div>
-                <div>
-                    <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
-                    <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
-                </div>
-            </a>
-        </header>
+            <div>
+                <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
+            </div>
+        </a>
+    </div>
+</header>
 
         <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
             <?php if ($message): ?>
@@ -122,29 +148,29 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                 $approved = count(array_filter($testimonials, fn($t) => $t['status'] === 'approved'));
                 $rejected = count(array_filter($testimonials, fn($t) => $t['status'] === 'rejected'));
                 ?>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-regular fa-comment-dots"></i></div>
                     <div><span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Total</span><span class="text-xl font-extrabold text-brand-dark"><?php echo $total; ?></span></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-regular fa-clock"></i></div>
                     <div><span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Pending</span><span class="text-xl font-extrabold text-brand-dark"><?php echo $pending; ?></span></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check"></i></div>
                     <div><span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Approved</span><span class="text-xl font-extrabold text-brand-dark"><?php echo $approved; ?></span></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-ban"></i></div>
                     <div><span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Rejected</span><span class="text-xl font-extrabold text-brand-dark"><?php echo $rejected; ?></span></div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
+            <div class="bg-white dark:bg-gray-900 rounded-3xl border border-slate-200/60 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                            <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Patient</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Rating</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Review</th>
@@ -153,7 +179,7 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($testimonials)): ?>
                             <tr>
                                 <td colspan="6" class="py-12 text-center">
@@ -183,7 +209,7 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                                     </div>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 max-w-xs">
-                                    <span class="text-slate-500 line-clamp-2 block"><?php echo htmlspecialchars($t['review_text']); ?></span>
+                                    <span class="text-slate-500 dark:text-gray-400 line-clamp-2 block"><?php echo htmlspecialchars($t['review_text']); ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <?php
@@ -217,7 +243,7 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                         </tbody>
                     </table>
                 </div>
-                <div class="bg-slate-50/50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold">
+                <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-4 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted font-semibold">
                     <span>Showing <?php echo count($testimonials); ?> testimonial<?php echo count($testimonials) !== 1 ? 's' : ''; ?></span>
                 </div>
             </div>
@@ -225,15 +251,15 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
     </div>
 
     <div id="deleteModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-3xl w-full max-w-sm mx-4 shadow-2xl p-6 text-center">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-sm mx-4 shadow-2xl p-6 text-center">
             <div class="w-14 h-14 mx-auto bg-red-50 rounded-2xl flex items-center justify-center text-red-500 text-2xl mb-4">
                 <i class="fa-regular fa-trash-can"></i>
             </div>
-            <h3 class="text-base font-extrabold text-brand-dark mb-2">Delete Testimonial?</h3>
-            <p class="text-xs font-medium text-brand-muted mb-6">This action cannot be undone.</p>
+            <h3 class="text-base font-extrabold text-brand-dark dark:text-white mb-2">Delete Testimonial?</h3>
+            <p class="text-xs font-medium text-brand-muted dark:text-gray-300 mb-6">This action cannot be undone.</p>
             <div class="flex justify-center gap-3">
-                <button onclick="closeDeleteModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
-                <a href="#" id="deleteConfirmBtn" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(239,68,68,0.25)]">
+                <button onclick="closeDeleteModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-brand-dark dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white text-xs font-bold rounded-xl transition-all">Cancel</button>
+                <a href="#" id="deleteConfirmBtn" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(239,68,68,0.25)]">
                     <i class="fa-solid fa-trash-can mr-1"></i> Delete
                 </a>
             </div>

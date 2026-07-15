@@ -201,6 +201,7 @@ function build_filter_qs($overrides = [])
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -240,23 +241,46 @@ function build_filter_qs($overrides = [])
             color: #FF6584;
         }
     </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+    </script>
 </head>
 
-<body class="bg-brand-canvas text-slate-700 min-h-screen flex antialiased">
+<body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <?php include 'sidebar.php'; ?>
 
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
 
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                 <div>
-                    <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Reports</h2>
-                    <p class="text-xs text-brand-muted font-medium">Analytics and insights for your clinic</p>
+            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Reports</h2>
+            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Analytics and insights for your clinic</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 hover:opacity-80 transition">
+    <div class="flex items-center space-x-6">
+        <?php include 'header-actions.php'; ?>
+        <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
                     <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
                         <?php if ($admin_photo): ?>
                             <img src="../<?= htmlspecialchars($admin_photo) ?>" class="w-full h-full object-cover">
@@ -264,7 +288,7 @@ function build_filter_qs($overrides = [])
                             <?= strtoupper(substr($admin_username, 0, 1)) ?>
                         <?php endif; ?>
                     </div>
-                    <span class="text-xs font-bold text-brand-dark block"><?= htmlspecialchars($admin_username) ?></span>
+                    <span class="text-xs font-bold text-brand-dark dark:text-white block"><?= htmlspecialchars($admin_username) ?></span>
                 </a>
             </div>
         </header>
@@ -272,7 +296,7 @@ function build_filter_qs($overrides = [])
         <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
 
             <!-- TAB NAVIGATION -->
-            <div class="bg-white rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] px-6">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] px-6">
                 <nav class="flex space-x-6 overflow-x-auto text-xs uppercase tracking-wider">
                     <a href="?tab=appointment&<?= build_filter_qs(['tab' => 'appointment']) ?>" class="py-4 whitespace-nowrap transition <?= $active_tab === 'appointment' ? 'tab-active' : 'tab-inactive' ?>">
                         <i class="fa-regular fa-calendar-check mr-1.5"></i>Appointments
@@ -290,7 +314,7 @@ function build_filter_qs($overrides = [])
             <?php if ($active_tab === 'appointment'): ?>
 
                 <!-- Filters -->
-                <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                <form method="GET" class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                     <input type="hidden" name="tab" value="appointment">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                         <div>
@@ -338,23 +362,23 @@ function build_filter_qs($overrides = [])
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500"><i class="fa-solid fa-list-check text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['total'] ?></span></div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500"><i class="fa-regular fa-clock text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted font-medium block">Pending</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['pending'] ?></span></div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted font-medium block">Confirmed</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['confirmed'] ?></span></div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400"><i class="fa-solid fa-flag-checkered text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted font-medium block">Completed</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['completed'] ?></span></div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted font-medium block">Cancelled</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['cancelled'] ?></span></div>
                     </div>
@@ -364,7 +388,7 @@ function build_filter_qs($overrides = [])
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     <!-- Status Bar Chart -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                         <h3 class="text-sm font-bold text-brand-dark mb-4">Appointments by Status</h3>
                         <?php
                         $status_labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
@@ -389,7 +413,7 @@ function build_filter_qs($overrides = [])
                     </div>
 
                     <!-- Doctor Bar Chart -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                         <h3 class="text-sm font-bold text-brand-dark mb-4">Appointments by Doctor</h3>
                         <?php $doc_bar_max = max(array_merge(array_column($apt_by_doctor, 'cnt'), [1])); ?>
                         <div class="space-y-3">
@@ -415,7 +439,7 @@ function build_filter_qs($overrides = [])
 
                 <!-- Daily Trend Line Chart -->
                 <?php if (count($apt_by_day) > 0): ?>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                         <h3 class="text-sm font-bold text-brand-dark mb-4">Daily Appointment Trend</h3>
                         <?php
                         $days = array_keys($apt_by_day);
@@ -462,7 +486,7 @@ function build_filter_qs($overrides = [])
                 <?php endif; ?>
 
                 <!-- Appointment Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100">
                         <h3 class="text-sm font-bold text-brand-dark">Appointment Details</h3>
                     </div>
@@ -520,7 +544,7 @@ function build_filter_qs($overrides = [])
             <?php if ($active_tab === 'revenue'): ?>
 
                 <!-- Filters -->
-                <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                <form method="GET" class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                     <input type="hidden" name="tab" value="revenue">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div>
@@ -549,21 +573,21 @@ function build_filter_qs($overrides = [])
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                         <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div>
                             <span class="text-[11px] font-medium text-brand-muted block">Total Revenue</span>
                             <span class="text-2xl font-extrabold text-brand-dark"><?= number_format($rev_total, 0) ?> <span class="text-xs font-medium text-brand-muted">MMK</span></span>
                         </div>
                     </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                         <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-line"></i></div>
                         <div>
                             <span class="text-[11px] font-medium text-brand-muted block">Average per Booking</span>
                             <span class="text-2xl font-extrabold text-brand-dark"><?= number_format($rev_avg, 0) ?> <span class="text-xs font-medium text-brand-muted">MMK</span></span>
                         </div>
                     </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                         <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 text-lg"><i class="fa-solid fa-arrow-trend-up"></i></div>
                         <div>
                             <span class="text-[11px] font-medium text-brand-muted block">Highest Payment</span>
@@ -576,7 +600,7 @@ function build_filter_qs($overrides = [])
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     <!-- Revenue by Treatment -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                         <h3 class="text-sm font-bold text-brand-dark mb-4">Revenue by Treatment</h3>
                         <?php $rev_t_max = max(array_merge(array_column($rev_by_treatment, 'revenue'), [1])); ?>
                         <div class="space-y-3">
@@ -600,7 +624,7 @@ function build_filter_qs($overrides = [])
                     </div>
 
                     <!-- Revenue by Payment Method (Donut) -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                         <h3 class="text-sm font-bold text-brand-dark mb-4">Revenue by Payment Method</h3>
                         <?php
                         $donut_colors = ['#FF6584', '#A855F7', '#F59E0B', '#10B981', '#3B82F6'];
@@ -647,7 +671,7 @@ function build_filter_qs($overrides = [])
                 </div>
 
                 <!-- Daily Revenue Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100">
                         <h3 class="text-sm font-bold text-brand-dark">Daily Revenue Breakdown</h3>
                     </div>
@@ -692,7 +716,7 @@ function build_filter_qs($overrides = [])
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                         <div class="w-12 h-12 bg-brand-lightPink rounded-xl flex items-center justify-center text-brand-pink text-lg"><i class="fa-solid fa-fire"></i></div>
                         <div>
                             <span class="text-[11px] font-medium text-brand-muted block">Most Popular Treatment</span>
@@ -700,7 +724,7 @@ function build_filter_qs($overrides = [])
                             <span class="text-[10px] text-brand-muted block"><?= $best_treatment_bookings ?> booking<?= $best_treatment_bookings != 1 ? 's' : '' ?></span>
                         </div>
                     </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                         <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-coins"></i></div>
                         <div>
                             <span class="text-[11px] font-medium text-brand-muted block">Highest Revenue Treatment</span>
@@ -708,7 +732,7 @@ function build_filter_qs($overrides = [])
                             <span class="text-[10px] text-brand-muted block"><?= number_format($best_rev_amount, 0) ?> MMK</span>
                         </div>
                     </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                         <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-simple"></i></div>
                         <div>
                             <span class="text-[11px] font-medium text-brand-muted block">Total Bookings</span>
@@ -718,7 +742,7 @@ function build_filter_qs($overrides = [])
                 </div>
 
                 <!-- Bookings per Treatment Chart -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                     <h3 class="text-sm font-bold text-brand-dark mb-4">Bookings per Treatment</h3>
                     <?php $treatment_bar_max = max(array_merge(array_column($treatment_stats, 'total_bookings'), [1])); ?>
                     <div class="space-y-3">
@@ -743,7 +767,7 @@ function build_filter_qs($overrides = [])
                 </div>
 
                 <!-- Treatment Detail Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100">
                         <h3 class="text-sm font-bold text-brand-dark">Treatment Analytics Detail</h3>
                     </div>

@@ -2,6 +2,10 @@
 session_start();
 include_once '../config/db.php';
 
+$admin = $conn->query("SELECT username, photo FROM admins ORDER BY id ASC LIMIT 1")->fetch_assoc();
+$admin_photo = $admin['photo'] ?? '';
+$admin_username = $admin['username'] ?? 'Admin';
+
 // ===============================
 // MARK AS READ
 // ===============================
@@ -52,6 +56,7 @@ $result = $conn->query($sql);
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -80,9 +85,31 @@ $result = $conn->query($sql);
             background: rgba(15, 23, 42, 0.5);
         }
     </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+    </script>
 </head>
 
-<body class="bg-slate-50">
+<body class="bg-slate-50 dark:bg-gray-950 dark:text-gray-100">
     <!-- SIDEBAR -->
     <?php include 'sidebar.php'; ?>
 
@@ -91,17 +118,37 @@ $result = $conn->query($sql);
 
 
         <!-- MAIN CONTENT -->
-        <div class="flex-1 p-4 sm:p-6 lg:ml-64">
+        <div class="flex-1 lg:ml-64">
 
-            <h1 class="text-2xl font-bold text-slate-800 mb-6">
-                Notifications
-            </h1>
+            <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Notifications</h2>
+                        <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">View system alerts and updates</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <?php include 'header-actions.php'; ?>
+                    <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
+                        <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-gray-700 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                            <?php if ($admin_photo): ?>
+                                <img src="../<?= htmlspecialchars($admin_photo) ?>" class="w-full h-full object-cover">
+                            <?php else: ?>
+                                <?= strtoupper(substr($admin_username, 0, 1)) ?>
+                            <?php endif; ?>
+                        </div>
+                        <span class="text-xs font-bold text-brand-dark dark:text-white block"><?= htmlspecialchars($admin_username) ?></span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="p-4 sm:p-6 lg:p-8">
 
             <!-- NOTIFICATION LIST -->
-            <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl shadow border border-slate-100 dark:border-gray-800 overflow-hidden">
 
                 <table class="w-full text-sm">
-                    <thead class="bg-slate-100 text-slate-600">
+                    <thead class="bg-slate-100 dark:bg-gray-950 text-slate-600 dark:text-gray-300">
                         <tr>
                             <th class="p-3 text-left">Type</th>
                             <th class="p-3 text-left">Message</th>
@@ -120,24 +167,24 @@ $result = $conn->query($sql);
                                 'review' => 'bg-purple-100 text-purple-600',
                                 'status' => 'bg-emerald-100 text-emerald-600',
                             ];
-                            $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600';
+                            $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600 dark:text-gray-300';
                         ?>
-                            <tr class="border-b hover:bg-slate-50">
+                            <tr class="border-b dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-gray-800">
 
                                 <td class="p-3">
                                     <span class="px-2 py-1 text-xs font-bold rounded-full <?= $type_color ?>"><?= ucfirst($row['type']) ?></span>
                                 </td>
 
                                 <td class="p-3">
-                                    <div class="font-medium text-slate-800">
+                                    <div class="font-medium text-slate-800 dark:text-white">
                                         <?= htmlspecialchars($row['title']) ?>
                                     </div>
-                                    <div class="text-xs text-slate-500">
+                                    <div class="text-xs text-slate-500 dark:text-gray-400">
                                         <?= htmlspecialchars($row['message']) ?>
                                     </div>
                                 </td>
 
-                                <td class="p-3 text-slate-600">
+                                <td class="p-3 text-slate-600 dark:text-gray-300">
                                     <?= $row['user_name'] ?? 'Guest' ?>
                                 </td>
 
@@ -149,7 +196,7 @@ $result = $conn->query($sql);
                                     <?php endif; ?>
                                 </td>
 
-                                <td class="p-3 text-xs text-slate-500">
+                                <td class="p-3 text-xs text-slate-500 dark:text-gray-400">
                                     <?= date('Y-m-d H:i', strtotime($row['created_at'])) ?>
                                 </td>
 
@@ -177,6 +224,7 @@ $result = $conn->query($sql);
 
             </div>
 
+            </div>
         </div>
     </div>
 

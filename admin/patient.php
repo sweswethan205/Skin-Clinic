@@ -104,6 +104,7 @@ $stmt->close();
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -126,25 +127,48 @@ $stmt->close();
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+    </script>
 </head>
-<body class="bg-brand-canvas text-slate-700 min-h-screen flex antialiased">
+<body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <?php include 'sidebar.php'; ?>
     
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
         
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
 
                 <div>
-                    <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Patients Management</h2>
-                    <p class="text-xs text-brand-muted font-medium">Manage all registered patient accounts.</p>
+            <h2 class="text-xl font-extrabold text-brand-dark dark:text-gray-100 dark:text-white tracking-tight">Patients Management</h2>
+            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Manage all registered patient accounts.</p>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-6">
-                <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 hover:opacity-80 transition">
-                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+    <div class="flex items-center space-x-6">
+        <?php include 'header-actions.php'; ?>
+        <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink dark:border-gray-700 flex items-center justify-center text-brand-pink font-bold text-sm">
                         <?php if ($admin_photo): ?>
                             <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
                         <?php else: ?>
@@ -152,7 +176,7 @@ $stmt->close();
                         <?php endif; ?>
                     </div>
                     <div>
-                        <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                        <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
                         <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
                     </div>
                 </a>
@@ -169,43 +193,43 @@ $stmt->close();
             <?php endif; ?>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4 dark:bg-gray-900 dark:border-gray-800">
                     <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-group"></i></div>
                     <div>
                         <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">Total Registered</span>
-                        <span class="text-xl font-extrabold text-brand-dark"><?= $total_users ?> Patients</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-gray-100"><?= $total_users ?> Patients</span>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4 dark:bg-gray-900 dark:border-gray-800">
                     <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-check"></i></div>
                     <div>
                         <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">With Appointments</span>
-                        <span class="text-xl font-extrabold text-brand-dark"><?= $total_users ?> Active</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-gray-100"><?= $total_users ?> Active</span>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4 dark:bg-gray-900 dark:border-gray-800">
                     <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-plus"></i></div>
                     <div>
                         <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block">New This Month</span>
-                        <span class="text-xl font-extrabold text-brand-dark">+<?= $new_this_month ?> Profiles</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-gray-100">+<?= $new_this_month ?> Profiles</span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:bg-gray-900 dark:border-gray-800">
                 <div class="flex gap-2">
-                    <input type="text" id="search-input" placeholder="Search by name or email..." class="bg-slate-50 border border-slate-200 text-xs font-semibold text-brand-dark px-3 py-2 rounded-xl focus:outline-none focus:border-brand-pink w-64 placeholder:text-slate-400">
+                    <input type="text" id="search-input" placeholder="Search by name or email..." class="bg-slate-50 border border-slate-200 text-xs font-semibold text-brand-dark px-3 py-2 rounded-xl focus:outline-none focus:border-brand-pink w-64 placeholder:text-slate-400 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-400">
                 </div>
                 <button onclick="openAddModal()" class="px-4 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)] flex items-center justify-center gap-2 shrink-0">
                     <i class="fa-solid fa-user-plus text-[10px]"></i> Add New User
                 </button>
             </div>
 
-            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
+            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden dark:bg-gray-900 dark:border-gray-800">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                            <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:bg-gray-950">
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Name</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Email</th>
@@ -214,37 +238,37 @@ $stmt->close();
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300 dark:divide-gray-800">
                             <?php if (count($users) > 0): ?>
                                 <?php $i = 1; ?>
                                 <?php foreach ($users as $u): ?>
                                 <tr class="hover:bg-slate-50/60 transition-colors group">
-                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= $i++ ?></td>
+                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= $i++ ?></td>
                                     <td class="py-3 px-3 sm:py-4 sm:px-6">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-9 h-9 rounded-xl bg-brand-lightPink text-brand-pink flex items-center justify-center text-xs font-bold border border-pink-100">
                                                 <?= strtoupper(substr($u['name'], 0, 2)) ?>
                                             </div>
-                                            <span class="font-bold text-brand-dark block group-hover:text-brand-pink transition-colors"><?= htmlspecialchars($u['name']) ?></span>
+                                            <span class="font-bold text-brand-dark block group-hover:text-brand-pink transition-colors dark:text-gray-100"><?= htmlspecialchars($u['name']) ?></span>
                                         </div>
                                     </td>
-                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= htmlspecialchars($u['email']) ?></td>
-                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= htmlspecialchars($u['phone']) ?></td>
-                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted text-center"><?= date("d M Y", strtotime($u['created_at'])) ?></td>
+                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= htmlspecialchars($u['email']) ?></td>
+                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= htmlspecialchars($u['phone']) ?></td>
+                                    <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400 text-center"><?= date("d M Y", strtotime($u['created_at'])) ?></td>
                                     <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
                                         
-                                        <a href="?delete=<?= $u['id'] ?>" onclick="return confirm('Delete this user?')" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors inline-block" title="Delete"><i class="fa-regular fa-trash-can"></i></a>
+                                        <a href="?delete=<?= $u['id'] ?>" onclick="return confirm('Delete this user?')" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors inline-block dark:bg-gray-800 dark:text-gray-400" title="Delete"><i class="fa-regular fa-trash-can"></i></a>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="6" class="py-8 text-center text-brand-muted">No users found.</td></tr>
+                                <tr><td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No users found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="bg-slate-50/50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold">
+                <div class="bg-slate-50/50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold dark:bg-gray-950 dark:border-gray-800 dark:text-gray-400">
                     <span>Showing <?= count($users) ?> <?= count($users) === 1 ? 'entry' : 'entries' ?></span>
                 </div>
             </div>
@@ -253,36 +277,36 @@ $stmt->close();
 
     <!-- Add/Edit Modal -->
     <div id="user-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
-            <button type="button" onclick="closeModal()" class="absolute top-5 right-6 text-slate-400 hover:text-brand-pink transition-colors">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative dark:bg-gray-900">
+            <button type="button" onclick="closeModal()" class="absolute top-5 right-6 text-slate-400 hover:text-brand-pink transition-colors dark:text-gray-400">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
-            <h3 id="modal-title" class="font-extrabold text-xl text-brand-dark mb-6">Add New User</h3>
+            <h3 id="modal-title" class="font-extrabold text-xl text-brand-dark mb-6 dark:text-white">Add New User</h3>
             <form method="POST" class="space-y-4">
                 <input type="hidden" name="action" id="form-action" value="add">
                 <input type="hidden" name="id" id="user-id" value="0">
 
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5">Name</label>
-                    <input type="text" name="name" id="user-name" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all">
+                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 dark:text-gray-400">Name</label>
+                    <input type="text" name="name" id="user-name" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5">Email</label>
-                    <input type="email" name="email" id="user-email" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all">
+                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 dark:text-gray-400">Email</label>
+                    <input type="email" name="email" id="user-email" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5">Phone</label>
-                    <input type="text" name="phone" id="user-phone" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all">
+                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 dark:text-gray-400">Phone</label>
+                    <input type="text" name="phone" id="user-phone" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5">
-                        Password <span id="password-label" class="font-normal text-slate-400">(required for new users)</span>
+                    <label class="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 dark:text-gray-400">
+                        Password <span id="password-label" class="font-normal text-slate-400 dark:text-gray-400">(required for new users)</span>
                     </label>
-                    <input type="password" name="password" id="user-password" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all">
+                    <input type="password" name="password" id="user-password" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-pink focus:bg-white transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                 </div>
 
                 <div class="pt-2">
-                    <button type="submit" class="w-full py-3 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
+                    <button type="submit" class="w-full py-3 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)] dark:bg-gray-800">
                         Save User
                     </button>
                 </div>

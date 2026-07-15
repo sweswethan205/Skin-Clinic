@@ -111,6 +111,7 @@ foreach ($appointments as $a) {
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -133,33 +134,57 @@ foreach ($appointments as $a) {
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+    </script>
 </head>
-<body class="bg-brand-canvas text-slate-700 min-h-screen flex antialiased">
+<body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <?php include 'sidebar.php'; ?>
     
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
         
-        <header class="h-16 sm:h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
+        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                 
                 <div>
-                    <h2 class="text-xl font-extrabold text-brand-dark tracking-tight">Appointments Management</h2>
-                    <p class="text-xs text-brand-muted font-medium">Review scheduling pipelines and verify intake statuses.</p>
+            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Appointments Management</h2>
+            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Review scheduling pipelines and verify intake statuses.</p>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-6">
-                <div class="relative w-64">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-brand-muted text-xs">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input type="text" id="search-input" placeholder="Search appointments..." class="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-pink focus:bg-white transition-all placeholder:text-slate-400">
-                </div>
+    <div class="flex items-center space-x-6">
+        <div class="relative w-64">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-brand-muted text-xs">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="search-input" placeholder="Search appointments..." class="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-brand-pink focus:bg-white transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500 dark:text-white">
+        </div>
 
-                <div class="flex items-center space-x-6">
-                <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 hover:opacity-80 transition">
-                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+        <?php include 'header-actions.php'; ?>
+
+        <div class="flex items-center space-x-6">
+                <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-gray-700 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
                         <?php if ($admin_photo): ?>
                             <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
                         <?php else: ?>
@@ -167,7 +192,7 @@ foreach ($appointments as $a) {
                         <?php endif; ?>
                     </div>
                     <div>
-                        <span class="text-xs font-bold text-brand-dark block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                        <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
                         <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
                     </div>
                 </a>
@@ -178,27 +203,27 @@ foreach ($appointments as $a) {
         <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
             
             <?php if ($message): ?>
-            <div class="px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 <?= $msg_type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200' ?>">
+            <div class="px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 <?= $msg_type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' : 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' ?>">
                 <i class="fa-solid <?= $msg_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?>"></i>
                 <?= htmlspecialchars($message) ?>
             </div>
             <?php endif; ?>
 
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                 <div class="flex flex-wrap gap-2" id="filter-buttons">
                     <button onclick="filterTable('all')" class="filter-btn px-4 py-2 bg-brand-dark text-white text-xs font-bold rounded-xl shadow-xs transition-all" data-filter="all">All Intake (<?= $counts['total'] ?>)</button>
-                    <button onclick="filterTable('pending')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="pending">Pending (<?= $counts['pending'] ?>)</button>
-                    <button onclick="filterTable('confirmed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="confirmed">Confirmed (<?= $counts['confirmed'] ?>)</button>
-                    <button onclick="filterTable('cancelled')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="cancelled">Cancelled (<?= $counts['cancelled'] ?>)</button>
-                    <button onclick="filterTable('completed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark text-xs font-bold rounded-xl transition-all border border-slate-200/40" data-filter="completed">Completed (<?= $counts['completed'] ?>)</button>
+                    <button onclick="filterTable('pending')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="pending">Pending (<?= $counts['pending'] ?>)</button>
+                    <button onclick="filterTable('confirmed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="confirmed">Confirmed (<?= $counts['confirmed'] ?>)</button>
+                    <button onclick="filterTable('cancelled')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="cancelled">Cancelled (<?= $counts['cancelled'] ?>)</button>
+                    <button onclick="filterTable('completed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="completed">Completed (<?= $counts['completed'] ?>)</button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
+            <div class="bg-white dark:bg-gray-900 rounded-3xl border border-slate-200/60 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                            <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Patient</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Treatment</th>
@@ -210,7 +235,7 @@ foreach ($appointments as $a) {
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                        <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (count($appointments) > 0): ?>
                                 <?php $i = 1; ?>
                                 <?php foreach ($appointments as $a): 
@@ -222,7 +247,7 @@ foreach ($appointments as $a) {
                                         default => 'text-slate-600 bg-slate-50 border-slate-100'
                                     };
                                 ?>
-                            <tr class="hover:bg-slate-50/60 transition-colors group" data-status="<?= $a['status'] ?>">
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors group" data-status="<?= $a['status'] ?>">
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= $i++ ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center space-x-3">
@@ -242,7 +267,7 @@ foreach ($appointments as $a) {
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <?php if (!empty($a['payment_method'])): ?>
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark dark:text-gray-300 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 px-2 py-1 rounded-lg">
                                             <i class="fa-solid fa-wallet text-brand-muted text-[9px]"></i>
                                             <?= htmlspecialchars($a['payment_method']) ?>
                                         </span>
@@ -286,7 +311,7 @@ foreach ($appointments as $a) {
                     </table>
                 </div>
 
-                <div class="bg-slate-50/50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold">
+                <div class="bg-slate-50/50 dark:bg-gray-800 px-6 py-4 border-t border-slate-100 dark:border-gray-700 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
                     <span>Showing <?= count($appointments) ?> <?= count($appointments) === 1 ? 'entry' : 'entries' ?></span>
                 </div>
             </div>
@@ -323,16 +348,16 @@ foreach ($appointments as $a) {
     </script>
 
     <!-- Receipt Image Modal -->
-    <div id="receipt-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm items-center justify-center z-50 p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+    <div id="receipt-modal" class="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
             <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-                <h3 class="text-xs font-bold text-brand-dark uppercase tracking-wider">Payment Receipt</h3>
-                <button onclick="closeReceiptModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-brand-muted hover:text-brand-dark flex items-center justify-center transition-colors">
+                <h3 class="text-xs font-bold text-brand-dark dark:text-white uppercase tracking-wider">Payment Receipt</h3>
+                <button onclick="closeReceiptModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-brand-muted hover:text-brand-dark dark:text-gray-300 dark:hover:text-white flex items-center justify-center transition-colors">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
             <div class="p-4 flex items-center justify-center">
-                <img id="receipt-modal-img" src="" alt="Receipt" class="max-w-full max-h-[75vh] object-contain rounded-xl border border-slate-100">
+                <img id="receipt-modal-img" src="" alt="Receipt" class="max-w-full max-h-[75vh] object-contain rounded-xl border border-slate-100 dark:border-gray-700">
             </div>
         </div>
     </div>

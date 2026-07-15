@@ -91,9 +91,10 @@ $status_colors = [
             </div>
         <?php endif; ?>
 
+        
         <div class="flex items-center justify-between mb-10">
             <div>
-                <h1 class="font-serif text-3xl md:text-4xl font-bold tracking-tight">My Bookings</h1>
+                <h1 class="font-serif text-3xl md:text-4xl font-bold tracking-tight">My Appointments</h1>
                 <p class="text-sm text-brand-textMuted dark:text-gray-400 mt-1">View all your appointment history</p>
             </div>
             <a href="../user/treatment.php">
