@@ -240,30 +240,30 @@ foreach ($appointments as $a) {
                                 <?php $i = 1; ?>
                                 <?php foreach ($appointments as $a): 
                                     $status_class = match($a['status']) {
-                                        'confirmed' => 'text-emerald-600 bg-emerald-50 border-emerald-100',
-                                        'pending' => 'text-blue-600 bg-blue-50 border-blue-100',
-                                        'cancelled' => 'text-rose-600 bg-rose-50 border-rose-100',
-                                        'completed' => 'text-slate-600 bg-slate-50 border-slate-100',
-                                        default => 'text-slate-600 bg-slate-50 border-slate-100'
+                                        'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
+                                        'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
+                                        'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
+                                        'completed' => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700',
+                                        default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
                                     };
                                 ?>
                             <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors group" data-status="<?= $a['status'] ?>">
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted"><?= $i++ ?></td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-500"><?= $i++ ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 rounded-xl bg-brand-lightPink text-brand-pink flex items-center justify-center text-xs font-bold border border-pink-100">
+                                        <div class="w-9 h-9 rounded-xl bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink flex items-center justify-center text-xs font-bold border border-pink-100 dark:border-pink-800/30">
                                             <?= strtoupper(substr($a['patient_name'], 0, 2)) ?>
                                         </div>
-                                        <span class="font-bold text-brand-dark group-hover:text-brand-pink transition-colors"><?= htmlspecialchars($a['patient_name']) ?></span>
+                                        <span class="font-bold text-brand-dark dark:text-white group-hover:text-brand-pink transition-colors"><?= htmlspecialchars($a['patient_name']) ?></span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 font-bold"><?= htmlspecialchars($a['treatment_name']) ?></td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 font-bold dark:text-gray-200"><?= htmlspecialchars($a['treatment_name']) ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-user-doctor text-brand-muted text-[11px]"></i>Dr. <?= htmlspecialchars($a['doctor_name']) ?></span>
+                                    <span class="flex items-center gap-1.5 dark:text-gray-300"><i class="fa-solid fa-user-doctor text-brand-muted dark:text-gray-500 text-[11px]"></i>Dr. <?= htmlspecialchars($a['doctor_name']) ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <span class="block font-bold"><?= date("d M Y", strtotime($a['available_date'])) ?></span>
-                                    <span class="text-[10px] text-brand-muted block font-medium"><?= date("h:i A", strtotime($a['start_time'])) ?></span>
+                                    <span class="block font-bold dark:text-gray-200"><?= date("d M Y", strtotime($a['available_date'])) ?></span>
+                                    <span class="text-[10px] text-brand-muted dark:text-gray-500 block font-medium"><?= date("h:i A", strtotime($a['start_time'])) ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <?php if (!empty($a['payment_method'])): ?>
@@ -285,7 +285,7 @@ foreach ($appointments as $a) {
                                             </span>
                                         </button>
                                     <?php else: ?>
-                                        <span class="text-[10px] text-brand-muted italic">No receipt</span>
+                                        <span class="text-[10px] text-brand-muted dark:text-gray-500 italic">No receipt</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
@@ -293,19 +293,19 @@ foreach ($appointments as $a) {
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
                                     <?php if ($a['status'] === 'pending'): ?>
-                                        <a href="?action=confirm&id=<?= $a['id'] ?>" class="p-1.5 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-lg transition-colors inline-block" title="Confirm"><i class="fa-regular fa-circle-check"></i></a>
-                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
+                                        <a href="?action=confirm&id=<?= $a['id'] ?>" class="p-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-lg transition-colors inline-block" title="Confirm"><i class="fa-regular fa-circle-check"></i></a>
+                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
                                     <?php elseif ($a['status'] === 'confirmed'): ?>
-                                        <a href="?action=complete&id=<?= $a['id'] ?>" class="p-1.5 bg-blue-50 hover:bg-blue-500 text-blue-600 hover:text-white rounded-lg transition-colors inline-block" title="Mark Completed"><i class="fa-solid fa-check"></i></a>
-                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
+                                        <a href="?action=complete&id=<?= $a['id'] ?>" class="p-1.5 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white rounded-lg transition-colors inline-block" title="Mark Completed"><i class="fa-solid fa-check"></i></a>
+                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
                                     <?php elseif ($a['status'] === 'completed' || $a['status'] === 'cancelled'): ?>
-                                        <a href="?action=pending&id=<?= $a['id'] ?>" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors inline-block" title="Reset to Pending"><i class="fa-solid fa-arrow-rotate-left"></i></a>
+                                        <a href="?action=pending&id=<?= $a['id'] ?>" class="p-1.5 bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white rounded-lg transition-colors inline-block" title="Reset to Pending"><i class="fa-solid fa-arrow-rotate-left"></i></a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                            <tr><td colspan="9" class="py-8 text-center text-brand-muted">No appointments found.</td></tr>
+                            <tr><td colspan="9" class="py-8 text-center text-brand-muted dark:text-gray-400">No appointments found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

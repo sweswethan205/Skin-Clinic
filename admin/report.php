@@ -153,6 +153,15 @@ $res = $stmt->get_result();
 while ($row = $res->fetch_assoc()) $rev_by_day[] = $row;
 $stmt->close();
 
+// Revenue detail list
+$rev_detail = [];
+$stmt = $conn->prepare("SELECT a.created_at, u.name AS patient_name, t.treatment_name, t.price, COALESCE(pm.method_name, 'N/A') AS payment_method, a.status FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id $rev_where ORDER BY a.created_at DESC");
+$stmt->bind_param($rev_types, ...$rev_params);
+$stmt->execute();
+$res = $stmt->get_result();
+while ($row = $res->fetch_assoc()) $rev_detail[] = $row;
+$stmt->close();
+
 // ===================== TREATMENT ANALYTICS =====================
 $treatment_stats = [];
 $res = $conn->query("SELECT t.id, t.treatment_name, t.price, (SELECT COUNT(*) FROM appointments a WHERE a.treatment_id = t.id) AS total_bookings, (SELECT COALESCE(SUM(t2.price),0) FROM appointments a JOIN treatments t2 ON t2.id = a.treatment_id WHERE a.treatment_id = t.id AND a.status IN ('completed','confirmed')) AS total_revenue FROM treatments t ORDER BY total_bookings DESC");
@@ -240,6 +249,14 @@ function build_filter_qs($overrides = [])
         .tab-inactive:hover {
             color: #FF6584;
         }
+
+        .dark .tab-inactive {
+            color: #9CA3AF;
+        }
+
+        .dark .tab-inactive:hover {
+            color: #FF6584;
+        }
     </style>
     <script>
         (function() {
@@ -281,7 +298,7 @@ function build_filter_qs($overrides = [])
     <div class="flex items-center space-x-6">
         <?php include 'header-actions.php'; ?>
         <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
-                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-gray-700 bg-brand-lightPink dark:bg-pink-900/20 flex items-center justify-center text-brand-pink font-bold text-sm">
                         <?php if ($admin_photo): ?>
                             <img src="../<?= htmlspecialchars($admin_photo) ?>" class="w-full h-full object-cover">
                         <?php else: ?>
@@ -318,16 +335,16 @@ function build_filter_qs($overrides = [])
                     <input type="hidden" name="tab" value="appointment">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">From</label>
-                            <input type="date" name="from" value="<?= htmlspecialchars($filter_from) ?>" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">From</label>
+                            <input type="date" name="from" value="<?= htmlspecialchars($filter_from) ?>" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">To</label>
-                            <input type="date" name="to" value="<?= htmlspecialchars($filter_to) ?>" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">To</label>
+                            <input type="date" name="to" value="<?= htmlspecialchars($filter_to) ?>" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">Doctor</label>
-                            <select name="doctor" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">Doctor</label>
+                            <select name="doctor" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                                 <option value="">All Doctors</option>
                                 <?php foreach ($doctors_list as $d): ?>
                                     <option value="<?= $d['id'] ?>" <?= $filter_doctor == $d['id'] ? 'selected' : '' ?>><?= htmlspecialchars($d['name']) ?></option>
@@ -335,8 +352,8 @@ function build_filter_qs($overrides = [])
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">Treatment</label>
-                            <select name="treatment" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">Treatment</label>
+                            <select name="treatment" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                                 <option value="">All Treatments</option>
                                 <?php foreach ($treatments_list as $t): ?>
                                     <option value="<?= $t['id'] ?>" <?= $filter_treatment == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['treatment_name']) ?></option>
@@ -344,8 +361,8 @@ function build_filter_qs($overrides = [])
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">Status</label>
-                            <select name="status" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">Status</label>
+                            <select name="status" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                                 <option value="">All Statuses</option>
                                 <option value="pending" <?= $filter_status === 'pending' ? 'selected' : '' ?>>Pending</option>
                                 <option value="confirmed" <?= $filter_status === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
@@ -355,7 +372,7 @@ function build_filter_qs($overrides = [])
                         </div>
                         <div class="flex gap-2">
                             <button type="submit" class="px-5 py-2 bg-brand-pink text-white text-xs font-bold rounded-xl hover:bg-brand-pinkHover transition"><i class="fa-solid fa-filter mr-1"></i>Filter</button>
-                            <a href="?tab=appointment" class="px-4 py-2 bg-slate-100 text-brand-muted text-xs font-bold rounded-xl hover:bg-slate-200 transition">Reset</a>
+                            <a href="?tab=appointment" class="px-4 py-2 bg-slate-100 dark:bg-gray-800 text-brand-muted dark:text-gray-400 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-gray-700 transition">Reset</a>
                         </div>
                     </div>
                 </form>
@@ -363,24 +380,24 @@ function build_filter_qs($overrides = [])
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500"><i class="fa-solid fa-list-check text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['total'] ?></span></div>
+                        <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-list-check text-sm"></i></div>
+                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['total'] ?></span></div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500"><i class="fa-regular fa-clock text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted font-medium block">Pending</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['pending'] ?></span></div>
+                        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500"><i class="fa-regular fa-clock text-sm"></i></div>
+                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Pending</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['pending'] ?></span></div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted font-medium block">Confirmed</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['confirmed'] ?></span></div>
+                        <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Confirmed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['confirmed'] ?></span></div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400"><i class="fa-solid fa-flag-checkered text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted font-medium block">Completed</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['completed'] ?></span></div>
+                        <div class="w-10 h-10 bg-slate-50 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-400 dark:text-gray-500"><i class="fa-solid fa-flag-checkered text-sm"></i></div>
+                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Completed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['completed'] ?></span></div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted font-medium block">Cancelled</span><span class="text-xl font-extrabold text-brand-dark"><?= $apt_counts['cancelled'] ?></span></div>
+                        <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
+                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Cancelled</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['cancelled'] ?></span></div>
                     </div>
                 </div>
 
@@ -389,7 +406,7 @@ function build_filter_qs($overrides = [])
 
                     <!-- Status Bar Chart -->
                     <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark mb-4">Appointments by Status</h3>
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Status</h3>
                         <?php
                         $status_labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
                         $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['completed'], $apt_counts['cancelled']];
@@ -399,8 +416,8 @@ function build_filter_qs($overrides = [])
                         <div class="space-y-3">
                             <?php for ($i = 0; $i < 4; $i++): ?>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-[10px] font-bold text-brand-muted w-20 text-right"><?= $status_labels[$i] ?></span>
-                                    <div class="flex-grow bg-slate-100 rounded-full h-6 overflow-hidden">
+                                    <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-20 text-right"><?= $status_labels[$i] ?></span>
+                                    <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
                                         <div class="h-full rounded-full flex items-center pl-2" style="width: <?= $bar_max > 0 ? ($status_values[$i] / $bar_max * 100) : 0 ?>%; background-color: <?= $status_colors[$i] ?>; min-width: <?= $status_values[$i] > 0 ? '2rem' : '0' ?>;">
                                             <?php if ($status_values[$i] > 0): ?>
                                                 <span class="text-[10px] font-bold text-white"><?= $status_values[$i] ?></span>
@@ -414,14 +431,14 @@ function build_filter_qs($overrides = [])
 
                     <!-- Doctor Bar Chart -->
                     <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark mb-4">Appointments by Doctor</h3>
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Doctor</h3>
                         <?php $doc_bar_max = max(array_merge(array_column($apt_by_doctor, 'cnt'), [1])); ?>
                         <div class="space-y-3">
                             <?php if (count($apt_by_doctor) > 0): ?>
                                 <?php foreach ($apt_by_doctor as $doc): ?>
                                     <div class="flex items-center gap-3">
-                                        <span class="text-[10px] font-bold text-brand-muted w-24 text-right truncate" title="<?= htmlspecialchars($doc['doctor_name']) ?>"><?= htmlspecialchars($doc['doctor_name']) ?></span>
-                                        <div class="flex-grow bg-slate-100 rounded-full h-6 overflow-hidden">
+                                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-24 text-right truncate" title="<?= htmlspecialchars($doc['doctor_name']) ?>"><?= htmlspecialchars($doc['doctor_name']) ?></span>
+                                        <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
                                             <div class="h-full rounded-full bg-brand-pink flex items-center pl-2" style="width: <?= $doc_bar_max > 0 ? ($doc['cnt'] / $doc_bar_max * 100) : 0 ?>%; min-width: <?= $doc['cnt'] > 0 ? '2rem' : '0' ?>;">
                                                 <?php if ($doc['cnt'] > 0): ?>
                                                     <span class="text-[10px] font-bold text-white"><?= $doc['cnt'] ?></span>
@@ -431,7 +448,7 @@ function build_filter_qs($overrides = [])
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p class="text-xs text-brand-muted text-center py-6">No data for selected filters.</p>
+                                <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No data for selected filters.</p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -440,7 +457,7 @@ function build_filter_qs($overrides = [])
                 <!-- Daily Trend Line Chart -->
                 <?php if (count($apt_by_day) > 0): ?>
                     <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark mb-4">Daily Appointment Trend</h3>
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Daily Appointment Trend</h3>
                         <?php
                         $days = array_keys($apt_by_day);
                         $vals = array_values($apt_by_day);
@@ -478,7 +495,7 @@ function build_filter_qs($overrides = [])
                                 $label_step = $cnt > 8 ? ceil($cnt / 8) : 1;
                                 for ($i = 0; $i < $cnt; $i += $label_step):
                                 ?>
-                                    <span class="text-[9px] text-brand-muted font-semibold"><?= date('d M', strtotime($days[$i])) ?></span>
+                                    <span class="text-[9px] text-brand-muted dark:text-gray-400 font-semibold"><?= date('d M', strtotime($days[$i])) ?></span>
                                 <?php endfor; ?>
                             </div>
                         </div>
@@ -487,13 +504,16 @@ function build_filter_qs($overrides = [])
 
                 <!-- Appointment Table -->
                 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="text-sm font-bold text-brand-dark">Appointment Details</h3>
+                    <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white">Appointment Details</h3>
+                        <a href="export_appointments.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&doctor=<?= htmlspecialchars($filter_doctor) ?>&treatment=<?= htmlspecialchars($filter_treatment) ?>&status=<?= htmlspecialchars($filter_status) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
+                            <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+                        </a>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                                <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
                                     <th class="py-3 px-6">#</th>
                                     <th class="py-3 px-6">Patient</th>
                                     <th class="py-3 px-6">Treatment</th>
@@ -502,38 +522,38 @@ function build_filter_qs($overrides = [])
                                     <th class="py-3 px-6">Status</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                            <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
                                 <?php if (count($apt_list) > 0): ?>
                                     <?php foreach ($apt_list as $i => $a):
                                         $sc = match ($a['status']) {
-                                            'confirmed' => 'text-emerald-600 bg-emerald-50 border-emerald-100',
-                                            'pending' => 'text-blue-600 bg-blue-50 border-blue-100',
-                                            'cancelled' => 'text-rose-600 bg-rose-50 border-rose-100',
-                                            'completed' => 'text-slate-600 bg-slate-50 border-slate-100',
-                                            default => 'text-slate-600 bg-slate-50 border-slate-100'
+                                            'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
+                                            'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
+                                            'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
+                                            'completed' => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700',
+                                            default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
                                         };
                                     ?>
-                                        <tr class="hover:bg-slate-50/60 transition-colors">
-                                            <td class="py-3 px-6 text-brand-muted"><?= $i + 1 ?></td>
+                                        <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
                                             <td class="py-3 px-6 font-bold"><?= htmlspecialchars($a['patient_name']) ?></td>
                                             <td class="py-3 px-6"><?= htmlspecialchars($a['treatment_name']) ?></td>
-                                            <td class="py-3 px-6"><i class="fa-solid fa-user-doctor text-brand-muted text-[10px] mr-1"></i><?= htmlspecialchars($a['doctor_name']) ?></td>
+                                            <td class="py-3 px-6"><i class="fa-solid fa-user-doctor text-brand-muted dark:text-gray-500 text-[10px] mr-1"></i><?= htmlspecialchars($a['doctor_name']) ?></td>
                                             <td class="py-3 px-6">
                                                 <span class="font-bold"><?= date('d M Y', strtotime($a['available_date'])) ?></span>
-                                                <span class="text-[10px] text-brand-muted block"><?= date('h:i A', strtotime($a['start_time'])) ?></span>
+                                                <span class="text-[10px] text-brand-muted dark:text-gray-500 block"><?= date('h:i A', strtotime($a['start_time'])) ?></span>
                                             </td>
                                             <td class="py-3 px-6"><span class="text-[10px] font-bold <?= $sc ?> px-2 py-0.5 rounded-lg border"><?= ucfirst($a['status']) ?></span></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="6" class="py-8 text-center text-brand-muted">No appointments found for the selected filters.</td>
+                                        <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No appointments found for the selected filters.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <div class="bg-slate-50/50 px-6 py-3 border-t border-slate-100 text-xs text-brand-muted font-semibold">
+                    <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 text-xs text-brand-muted dark:text-gray-400 font-semibold">
                         Showing <?= count($apt_list) ?> <?= count($apt_list) === 1 ? 'record' : 'records' ?>
                     </div>
                 </div>
@@ -548,16 +568,16 @@ function build_filter_qs($overrides = [])
                     <input type="hidden" name="tab" value="revenue">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">From</label>
-                            <input type="date" name="from" value="<?= htmlspecialchars($filter_from) ?>" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">From</label>
+                            <input type="date" name="from" value="<?= htmlspecialchars($filter_from) ?>" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">To</label>
-                            <input type="date" name="to" value="<?= htmlspecialchars($filter_to) ?>" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">To</label>
+                            <input type="date" name="to" value="<?= htmlspecialchars($filter_to) ?>" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-brand-muted uppercase tracking-wider block mb-1">Payment Method</label>
-                            <select name="payment" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50">
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1">Payment Method</label>
+                            <select name="payment" class="w-full text-xs border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-pink bg-slate-50 dark:bg-gray-800 dark:text-white">
                                 <option value="">All Methods</option>
                                 <?php foreach ($payments_list as $pm): ?>
                                     <option value="<?= $pm['id'] ?>" <?= $filter_payment == $pm['id'] ? 'selected' : '' ?>><?= htmlspecialchars($pm['method_name']) ?></option>
@@ -566,7 +586,7 @@ function build_filter_qs($overrides = [])
                         </div>
                         <div class="flex gap-2">
                             <button type="submit" class="px-5 py-2 bg-brand-pink text-white text-xs font-bold rounded-xl hover:bg-brand-pinkHover transition"><i class="fa-solid fa-filter mr-1"></i>Filter</button>
-                            <a href="?tab=revenue" class="px-4 py-2 bg-slate-100 text-brand-muted text-xs font-bold rounded-xl hover:bg-slate-200 transition">Reset</a>
+                            <a href="?tab=revenue" class="px-4 py-2 bg-slate-100 dark:bg-gray-800 text-brand-muted dark:text-gray-400 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-gray-700 transition">Reset</a>
                         </div>
                     </div>
                 </form>
@@ -574,24 +594,24 @@ function build_filter_qs($overrides = [])
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-sack-dollar"></i></div>
+                        <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div>
-                            <span class="text-[11px] font-medium text-brand-muted block">Total Revenue</span>
-                            <span class="text-2xl font-extrabold text-brand-dark"><?= number_format($rev_total, 0) ?> <span class="text-xs font-medium text-brand-muted">MMK</span></span>
+                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Total Revenue</span>
+                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_total, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
                         </div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-line"></i></div>
                         <div>
-                            <span class="text-[11px] font-medium text-brand-muted block">Average per Booking</span>
-                            <span class="text-2xl font-extrabold text-brand-dark"><?= number_format($rev_avg, 0) ?> <span class="text-xs font-medium text-brand-muted">MMK</span></span>
+                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Average per Booking</span>
+                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_avg, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
                         </div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 text-lg"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center text-amber-500 text-lg"><i class="fa-solid fa-arrow-trend-up"></i></div>
                         <div>
-                            <span class="text-[11px] font-medium text-brand-muted block">Highest Payment</span>
-                            <span class="text-2xl font-extrabold text-brand-dark"><?= number_format($rev_max, 0) ?> <span class="text-xs font-medium text-brand-muted">MMK</span></span>
+                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Highest Payment</span>
+                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_max, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
                         </div>
                     </div>
                 </div>
@@ -601,14 +621,14 @@ function build_filter_qs($overrides = [])
 
                     <!-- Revenue by Treatment -->
                     <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark mb-4">Revenue by Treatment</h3>
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Revenue by Treatment</h3>
                         <?php $rev_t_max = max(array_merge(array_column($rev_by_treatment, 'revenue'), [1])); ?>
                         <div class="space-y-3">
                             <?php if (count($rev_by_treatment) > 0): ?>
                                 <?php foreach ($rev_by_treatment as $rt): ?>
                                     <div class="flex items-center gap-3">
-                                        <span class="text-[10px] font-bold text-brand-muted w-28 text-right truncate" title="<?= htmlspecialchars($rt['treatment_name']) ?>"><?= htmlspecialchars($rt['treatment_name']) ?></span>
-                                        <div class="flex-grow bg-slate-100 rounded-full h-6 overflow-hidden">
+                                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-28 text-right truncate" title="<?= htmlspecialchars($rt['treatment_name']) ?>"><?= htmlspecialchars($rt['treatment_name']) ?></span>
+                                        <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
                                             <div class="h-full rounded-full bg-emerald-500 flex items-center pl-2" style="width: <?= $rev_t_max > 0 ? ($rt['revenue'] / $rev_t_max * 100) : 0 ?>%; min-width: <?= $rt['revenue'] > 0 ? '3.5rem' : '0' ?>;">
                                                 <?php if ($rt['revenue'] > 0): ?>
                                                     <span class="text-[10px] font-bold text-white"><?= number_format($rt['revenue'], 0) ?></span>
@@ -618,14 +638,14 @@ function build_filter_qs($overrides = [])
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p class="text-xs text-brand-muted text-center py-6">No revenue data for selected filters.</p>
+                                <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No revenue data for selected filters.</p>
                             <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Revenue by Payment Method (Donut) -->
                     <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark mb-4">Revenue by Payment Method</h3>
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Revenue by Payment Method</h3>
                         <?php
                         $donut_colors = ['#FF6584', '#A855F7', '#F59E0B', '#10B981', '#3B82F6'];
                         $rev_pm_total = array_sum(array_column($rev_by_payment, 'revenue'));
@@ -634,7 +654,7 @@ function build_filter_qs($overrides = [])
                             <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
                                 <div class="relative w-36 h-36 shrink-0">
                                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" stroke-width="3.5"></circle>
+                                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" class="dark:stroke-gray-700" stroke-width="3.5"></circle>
                                         <?php $offset = 0; ?>
                                         <?php foreach ($rev_by_payment as $i => $rp):
                                             $pct = $rev_pm_total > 0 ? round($rp['revenue'] / $rev_pm_total * 100) : 0;
@@ -644,9 +664,9 @@ function build_filter_qs($overrides = [])
                                         <?php endforeach; ?>
                                     </svg>
                                     <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                        <span class="text-[9px] text-brand-muted font-medium block">Total</span>
-                                        <span class="text-sm font-extrabold text-brand-dark"><?= number_format($rev_pm_total, 0) ?></span>
-                                        <span class="text-[8px] text-brand-muted">MMK</span>
+                                        <span class="text-[9px] text-brand-muted dark:text-gray-400 font-medium block">Total</span>
+                                        <span class="text-sm font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_pm_total, 0) ?></span>
+                                        <span class="text-[8px] text-brand-muted dark:text-gray-400">MMK</span>
                                     </div>
                                 </div>
                                 <div class="w-full space-y-2 text-xs">
@@ -658,54 +678,66 @@ function build_filter_qs($overrides = [])
                                                 <span class="w-2.5 h-2.5 rounded-full" style="background-color: <?= $donut_colors[$i % 5] ?>"></span>
                                                 <?= htmlspecialchars($rp['method_name']) ?>
                                             </span>
-                                            <span class="text-brand-muted"><?= $pct ?>%</span>
-                                            <span class="font-bold text-brand-dark"><?= number_format($rp['revenue'], 0) ?> MMK</span>
+                                            <span class="text-brand-muted dark:text-gray-400"><?= $pct ?>%</span>
+                                            <span class="font-bold text-brand-dark dark:text-white"><?= number_format($rp['revenue'], 0) ?> MMK</span>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
                         <?php else: ?>
-                            <p class="text-xs text-brand-muted text-center py-6">No payment data available.</p>
+                            <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No payment data available.</p>
                         <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Daily Revenue Table -->
+                <!-- Revenue Detail Table -->
                 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="text-sm font-bold text-brand-dark">Daily Revenue Breakdown</h3>
+                    <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white">Revenue Details</h3>
+                        <a href="export_revenue.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&payment=<?= htmlspecialchars($filter_payment) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
+                            <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+                        </a>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                                <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
                                     <th class="py-3 px-6">#</th>
                                     <th class="py-3 px-6">Date</th>
-                                    <th class="py-3 px-6">Bookings</th>
-                                    <th class="py-3 px-6 text-right">Revenue (MMK)</th>
+                                    <th class="py-3 px-6">Patient</th>
+                                    <th class="py-3 px-6">Treatment</th>
+                                    <th class="py-3 px-6">Payment Method</th>
+                                    <th class="py-3 px-6 text-right">Amount (MMK)</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
-                                <?php if (count($rev_by_day) > 0): ?>
-                                    <?php foreach ($rev_by_day as $i => $rd): ?>
-                                        <tr class="hover:bg-slate-50/60 transition-colors">
-                                            <td class="py-3 px-6 text-brand-muted"><?= $i + 1 ?></td>
-                                            <td class="py-3 px-6 font-bold"><?= date('d M Y', strtotime($rd['day'])) ?></td>
-                                            <td class="py-3 px-6"><?= $rd['cnt'] ?> booking<?= $rd['cnt'] != 1 ? 's' : '' ?></td>
-                                            <td class="py-3 px-6 text-right font-extrabold text-emerald-600"><?= number_format($rd['revenue'], 0) ?> MMK</td>
+                            <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
+                                <?php if (count($rev_detail) > 0): ?>
+                                    <?php foreach ($rev_detail as $i => $rd): ?>
+                                        <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
+                                            <td class="py-3 px-6 font-bold"><?= date('d M Y', strtotime($rd['created_at'])) ?></td>
+                                            <td class="py-3 px-6 font-bold"><?= htmlspecialchars($rd['patient_name']) ?></td>
+                                            <td class="py-3 px-6"><?= htmlspecialchars($rd['treatment_name']) ?></td>
+                                            <td class="py-3 px-6">
+                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark dark:text-gray-300 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 px-2 py-1 rounded-lg">
+                                                    <i class="fa-solid fa-wallet text-brand-muted dark:text-gray-500 text-[9px]"></i>
+                                                    <?= htmlspecialchars($rd['payment_method']) ?>
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-6 text-right font-extrabold text-emerald-600 dark:text-emerald-400"><?= number_format($rd['price'], 0) ?> MMK</td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="4" class="py-8 text-center text-brand-muted">No revenue data for the selected period.</td>
+                                        <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No revenue data for the selected period.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <div class="bg-slate-50/50 px-6 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-brand-muted font-semibold">
-                        <span>Showing <?= count($rev_by_day) ?> day<?= count($rev_by_day) != 1 ? 's' : '' ?></span>
-                        <span class="font-extrabold text-brand-dark">Total: <?= number_format($rev_total, 0) ?> MMK</span>
+                    <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
+                        <span>Showing <?= count($rev_detail) ?> <?= count($rev_detail) === 1 ? 'record' : 'records' ?></span>
+                        <span class="font-extrabold text-brand-dark dark:text-white">Total: <?= number_format($rev_total, 0) ?> MMK</span>
                     </div>
                 </div>
 
@@ -717,64 +749,64 @@ function build_filter_qs($overrides = [])
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-brand-lightPink rounded-xl flex items-center justify-center text-brand-pink text-lg"><i class="fa-solid fa-fire"></i></div>
+                        <div class="w-12 h-12 bg-brand-lightPink dark:bg-pink-900/20 rounded-xl flex items-center justify-center text-brand-pink text-lg"><i class="fa-solid fa-fire"></i></div>
                         <div>
-                            <span class="text-[11px] font-medium text-brand-muted block">Most Popular Treatment</span>
-                            <span class="text-lg font-extrabold text-brand-dark"><?= $best_treatment ? htmlspecialchars($best_treatment) : 'N/A' ?></span>
-                            <span class="text-[10px] text-brand-muted block"><?= $best_treatment_bookings ?> booking<?= $best_treatment_bookings != 1 ? 's' : '' ?></span>
+                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Most Popular Treatment</span>
+                            <span class="text-lg font-extrabold text-brand-dark dark:text-white"><?= $best_treatment ? htmlspecialchars($best_treatment) : 'N/A' ?></span>
+                            <span class="text-[10px] text-brand-muted dark:text-gray-400 block"><?= $best_treatment_bookings ?> booking<?= $best_treatment_bookings != 1 ? 's' : '' ?></span>
                         </div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-coins"></i></div>
+                        <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-coins"></i></div>
                         <div>
-                            <span class="text-[11px] font-medium text-brand-muted block">Highest Revenue Treatment</span>
-                            <span class="text-lg font-extrabold text-brand-dark"><?= $best_rev_treatment ? htmlspecialchars($best_rev_treatment) : 'N/A' ?></span>
-                            <span class="text-[10px] text-brand-muted block"><?= number_format($best_rev_amount, 0) ?> MMK</span>
+                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Highest Revenue Treatment</span>
+                            <span class="text-lg font-extrabold text-brand-dark dark:text-white"><?= $best_rev_treatment ? htmlspecialchars($best_rev_treatment) : 'N/A' ?></span>
+                            <span class="text-[10px] text-brand-muted dark:text-gray-400 block"><?= number_format($best_rev_amount, 0) ?> MMK</span>
                         </div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-simple"></i></div>
+                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-simple"></i></div>
                         <div>
-                            <span class="text-[11px] font-medium text-brand-muted block">Total Bookings</span>
-                            <span class="text-2xl font-extrabold text-brand-dark"><?= $total_bookings_all ?></span>
+                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Total Bookings</span>
+                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= $total_bookings_all ?></span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Bookings per Treatment Chart -->
                 <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                    <h3 class="text-sm font-bold text-brand-dark mb-4">Bookings per Treatment</h3>
+                    <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Bookings per Treatment</h3>
                     <?php $treatment_bar_max = max(array_merge(array_column($treatment_stats, 'total_bookings'), [1])); ?>
                     <div class="space-y-3">
                         <?php if (count($treatment_stats) > 0): ?>
                             <?php foreach ($treatment_stats as $ts): ?>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-[10px] font-bold text-brand-muted w-32 text-right truncate" title="<?= htmlspecialchars($ts['treatment_name']) ?>"><?= htmlspecialchars($ts['treatment_name']) ?></span>
-                                    <div class="flex-grow bg-slate-100 rounded-full h-6 overflow-hidden">
+                                    <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-32 text-right truncate" title="<?= htmlspecialchars($ts['treatment_name']) ?>"><?= htmlspecialchars($ts['treatment_name']) ?></span>
+                                    <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
                                         <div class="h-full rounded-full bg-brand-pink flex items-center pl-2" style="width: <?= $treatment_bar_max > 0 ? ($ts['total_bookings'] / $treatment_bar_max * 100) : 0 ?>%; min-width: <?= $ts['total_bookings'] > 0 ? '2rem' : '0' ?>;">
                                             <?php if ($ts['total_bookings'] > 0): ?>
                                                 <span class="text-[10px] font-bold text-white"><?= $ts['total_bookings'] ?></span>
                                             <?php endif; ?>
                                         </div>
                                     </div>
-                                    <span class="text-[10px] font-bold text-brand-dark w-16 text-right"><?= number_format($ts['total_revenue'], 0) ?> MMK</span>
+                                    <span class="text-[10px] font-bold text-brand-dark dark:text-white w-16 text-right"><?= number_format($ts['total_revenue'], 0) ?> MMK</span>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <p class="text-xs text-brand-muted text-center py-6">No treatment data available.</p>
+                            <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No treatment data available.</p>
                         <?php endif; ?>
                     </div>
                 </div>
 
                 <!-- Treatment Detail Table -->
                 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="text-sm font-bold text-brand-dark">Treatment Analytics Detail</h3>
+                    <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800">
+                        <h3 class="text-sm font-bold text-brand-dark dark:text-white">Treatment Analytics Detail</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50/70 border-b border-slate-200/50 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                                <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
                                     <th class="py-3 px-6">#</th>
                                     <th class="py-3 px-6">Treatment</th>
                                     <th class="py-3 px-6 text-right">Price</th>
@@ -783,30 +815,30 @@ function build_filter_qs($overrides = [])
                                     <th class="py-3 px-6 text-right">Total Revenue</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark">
+                            <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
                                 <?php if (count($treatment_stats) > 0): ?>
                                     <?php foreach ($treatment_stats as $i => $ts):
                                         $pct = $total_bookings_all > 0 ? round($ts['total_bookings'] / $total_bookings_all * 100, 1) : 0;
                                     ?>
-                                        <tr class="hover:bg-slate-50/60 transition-colors">
-                                            <td class="py-3 px-6 text-brand-muted"><?= $i + 1 ?></td>
+                                        <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
                                             <td class="py-3 px-6 font-bold"><?= htmlspecialchars($ts['treatment_name']) ?></td>
-                                            <td class="py-3 px-6 text-right text-brand-muted"><?= number_format($ts['price'], 0) ?> MMK</td>
+                                            <td class="py-3 px-6 text-right text-brand-muted dark:text-gray-400"><?= number_format($ts['price'], 0) ?> MMK</td>
                                             <td class="py-3 px-6 text-center font-extrabold"><?= $ts['total_bookings'] ?></td>
                                             <td class="py-3 px-6 text-center">
                                                 <div class="flex items-center justify-center gap-2">
-                                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                                    <div class="w-16 bg-slate-100 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">
                                                         <div class="h-full bg-brand-pink rounded-full" style="width: <?= $pct ?>%"></div>
                                                     </div>
-                                                    <span class="text-[10px] font-bold text-brand-muted"><?= $pct ?>%</span>
+                                                    <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400"><?= $pct ?>%</span>
                                                 </div>
                                             </td>
-                                            <td class="py-3 px-6 text-right font-extrabold text-emerald-600"><?= number_format($ts['total_revenue'], 0) ?> MMK</td>
+                                            <td class="py-3 px-6 text-right font-extrabold text-emerald-600 dark:text-emerald-400"><?= number_format($ts['total_revenue'], 0) ?> MMK</td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="6" class="py-8 text-center text-brand-muted">No treatments found.</td>
+                                        <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No treatments found.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>

@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -74,24 +76,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('admin_theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateIcons();
+        })();
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('admin_theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        }
+
+        function updateIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('admin-icon-moon');
+            const sun = document.getElementById('admin-icon-sun');
+            if (moon) moon.style.display = isDark ? 'none' : 'inline';
+            if (sun) sun.style.display = isDark ? 'inline' : 'none';
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-brand-bgGray flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-brand-lightPink rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+<body class="min-h-screen bg-brand-bgGray dark:bg-gray-950 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-[28px] border border-slate-100 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-brand-lightPink dark:bg-pink-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <i class="fa-solid fa-spa text-3xl text-brand-pink"></i>
             </div>
-            <h1 class="text-2xl font-bold text-slate-800">GlowSkin Clinic</h1>
-            <p class="text-sm text-slate-400 font-medium mt-1">Admin Panel Login</p>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">GlowSkin Clinic</h1>
+            <p class="text-sm text-slate-400 dark:text-gray-500 font-medium mt-1">Admin Panel Login</p>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-100/80 shadow-md p-8">
+        <div class="space-y-5">
             <?php if ($error): ?>
-                <div class="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-medium flex items-center gap-2.5">
+                <div class="mb-5 p-3.5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl text-xs font-medium flex items-center gap-2.5">
                     <i class="fa-solid fa-circle-exclamation text-sm"></i>
                     <span><?php echo htmlspecialchars($error); ?></span>
                 </div>
@@ -99,23 +128,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="POST" class="space-y-5">
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Username</label>
+                    <label class="block text-[11px] font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Username</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-sm">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-gray-500 text-sm">
                             <i class="fa-regular fa-user"></i>
                         </span>
-                        <input type="text" name="username" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" placeholder="Enter admin username" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-brand-pink focus:bg-white transition-colors">
+                        <input type="text" name="username" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" placeholder="Enter admin username" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-sm dark:text-white dark:placeholder:text-gray-500 outline-none focus:border-brand-pink focus:bg-white dark:focus:bg-gray-700 transition-colors">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Password</label>
+                    <label class="block text-[11px] font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-sm">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-gray-500 text-sm">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-                        <input type="password" name="password" id="adminPassword" required placeholder="Enter admin password" class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-brand-pink focus:bg-white transition-colors">
-                        <button type="button" onclick="togglePassword('adminPassword', this)" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600">
+                        <input type="password" name="password" id="adminPassword" required placeholder="Enter admin password" class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-sm dark:text-white dark:placeholder:text-gray-500 outline-none focus:border-brand-pink focus:bg-white dark:focus:bg-gray-700 transition-colors">
+                        <button type="button" onclick="togglePassword('adminPassword', this)" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
@@ -128,9 +157,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
 
-        <p class="text-center mt-6 text-xs text-slate-400">
-            <a href="../auth/login.php" class="text-brand-pink hover:underline font-semibold">&larr; Back to Patient Login</a>
-        </p>
+        <div class="flex items-center justify-center mt-8 gap-3 border-t border-slate-50 dark:border-gray-800 pt-5">
+            <p class="text-xs text-slate-400">
+                <a href="../auth/login.php" class="text-brand-pink hover:underline font-semibold">&larr; Back to Patient Login</a>
+            </p>
+            <span class="text-slate-300 dark:text-gray-600">|</span>
+            <button onclick="toggleDarkMode()" class="text-slate-400 dark:text-gray-500 hover:text-brand-pink transition p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800" title="Toggle dark mode">
+                <i class="fa-solid fa-moon text-sm" id="admin-icon-moon"></i>
+                <i class="fa-solid fa-sun text-sm" id="admin-icon-sun" style="display:none"></i>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -149,4 +185,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 </body>
+
 </html>
