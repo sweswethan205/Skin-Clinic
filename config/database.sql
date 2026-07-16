@@ -101,7 +101,6 @@ CREATE TABLE appointments (
     status ENUM(
         'pending',
         'confirmed',
-        'completed',
         'cancelled'
     ) DEFAULT 'pending',
 

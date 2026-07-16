@@ -152,14 +152,13 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
             color: #94a3b8;
         }
         .cal-day.empty { pointer-events: none; }
-        .cal-day.past { color: #cbd5e1; pointer-events: none; }
+        .cal-day.past { color: #e2e8f0; pointer-events: none; }
         .cal-day.available {
             color: #1e293b;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: #ffffff;
         }
         .cal-day.available:hover {
-            background: #dcfce7;
+            background: #f1f5f9;
         }
         .cal-day.selected {
             background: #E85D75;
@@ -183,9 +182,9 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
         }
         .cal-nav-btn:hover { background: #f1f5f9; }
         .dark .cal-day { color: #94a3b8; }
-        .dark .cal-day.past { color: #475569; }
-        .dark .cal-day.available { color: #e2e8f0; background: #1a2e1a; border: 1px solid #166534; }
-        .dark .cal-day.available:hover { background: #14532d; }
+        .dark .cal-day.past { color: #374151; }
+        .dark .cal-day.available { color: #e2e8f0; background: #1f2937; }
+        .dark .cal-day.available:hover { background: #374151; }
     </style>
 </head>
 
@@ -390,13 +389,14 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
 
                 if (dateStr < todayStr) {
                     btn.classList.add('past');
-                } else if (dateStr === todayStr) {
-                    btn.classList.add('today');
-                }
-
-                if (availableDates.includes(dateStr)) {
-                    btn.classList.add('available');
-                    btn.onclick = function() { selectDate(dateStr, btn); };
+                } else {
+                    if (dateStr === todayStr) {
+                        btn.classList.add('today');
+                    }
+                    if (availableDates.includes(dateStr)) {
+                        btn.classList.add('available');
+                        btn.onclick = function() { selectDate(dateStr, btn); };
+                    }
                 }
 
                 if (dateStr === selectedDateString) {

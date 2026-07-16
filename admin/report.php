@@ -42,7 +42,7 @@ $p_res = $conn->query("SELECT id, method_name FROM payment_methods ORDER BY meth
 if ($p_res) while ($r = $p_res->fetch_assoc()) $payments_list[] = $r;
 
 // ===================== APPOINTMENT REPORT =====================
-$apt_where = "WHERE DATE(a.created_at) BETWEEN ? AND ?";
+$apt_where = "WHERE DATE(a.created_at) BETWEEN ? AND ? AND a.status != 'completed'";
 $apt_params = [$filter_from, $filter_to];
 $apt_types = "ss";
 
@@ -63,7 +63,7 @@ if ($filter_status !== '') {
 }
 
 // Appointment counts by status
-$apt_counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'completed' => 0, 'cancelled' => 0];
+$apt_counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
 $stmt = $conn->prepare("SELECT a.status, COUNT(*) AS cnt FROM appointments a JOIN schedules s ON s.id = a.schedule_id $apt_where GROUP BY a.status");
 $stmt->bind_param($apt_types, ...$apt_params);
 $stmt->execute();
@@ -366,7 +366,6 @@ function build_filter_qs($overrides = [])
                                 <option value="">All Statuses</option>
                                 <option value="pending" <?= $filter_status === 'pending' ? 'selected' : '' ?>>Pending</option>
                                 <option value="confirmed" <?= $filter_status === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
-                                <option value="completed" <?= $filter_status === 'completed' ? 'selected' : '' ?>>Completed</option>
                                 <option value="cancelled" <?= $filter_status === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                             </select>
                         </div>
@@ -377,8 +376,10 @@ function build_filter_qs($overrides = [])
                     </div>
                 </form>
 
+                <div id="apt-print-area" class="space-y-6">
+
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-list-check text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['total'] ?></span></div>
@@ -390,10 +391,6 @@ function build_filter_qs($overrides = [])
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-sm"></i></div>
                         <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Confirmed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['confirmed'] ?></span></div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-slate-50 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-400 dark:text-gray-500"><i class="fa-solid fa-flag-checkered text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Completed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['completed'] ?></span></div>
                     </div>
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                         <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
@@ -408,13 +405,13 @@ function build_filter_qs($overrides = [])
                     <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                         <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Status</h3>
                         <?php
-                        $status_labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
-                        $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['completed'], $apt_counts['cancelled']];
-                        $status_colors = ['#3B82F6', '#10B981', '#94A3B8', '#F43F5E'];
+                        $status_labels = ['Pending', 'Confirmed', 'Cancelled'];
+                        $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['cancelled']];
+                        $status_colors = ['#3B82F6', '#10B981', '#F43F5E'];
                         $bar_max = max(array_merge($status_values, [1]));
                         ?>
                         <div class="space-y-3">
-                            <?php for ($i = 0; $i < 4; $i++): ?>
+                            <?php for ($i = 0; $i < 3; $i++): ?>
                                 <div class="flex items-center gap-3">
                                     <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-20 text-right"><?= $status_labels[$i] ?></span>
                                     <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
@@ -506,9 +503,14 @@ function build_filter_qs($overrides = [])
                 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
                         <h3 class="text-sm font-bold text-brand-dark dark:text-white">Appointment Details</h3>
-                        <a href="export_appointments.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&doctor=<?= htmlspecialchars($filter_doctor) ?>&treatment=<?= htmlspecialchars($filter_treatment) ?>&status=<?= htmlspecialchars($filter_status) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
-                            <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer">
+                                <i class="fa-solid fa-print text-xs"></i> Print
+                            </button>
+                            <a href="export_appointments.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&doctor=<?= htmlspecialchars($filter_doctor) ?>&treatment=<?= htmlspecialchars($filter_treatment) ?>&status=<?= htmlspecialchars($filter_status) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
+                                <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+                            </a>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -529,7 +531,6 @@ function build_filter_qs($overrides = [])
                                             'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
                                             'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
                                             'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
-                                            'completed' => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700',
                                             default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
                                         };
                                     ?>
@@ -558,13 +559,15 @@ function build_filter_qs($overrides = [])
                     </div>
                 </div>
 
+                </div>
+
             <?php endif; ?>
 
             <!-- ======================== REVENUE REPORT ======================== -->
             <?php if ($active_tab === 'revenue'): ?>
 
                 <!-- Filters -->
-                <form method="GET" class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                <form method="GET" class="no-print bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                     <input type="hidden" name="tab" value="revenue">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div>
@@ -590,6 +593,8 @@ function build_filter_qs($overrides = [])
                         </div>
                     </div>
                 </form>
+
+                <div id="revenue-print-area" class="space-y-6">
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -694,9 +699,14 @@ function build_filter_qs($overrides = [])
                 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
                         <h3 class="text-sm font-bold text-brand-dark dark:text-white">Revenue Details</h3>
-                        <a href="export_revenue.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&payment=<?= htmlspecialchars($filter_payment) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
-                            <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer">
+                                <i class="fa-solid fa-print text-xs"></i> Print
+                            </button>
+                            <a href="export_revenue.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&payment=<?= htmlspecialchars($filter_payment) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
+                                <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+                            </a>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -739,6 +749,8 @@ function build_filter_qs($overrides = [])
                         <span>Showing <?= count($rev_detail) ?> <?= count($rev_detail) === 1 ? 'record' : 'records' ?></span>
                         <span class="font-extrabold text-brand-dark dark:text-white">Total: <?= number_format($rev_total, 0) ?> MMK</span>
                     </div>
+                </div>
+
                 </div>
 
             <?php endif; ?>
@@ -851,6 +863,15 @@ function build_filter_qs($overrides = [])
         </main>
     </div>
 
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #revenue-print-area, #revenue-print-area *,
+            #apt-print-area, #apt-print-area * { visibility: visible; }
+            #revenue-print-area, #apt-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            #revenue-print-area .bg-white, #apt-print-area .bg-white { background: white !important; box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+        }
+    </style>
     <script>
         document.getElementById('mobile-menu-toggle')?.addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');

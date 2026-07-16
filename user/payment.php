@@ -388,7 +388,7 @@ if (isset($_SESSION['user_id'])) {
                                 <p class="text-[9px] text-gray-400 mt-0.5">PNG, JPG or JPEG up to 5MB</p>
                             </div>
                             <input type="file" id="receipt-upload" name="receipt_image" accept="image/*" required class="hidden" />
-                            <img id="receipt-preview" class="absolute inset-0 w-full h-full object-cover hidden" alt="Receipt Preview">
+                            <img id="receipt-preview" class="absolute inset-0 w-full h-full object-contain hidden p-4" alt="Receipt Preview">
                         </label>
                     </div>
 

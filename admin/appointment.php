@@ -18,7 +18,6 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $new_status = '';
     if ($action === 'confirm') $new_status = 'confirmed';
     elseif ($action === 'cancel') $new_status = 'cancelled';
-    elseif ($action === 'complete') $new_status = 'completed';
     elseif ($action === 'pending') $new_status = 'pending';
 
     if ($new_status) {
@@ -38,7 +37,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $stmt = $conn->prepare("UPDATE appointments SET status=? WHERE id=?");
         $stmt->bind_param("si", $new_status, $id);
         if ($stmt->execute()) {
-            $message = "Appointment #$id " . ($action === 'cancel' ? 'cancelled' : ($action === 'confirm' ? 'confirmed' : ($action === 'complete' ? 'completed' : 'updated'))) . " successfully.";
+            $message = "Appointment #$id " . ($action === 'cancel' ? 'cancelled' : ($action === 'confirm' ? 'confirmed' : 'updated')) . " successfully.";
             $msg_type = 'success';
 
             // Create notification
@@ -81,6 +80,7 @@ $query = "SELECT a.id, a.status, a.created_at, a.receipt_image,
           JOIN schedules s ON s.id = a.schedule_id
           JOIN doctors d ON d.id = s.doctor_id
           LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id
+          WHERE a.status != 'completed'
           ORDER BY a.created_at DESC";
 $result = $conn->query($query);
 if ($result) {
@@ -90,7 +90,7 @@ if ($result) {
 }
 
 // Counts by status
-$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0, 'completed' => 0];
+$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
 foreach ($appointments as $a) {
     $counts['total']++;
     $s = $a['status'];
@@ -215,7 +215,6 @@ foreach ($appointments as $a) {
                     <button onclick="filterTable('pending')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="pending">Pending (<?= $counts['pending'] ?>)</button>
                     <button onclick="filterTable('confirmed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="confirmed">Confirmed (<?= $counts['confirmed'] ?>)</button>
                     <button onclick="filterTable('cancelled')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="cancelled">Cancelled (<?= $counts['cancelled'] ?>)</button>
-                    <button onclick="filterTable('completed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="completed">Completed (<?= $counts['completed'] ?>)</button>
                 </div>
             </div>
 
@@ -243,7 +242,6 @@ foreach ($appointments as $a) {
                                         'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
                                         'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
                                         'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
-                                        'completed' => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700',
                                         default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
                                     };
                                 ?>
@@ -296,9 +294,8 @@ foreach ($appointments as $a) {
                                         <a href="?action=confirm&id=<?= $a['id'] ?>" class="p-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-lg transition-colors inline-block" title="Confirm"><i class="fa-regular fa-circle-check"></i></a>
                                         <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
                                     <?php elseif ($a['status'] === 'confirmed'): ?>
-                                        <a href="?action=complete&id=<?= $a['id'] ?>" class="p-1.5 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white rounded-lg transition-colors inline-block" title="Mark Completed"><i class="fa-solid fa-check"></i></a>
                                         <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
-                                    <?php elseif ($a['status'] === 'completed' || $a['status'] === 'cancelled'): ?>
+                                    <?php elseif ($a['status'] === 'cancelled'): ?>
                                         <a href="?action=pending&id=<?= $a['id'] ?>" class="p-1.5 bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white rounded-lg transition-colors inline-block" title="Reset to Pending"><i class="fa-solid fa-arrow-rotate-left"></i></a>
                                     <?php endif; ?>
                                 </td>

@@ -75,7 +75,7 @@ if (!isset($conn) || $conn === null) {
             <a href="../user/treatment.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Treatments</a>
             <a href="../user/about.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">About Us</a>
             <a href="../user/ourdoctors.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Our Doctors</a>
-            <a href="../user/gallery.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Gallery</a>
+            <!-- <a href="../user/gallery.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Gallery</a> -->
             <a href="../user/review.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Review</a>
             <a href="../user/contact.php" class="nav-item hover:text-brand-pink hover:underline decoration-brand-pink decoration-2 underline-offset-[6px] transition-all">Contact</a>
         </nav>
