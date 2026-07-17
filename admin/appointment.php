@@ -55,24 +55,17 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         }
         $stmt->close();
 
-        // If cancelled, mark schedule as available
-        if ($action === 'cancel') {
-            $stmt = $conn->prepare("UPDATE schedules s JOIN appointments a ON a.schedule_id = s.id SET s.is_booked='no' WHERE a.id=?");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $stmt->close();
-        }
+
     }
 }
 
 // Fetch appointments
 $appointments = [];
-$query = "SELECT a.id, a.status, a.created_at, a.receipt_image,
+$query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.appointment_start, a.appointment_end,
                  u.name AS patient_name,
-                 t.treatment_name, t.price,
+                 t.treatment_name, t.price, t.duration,
                  d.name AS doctor_name,
                  s.available_date,
-                 s.start_time,
                  pm.method_name AS payment_method
           FROM appointments a
           JOIN users u ON u.id = a.user_id
@@ -261,7 +254,10 @@ foreach ($appointments as $a) {
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="block font-bold dark:text-gray-200"><?= date("d M Y", strtotime($a['available_date'])) ?></span>
-                                    <span class="text-[10px] text-brand-muted dark:text-gray-500 block font-medium"><?= date("h:i A", strtotime($a['start_time'])) ?></span>
+                                    <span class="text-[10px] text-brand-muted dark:text-gray-500 block font-medium">
+                                        <?= date("h:i A", strtotime($a['appointment_start'])) ?> - <?= date("h:i A", strtotime($a['appointment_end'])) ?>
+                                    </span>
+                                    <span class="text-[9px] text-blue-500 dark:text-blue-400 block font-medium"><?= $a['duration'] ?? 60 ?> min</span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <?php if (!empty($a['payment_method'])): ?>

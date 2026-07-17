@@ -16,22 +16,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
 
-        if ($start_date > $end_date) {
-            $message = "Start date must be before end date!";
+        if ($start_date >= $end_date) {
+            $message = "End date must be after start date!";
             $message_type = "error";
             header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
             exit;
         }
 
-        // 90-minute slots: 9:00-10:30, 10:30-12:00, 13:00-14:30, 14:30-16:00, 16:00-17:30, 17:30-19:00
-        $slots = [
-            ['09:00', '10:30'],
-            ['10:30', '12:00'],
-            ['13:00', '14:30'],
-            ['14:30', '16:00'],
-            ['16:00', '17:30'],
-            ['17:30', '19:00'],
-        ];
+        $doc_stmt = $conn->prepare("SELECT work_start, work_end FROM doctors WHERE id=?");
+        $doc_stmt->bind_param("i", $doctor_id);
+        $doc_stmt->execute();
+        $doc_result = $doc_stmt->get_result();
+        $doctor = $doc_result->fetch_assoc();
+        $doc_stmt->close();
+
+        if (!$doctor) {
+            $message = "Doctor not found!";
+            $message_type = "error";
+            header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
+            exit;
+        }
+
+        $work_start = $doctor['work_start'];
+        $work_end = $doctor['work_end'];
 
         $current = new DateTime($start_date);
         $end = new DateTime($end_date);
@@ -39,35 +46,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $inserted = 0;
         $skipped = 0;
 
-        $stmt = $conn->prepare("INSERT INTO schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT IGNORE INTO schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
 
         while ($current < $end) {
             $date_str = $current->format('Y-m-d');
-            foreach ($slots as $slot) {
-                // Skip if slot already exists for this doctor
-                $check = $conn->prepare("SELECT id FROM schedules WHERE doctor_id=? AND available_date=? AND start_time=?");
-                $check->bind_param("iss", $doctor_id, $date_str, $slot[0]);
-                $check->execute();
-                $result = $check->get_result();
-                if ($result->num_rows > 0) {
-                    $skipped++;
-                    $check->close();
-                    continue;
-                }
-                $check->close();
-
-                $stmt->bind_param("isss", $doctor_id, $date_str, $slot[0], $slot[1]);
-                if ($stmt->execute()) {
+            $stmt->bind_param("isss", $doctor_id, $date_str, $work_start, $work_end);
+            if ($stmt->execute()) {
+                if ($stmt->affected_rows > 0) {
                     $inserted++;
+                } else {
+                    $skipped++;
                 }
             }
             $current->modify('+1 day');
         }
         $stmt->close();
 
-        $msg_parts = "$inserted schedule(s) added successfully!";
+        $msg_parts = "$inserted availability date(s) added successfully!";
         if ($skipped > 0) {
-            $msg_parts .= " ($skipped duplicate slot(s) skipped)";
+            $msg_parts .= " ($skipped duplicate date(s) skipped)";
         }
         $message = $msg_parts;
         $message_type = "success";
@@ -75,49 +72,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
 
-        if ($start_date > $end_date) {
-            $message = "Start date must be before end date!";
+        if ($start_date >= $end_date) {
+            $message = "End date must be after start date!";
             $message_type = "error";
             header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
             exit;
         }
 
-        // Delete all unbooked slots for this doctor
-        $del = $conn->prepare("DELETE FROM schedules WHERE doctor_id=? AND is_booked='no'");
+        $del = $conn->prepare("DELETE FROM schedules WHERE doctor_id=? AND available_date >= CURDATE() AND NOT EXISTS (SELECT 1 FROM appointments a WHERE a.schedule_id = schedules.id AND a.status != 'cancelled')");
         $del->bind_param("i", $doctor_id);
         $del->execute();
         $del->close();
 
-        // Regenerate slots: 90-minute slots, 9AM-7PM, lunch 12-1PM
-        $slots = [
-            ['09:00', '10:30'],
-            ['10:30', '12:00'],
-            ['13:00', '14:30'],
-            ['14:30', '16:00'],
-            ['16:00', '17:30'],
-            ['17:30', '19:00'],
-        ];
+        $doc_stmt = $conn->prepare("SELECT work_start, work_end FROM doctors WHERE id=?");
+        $doc_stmt->bind_param("i", $doctor_id);
+        $doc_stmt->execute();
+        $doc_result = $doc_stmt->get_result();
+        $doctor = $doc_result->fetch_assoc();
+        $doc_stmt->close();
+
+        if (!$doctor) {
+            $message = "Doctor not found!";
+            $message_type = "error";
+            header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
+            exit;
+        }
+
+        $work_start = $doctor['work_start'];
+        $work_end = $doctor['work_end'];
 
         $current = new DateTime($start_date);
         $end = new DateTime($end_date);
         $end->modify('+1 day');
         $inserted = 0;
+        $skipped = 0;
 
-        $stmt = $conn->prepare("INSERT INTO schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT IGNORE INTO schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
 
         while ($current < $end) {
             $date_str = $current->format('Y-m-d');
-            foreach ($slots as $slot) {
-                $stmt->bind_param("isss", $doctor_id, $date_str, $slot[0], $slot[1]);
-                if ($stmt->execute()) {
+            $stmt->bind_param("isss", $doctor_id, $date_str, $work_start, $work_end);
+            if ($stmt->execute()) {
+                if ($stmt->affected_rows > 0) {
                     $inserted++;
+                } else {
+                    $skipped++;
                 }
             }
             $current->modify('+1 day');
         }
         $stmt->close();
 
-        $message = "Schedule updated! $inserted new slot(s) created for " . htmlspecialchars($_POST['start_date']) . " to " . htmlspecialchars($_POST['end_date']);
+        $msg_parts = "Schedule updated! $inserted availability date(s) created for " . htmlspecialchars($_POST['start_date']) . " to " . htmlspecialchars($_POST['end_date']);
+        if ($skipped > 0) {
+            $msg_parts .= " ($skipped duplicate date(s) skipped)";
+        }
+        $message = $msg_parts;
         $message_type = "success";
     }
     header("Location: schedule.php?msg=" . urlencode($message) . "&type=$message_type");
@@ -156,15 +166,20 @@ while ($row = $doctors_result->fetch_assoc()) {
 
 // Fetch schedules with doctor name
 $doctor_filter = isset($_GET['doctor_id']) ? intval($_GET['doctor_id']) : 0;
-$sql = "SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id";
 if ($doctor_filter > 0) {
-    $sql .= " WHERE s.doctor_id = $doctor_filter";
+    $sched_stmt = $conn->prepare("SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id WHERE s.doctor_id = ? ORDER BY s.available_date DESC, s.start_time ASC");
+    $sched_stmt->bind_param("i", $doctor_filter);
+    $sched_stmt->execute();
+    $schedules_result = $sched_stmt->get_result();
+} else {
+    $schedules_result = $conn->query("SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id ORDER BY s.available_date DESC, s.start_time ASC");
 }
-$sql .= " ORDER BY s.available_date DESC, s.start_time ASC";
-$schedules_result = $conn->query($sql);
 $schedules = [];
 while ($row = $schedules_result->fetch_assoc()) {
     $schedules[] = $row;
+}
+if (isset($sched_stmt)) {
+    $sched_stmt->close();
 }
 
 // Fetch single schedule for edit modal
@@ -304,25 +319,26 @@ if (isset($_GET['edit'])) {
                     </div>
                 </div>
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check-circle"></i></div>
+                    <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-check"></i></div>
                     <div>
-                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Available</span>
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Unique Dates</span>
                         <span class="text-xl font-extrabold text-brand-dark dark:text-white">
                             <?php
-                            $avail = array_filter($schedules, fn($s) => $s['is_booked'] === 'no');
-                            echo count($avail);
+                            $unique_dates = array_unique(array_column($schedules, 'available_date'));
+                            echo count($unique_dates);
                             ?>
                         </span>
                     </div>
                 </div>
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                    <div class="w-10 h-10 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-bookmark"></i></div>
+                    <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-clock"></i></div>
                     <div>
-                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Booked</span>
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Upcoming Dates</span>
                         <span class="text-xl font-extrabold text-brand-dark dark:text-white">
                             <?php
-                            $booked = array_filter($schedules, fn($s) => $s['is_booked'] === 'yes');
-                            echo count($booked);
+                            $today = date('Y-m-d');
+                            $upcoming = array_filter($schedules, fn($s) => $s['available_date'] >= $today);
+                            echo count($upcoming);
                             ?>
                         </span>
                     </div>
@@ -360,16 +376,14 @@ if (isset($_GET['edit'])) {
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Doctor</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Date</th>
-                                <th class="py-3 px-3 sm:py-4 sm:px-6">Start Time</th>
-                                <th class="py-3 px-3 sm:py-4 sm:px-6">End Time</th>
-                                <th class="py-3 px-3 sm:py-4 sm:px-6 text-center">Status</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Available Hours</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($schedules)): ?>
                             <tr>
-                                <td colspan="6" class="py-12 text-center">
+                                <td colspan="4" class="py-12 text-center">
                                     <div class="text-brand-muted dark:text-gray-400">
                                         <i class="fa-regular fa-calendar-xmark text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No schedules found</span>
@@ -392,21 +406,7 @@ if (isset($_GET['edit'])) {
                                     <span class="font-medium text-slate-600 dark:text-gray-400"><?php echo date('M d, Y', strtotime($schedule['available_date'])); ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <span class="font-mono text-sm"><?php echo date('h:i A', strtotime($schedule['start_time'])); ?></span>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <span class="font-mono text-sm"><?php echo date('h:i A', strtotime($schedule['end_time'])); ?></span>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
-                                    <?php if ($schedule['is_booked'] === 'yes'): ?>
-                                    <span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-circle text-[7px]"></i> Booked
-                                    </span>
-                                    <?php else: ?>
-                                    <span class="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-circle text-[7px]"></i> Available
-                                    </span>
-                                    <?php endif; ?>
+                                    <span class="font-mono text-sm"><?php echo date('h:i A', strtotime($schedule['start_time'])); ?> - <?php echo date('h:i A', strtotime($schedule['end_time'])); ?></span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
                                     <button onclick="openEditModal(<?php echo $schedule['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white rounded-lg transition-colors" title="Edit Schedule">
@@ -461,31 +461,9 @@ if (isset($_GET['edit'])) {
                     </div>
                 </div>
 
-                <!-- Slot Preview -->
-                <div id="slotPreview" class="hidden bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
-                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark dark:text-white">
-                        <i class="fa-regular fa-clock text-brand-pink"></i> Time Slots (per day)
-                    </div>
-                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted dark:text-gray-400">
-                        <span>09:00 - 10:30</span>
-                        <span>10:30 - 12:00</span>
-                        <span>13:00 - 14:30</span>
-                        <span>14:30 - 16:00</span>
-                        <span>16:00 - 17:30</span>
-                        <span>17:30 - 19:00</span>
-                    </div>
-                    <div class="border-t border-slate-200 dark:border-gray-700 pt-2 mt-2">
-                        <span class="text-[11px] font-bold text-brand-dark dark:text-white">
-                            <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
-                            <span id="slotSummary">Lunch break: 12:00 - 13:00 | 6 slots per day | Each slot: 1 hour 30 minutes</span>
-                        </span>
-                    </div>
-                    <div id="slotCount" class="text-xs font-bold text-brand-pink"></div>
-                </div>
-
                 <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 text-[11px] font-medium text-blue-700 dark:text-blue-400">
                     <i class="fa-solid fa-info-circle mr-1"></i>
-                    Time slots are auto-generated: <strong>9:00 AM - 7:00 PM</strong> with lunch break <strong>12:00 - 1:00 PM</strong>. Each treatment slot is <strong>1 hour 30 minutes</strong>. Duplicate slots will be skipped.
+                    Working hours will be taken from the doctor's profile (e.g., <strong>09:00 - 19:00</strong>). One availability entry is created per day. Duplicate dates are skipped.
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
@@ -520,35 +498,24 @@ if (isset($_GET['edit'])) {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Start Date</label>
-                        <input type="date" name="start_date" id="edit_start_date" required
+                        <input type="date" name="start_date" id="edit_start_date" required min="<?php echo date('Y-m-d'); ?>"
                             class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">End Date</label>
-                        <input type="date" name="end_date" id="edit_end_date" required
+                        <input type="date" name="end_date" id="edit_end_date" required min="<?php echo date('Y-m-d'); ?>"
                             class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                 </div>
 
-                <!-- Slot Preview -->
-                <div id="editSlotPreview" class="hidden bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
-                    <div class="flex items-center gap-2 text-xs font-bold text-brand-dark dark:text-white">
-                        <i class="fa-regular fa-clock text-brand-pink"></i> Time Slots (per day)
-                    </div>
-                    <div class="grid grid-cols-2 gap-1 text-[11px] font-semibold text-brand-muted dark:text-gray-400">
-                        <span>09:00 - 10:30</span>
-                        <span>10:30 - 12:00</span>
-                        <span>13:00 - 14:30</span>
-                        <span>14:30 - 16:00</span>
-                        <span>16:00 - 17:30</span>
-                        <span>17:30 - 19:00</span>
-                    </div>
-                    <div id="editSlotCount" class="text-xs font-bold text-brand-pink"></div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 text-[11px] font-medium text-blue-700 dark:text-blue-400">
+                    <i class="fa-solid fa-info-circle mr-1"></i>
+                    Working hours will be taken from the doctor's profile (e.g., <strong>09:00 - 19:00</strong>). One availability entry is created per day. Duplicate dates are skipped.
                 </div>
 
                 <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl p-3 text-[11px] font-medium text-amber-700 dark:text-amber-400">
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                    This will <strong>delete all unbooked slots</strong> for this doctor and regenerate new slots based on the new date range. Booked slots will not be affected.
+                    This will <strong>delete all future unbooked schedules</strong> for this doctor and regenerate availability entries based on the new date range. Dates with active appointments will not be affected.
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
@@ -588,35 +555,7 @@ if (isset($_GET['edit'])) {
 
         function closeCreateModal() {
             document.getElementById('createModal').classList.add('hidden');
-            document.getElementById('slotPreview').classList.add('hidden');
         }
-
-        // Calculate slot count when dates change
-        function updateSlotPreview() {
-            const start = document.getElementById('create_start_date').value;
-            const end = document.getElementById('create_end_date').value;
-            const preview = document.getElementById('slotPreview');
-            const countEl = document.getElementById('slotCount');
-
-            if (start && end) {
-                const startD = new Date(start);
-                const endD = new Date(end);
-                if (endD >= startD) {
-                    const diffTime = Math.abs(endD - startD);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    const totalSlots = diffDays * 6;
-                    preview.classList.remove('hidden');
-                    countEl.textContent = diffDays + ' day(s) x 6 slots = ' + totalSlots + ' total slots to create';
-                } else {
-                    preview.classList.add('hidden');
-                }
-            } else {
-                preview.classList.add('hidden');
-            }
-        }
-
-        document.getElementById('create_start_date').addEventListener('change', updateSlotPreview);
-        document.getElementById('create_end_date').addEventListener('change', updateSlotPreview);
 
         function openEditModal(id) {
             const schedule = schedulesData.find(s => s.id == id);
@@ -626,39 +565,11 @@ if (isset($_GET['edit'])) {
             document.getElementById('edit_start_date').value = schedule.available_date;
             document.getElementById('edit_end_date').value = schedule.available_date;
             document.getElementById('editModal').classList.remove('hidden');
-            updateEditSlotPreview();
         }
 
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
-            document.getElementById('editSlotPreview').classList.add('hidden');
         }
-
-        function updateEditSlotPreview() {
-            const start = document.getElementById('edit_start_date').value;
-            const end = document.getElementById('edit_end_date').value;
-            const preview = document.getElementById('editSlotPreview');
-            const countEl = document.getElementById('editSlotCount');
-
-            if (start && end) {
-                const startD = new Date(start);
-                const endD = new Date(end);
-                if (endD >= startD) {
-                    const diffTime = Math.abs(endD - startD);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    const totalSlots = diffDays * 6;
-                    preview.classList.remove('hidden');
-                    countEl.textContent = diffDays + ' day(s) x 6 slots = ' + totalSlots + ' total slots to create';
-                } else {
-                    preview.classList.add('hidden');
-                }
-            } else {
-                preview.classList.add('hidden');
-            }
-        }
-
-        document.getElementById('edit_start_date').addEventListener('change', updateEditSlotPreview);
-        document.getElementById('edit_end_date').addEventListener('change', updateEditSlotPreview);
 
         function confirmDelete(id) {
             document.getElementById('deleteConfirmBtn').href = 'schedule.php?delete=' + id;
@@ -682,6 +593,29 @@ if (isset($_GET['edit'])) {
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-bg:not(.hidden)').forEach(m => m.classList.add('hidden'));
+            }
+        });
+
+        // Date validation - ensure end date is strictly after start date
+        function getNextDay(dateStr) {
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().split('T')[0];
+        }
+
+        document.getElementById('create_start_date').addEventListener('change', function() {
+            const endInput = document.getElementById('create_end_date');
+            endInput.min = getNextDay(this.value);
+            if (endInput.value && endInput.value <= this.value) {
+                endInput.value = getNextDay(this.value);
+            }
+        });
+
+        document.getElementById('edit_start_date').addEventListener('change', function() {
+            const endInput = document.getElementById('edit_end_date');
+            endInput.min = getNextDay(this.value);
+            if (endInput.value && endInput.value <= this.value) {
+                endInput.value = getNextDay(this.value);
             }
         });
     </script>

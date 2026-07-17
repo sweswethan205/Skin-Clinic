@@ -266,6 +266,7 @@ function build_filter_qs($overrides = [])
             }
             updateIcons();
         })();
+
         function updateIcons() {
             const isDark = document.documentElement.classList.contains('dark');
             const moon = document.getElementById('admin-icon-moon');
@@ -273,6 +274,7 @@ function build_filter_qs($overrides = [])
             if (moon) moon.style.display = isDark ? 'none' : 'inline';
             if (sun) sun.style.display = isDark ? 'inline' : 'none';
         }
+
         function toggleDarkMode() {
             const html = document.documentElement;
             html.classList.toggle('dark');
@@ -291,13 +293,13 @@ function build_filter_qs($overrides = [])
         <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                 <div>
-            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Reports</h2>
-            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Analytics and insights for your clinic</p>
+                    <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Reports</h2>
+                    <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Analytics and insights for your clinic</p>
                 </div>
             </div>
-    <div class="flex items-center space-x-6">
-        <?php include 'header-actions.php'; ?>
-        <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
+            <div class="flex items-center space-x-6">
+                <?php include 'header-actions.php'; ?>
+                <a href="profile.php" class="flex items-center space-x-3 border-l pl-6 border-slate-200 dark:border-gray-700 hover:opacity-80 transition">
                     <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-gray-700 bg-brand-lightPink dark:bg-pink-900/20 flex items-center justify-center text-brand-pink font-bold text-sm">
                         <?php if ($admin_photo): ?>
                             <img src="../<?= htmlspecialchars($admin_photo) ?>" class="w-full h-full object-cover">
@@ -378,186 +380,186 @@ function build_filter_qs($overrides = [])
 
                 <div id="apt-print-area" class="space-y-6">
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-list-check text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['total'] ?></span></div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500"><i class="fa-regular fa-clock text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Pending</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['pending'] ?></span></div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Confirmed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['confirmed'] ?></span></div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
-                        <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Cancelled</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['cancelled'] ?></span></div>
-                    </div>
-                </div>
-
-                <!-- Charts Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                    <!-- Status Bar Chart -->
-                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Status</h3>
-                        <?php
-                        $status_labels = ['Pending', 'Confirmed', 'Cancelled'];
-                        $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['cancelled']];
-                        $status_colors = ['#3B82F6', '#10B981', '#F43F5E'];
-                        $bar_max = max(array_merge($status_values, [1]));
-                        ?>
-                        <div class="space-y-3">
-                            <?php for ($i = 0; $i < 3; $i++): ?>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-20 text-right"><?= $status_labels[$i] ?></span>
-                                    <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
-                                        <div class="h-full rounded-full flex items-center pl-2" style="width: <?= $bar_max > 0 ? ($status_values[$i] / $bar_max * 100) : 0 ?>%; background-color: <?= $status_colors[$i] ?>; min-width: <?= $status_values[$i] > 0 ? '2rem' : '0' ?>;">
-                                            <?php if ($status_values[$i] > 0): ?>
-                                                <span class="text-[10px] font-bold text-white"><?= $status_values[$i] ?></span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endfor; ?>
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-list-check text-sm"></i></div>
+                            <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['total'] ?></span></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500"><i class="fa-regular fa-clock text-sm"></i></div>
+                            <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Pending</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['pending'] ?></span></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                            <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Confirmed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['confirmed'] ?></span></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
+                            <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Cancelled</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['cancelled'] ?></span></div>
                         </div>
                     </div>
 
-                    <!-- Doctor Bar Chart -->
-                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Doctor</h3>
-                        <?php $doc_bar_max = max(array_merge(array_column($apt_by_doctor, 'cnt'), [1])); ?>
-                        <div class="space-y-3">
-                            <?php if (count($apt_by_doctor) > 0): ?>
-                                <?php foreach ($apt_by_doctor as $doc): ?>
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <!-- Status Bar Chart -->
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Status</h3>
+                            <?php
+                            $status_labels = ['Pending', 'Confirmed', 'Cancelled'];
+                            $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['cancelled']];
+                            $status_colors = ['#3B82F6', '#10B981', '#F43F5E'];
+                            $bar_max = max(array_merge($status_values, [1]));
+                            ?>
+                            <div class="space-y-3">
+                                <?php for ($i = 0; $i < 3; $i++): ?>
                                     <div class="flex items-center gap-3">
-                                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-24 text-right truncate" title="<?= htmlspecialchars($doc['doctor_name']) ?>"><?= htmlspecialchars($doc['doctor_name']) ?></span>
+                                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-20 text-right"><?= $status_labels[$i] ?></span>
                                         <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
-                                            <div class="h-full rounded-full bg-brand-pink flex items-center pl-2" style="width: <?= $doc_bar_max > 0 ? ($doc['cnt'] / $doc_bar_max * 100) : 0 ?>%; min-width: <?= $doc['cnt'] > 0 ? '2rem' : '0' ?>;">
-                                                <?php if ($doc['cnt'] > 0): ?>
-                                                    <span class="text-[10px] font-bold text-white"><?= $doc['cnt'] ?></span>
+                                            <div class="h-full rounded-full flex items-center pl-2" style="width: <?= $bar_max > 0 ? ($status_values[$i] / $bar_max * 100) : 0 ?>%; background-color: <?= $status_colors[$i] ?>; min-width: <?= $status_values[$i] > 0 ? '2rem' : '0' ?>;">
+                                                <?php if ($status_values[$i] > 0): ?>
+                                                    <span class="text-[10px] font-bold text-white"><?= $status_values[$i] ?></span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No data for selected filters.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Daily Trend Line Chart -->
-                <?php if (count($apt_by_day) > 0): ?>
-                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Daily Appointment Trend</h3>
-                        <?php
-                        $days = array_keys($apt_by_day);
-                        $vals = array_values($apt_by_day);
-                        $cnt = count($vals);
-                        $svg_w = 600;
-                        $svg_h = 160;
-                        $max_v = max(array_merge($vals, [1]));
-                        $x_step = $cnt > 1 ? $svg_w / ($cnt - 1) : $svg_w;
-                        $points = [];
-                        foreach ($vals as $i => $v) {
-                            $x = $i * $x_step;
-                            $y = $svg_h - ($max_v > 0 ? ($v / $max_v * ($svg_h - 20)) : 0) - 10;
-                            $points[] = "$x,$y";
-                        }
-                        $line = implode(' ', array_map(fn($p) => "L$p", $points));
-                        $line = substr($line, 1);
-                        $area = "M$line L" . ($cnt - 1) * $x_step . "," . $svg_h . " L0,$svg_h Z";
-                        ?>
-                        <div class="relative w-full h-48">
-                            <svg viewBox="0 0 <?= $svg_w ?> <?= $svg_h ?>" class="w-full h-full">
-                                <defs>
-                                    <linearGradient id="aptGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stop-color="#FF6584" stop-opacity="0.15" />
-                                        <stop offset="100%" stop-color="#FF6584" stop-opacity="0" />
-                                    </linearGradient>
-                                </defs>
-                                <path d="M<?= $area ?>" fill="url(#aptGrad)" />
-                                <path d="M<?= $line ?>" fill="none" stroke="#FF6584" stroke-width="2.5" />
-                                <?php foreach ($points as $i => $p): ?>
-                                    <circle cx="<?= explode(',', $p)[0] ?>" cy="<?= explode(',', $p)[1] ?>" r="3" fill="#FF6584" stroke="white" stroke-width="1.5" />
-                                <?php endforeach; ?>
-                            </svg>
-                            <div class="flex justify-between mt-1">
-                                <?php
-                                $label_step = $cnt > 8 ? ceil($cnt / 8) : 1;
-                                for ($i = 0; $i < $cnt; $i += $label_step):
-                                ?>
-                                    <span class="text-[9px] text-brand-muted dark:text-gray-400 font-semibold"><?= date('d M', strtotime($days[$i])) ?></span>
                                 <?php endfor; ?>
                             </div>
                         </div>
-                    </div>
-                <?php endif; ?>
 
-                <!-- Appointment Table -->
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white">Appointment Details</h3>
-                        <div class="flex items-center gap-2">
-                            <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer">
-                                <i class="fa-solid fa-print text-xs"></i> Print
-                            </button>
-                            <a href="export_appointments.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&doctor=<?= htmlspecialchars($filter_doctor) ?>&treatment=<?= htmlspecialchars($filter_treatment) ?>&status=<?= htmlspecialchars($filter_status) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
-                                <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
-                            </a>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
-                                    <th class="py-3 px-6">#</th>
-                                    <th class="py-3 px-6">Patient</th>
-                                    <th class="py-3 px-6">Treatment</th>
-                                    <th class="py-3 px-6">Doctor</th>
-                                    <th class="py-3 px-6">Date</th>
-                                    <th class="py-3 px-6">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
-                                <?php if (count($apt_list) > 0): ?>
-                                    <?php foreach ($apt_list as $i => $a):
-                                        $sc = match ($a['status']) {
-                                            'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
-                                            'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
-                                            'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
-                                            default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
-                                        };
-                                    ?>
-                                        <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
-                                            <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
-                                            <td class="py-3 px-6 font-bold"><?= htmlspecialchars($a['patient_name']) ?></td>
-                                            <td class="py-3 px-6"><?= htmlspecialchars($a['treatment_name']) ?></td>
-                                            <td class="py-3 px-6"><i class="fa-solid fa-user-doctor text-brand-muted dark:text-gray-500 text-[10px] mr-1"></i><?= htmlspecialchars($a['doctor_name']) ?></td>
-                                            <td class="py-3 px-6">
-                                                <span class="font-bold"><?= date('d M Y', strtotime($a['available_date'])) ?></span>
-                                                <span class="text-[10px] text-brand-muted dark:text-gray-500 block"><?= date('h:i A', strtotime($a['start_time'])) ?></span>
-                                            </td>
-                                            <td class="py-3 px-6"><span class="text-[10px] font-bold <?= $sc ?> px-2 py-0.5 rounded-lg border"><?= ucfirst($a['status']) ?></span></td>
-                                        </tr>
+                        <!-- Doctor Bar Chart -->
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Doctor</h3>
+                            <?php $doc_bar_max = max(array_merge(array_column($apt_by_doctor, 'cnt'), [1])); ?>
+                            <div class="space-y-3">
+                                <?php if (count($apt_by_doctor) > 0): ?>
+                                    <?php foreach ($apt_by_doctor as $doc): ?>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-24 text-right truncate" title="<?= htmlspecialchars($doc['doctor_name']) ?>"><?= htmlspecialchars($doc['doctor_name']) ?></span>
+                                            <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
+                                                <div class="h-full rounded-full bg-brand-pink flex items-center pl-2" style="width: <?= $doc_bar_max > 0 ? ($doc['cnt'] / $doc_bar_max * 100) : 0 ?>%; min-width: <?= $doc['cnt'] > 0 ? '2rem' : '0' ?>;">
+                                                    <?php if ($doc['cnt'] > 0): ?>
+                                                        <span class="text-[10px] font-bold text-white"><?= $doc['cnt'] ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <tr>
-                                        <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No appointments found for the selected filters.</td>
-                                    </tr>
+                                    <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No data for selected filters.</p>
                                 <?php endif; ?>
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                        Showing <?= count($apt_list) ?> <?= count($apt_list) === 1 ? 'record' : 'records' ?>
+
+                    <!-- Daily Trend Line Chart -->
+                    <?php if (count($apt_by_day) > 0): ?>
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Daily Appointment Trend</h3>
+                            <?php
+                            $days = array_keys($apt_by_day);
+                            $vals = array_values($apt_by_day);
+                            $cnt = count($vals);
+                            $svg_w = 600;
+                            $svg_h = 160;
+                            $max_v = max(array_merge($vals, [1]));
+                            $x_step = $cnt > 1 ? $svg_w / ($cnt - 1) : $svg_w;
+                            $points = [];
+                            foreach ($vals as $i => $v) {
+                                $x = $i * $x_step;
+                                $y = $svg_h - ($max_v > 0 ? ($v / $max_v * ($svg_h - 20)) : 0) - 10;
+                                $points[] = "$x,$y";
+                            }
+                            $line = implode(' ', array_map(fn($p) => "L$p", $points));
+                            $line = substr($line, 1);
+                            $area = "M$line L" . ($cnt - 1) * $x_step . "," . $svg_h . " L0,$svg_h Z";
+                            ?>
+                            <div class="relative w-full h-48">
+                                <svg viewBox="0 0 <?= $svg_w ?> <?= $svg_h ?>" class="w-full h-full">
+                                    <defs>
+                                        <linearGradient id="aptGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#FF6584" stop-opacity="0.15" />
+                                            <stop offset="100%" stop-color="#FF6584" stop-opacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M<?= $area ?>" fill="url(#aptGrad)" />
+                                    <path d="M<?= $line ?>" fill="none" stroke="#FF6584" stroke-width="2.5" />
+                                    <?php foreach ($points as $i => $p): ?>
+                                        <circle cx="<?= explode(',', $p)[0] ?>" cy="<?= explode(',', $p)[1] ?>" r="3" fill="#FF6584" stroke="white" stroke-width="1.5" />
+                                    <?php endforeach; ?>
+                                </svg>
+                                <div class="flex justify-between mt-1">
+                                    <?php
+                                    $label_step = $cnt > 8 ? ceil($cnt / 8) : 1;
+                                    for ($i = 0; $i < $cnt; $i += $label_step):
+                                    ?>
+                                        <span class="text-[9px] text-brand-muted dark:text-gray-400 font-semibold"><?= date('d M', strtotime($days[$i])) ?></span>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Appointment Table -->
+                    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white">Appointment Details</h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer">
+                                    <i class="fa-solid fa-print text-xs"></i> Print
+                                </button>
+                                <a href="export_appointments.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&doctor=<?= htmlspecialchars($filter_doctor) ?>&treatment=<?= htmlspecialchars($filter_treatment) ?>&status=<?= htmlspecialchars($filter_status) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
+                                    <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+                                </a>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
+                                        <th class="py-3 px-6">#</th>
+                                        <th class="py-3 px-6">Patient</th>
+                                        <th class="py-3 px-6">Treatment</th>
+                                        <th class="py-3 px-6">Doctor</th>
+                                        <th class="py-3 px-6">Date</th>
+                                        <th class="py-3 px-6">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
+                                    <?php if (count($apt_list) > 0): ?>
+                                        <?php foreach ($apt_list as $i => $a):
+                                            $sc = match ($a['status']) {
+                                                'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
+                                                'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
+                                                'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
+                                                default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
+                                            };
+                                        ?>
+                                            <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
+                                                <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
+                                                <td class="py-3 px-6 font-bold"><?= htmlspecialchars($a['patient_name']) ?></td>
+                                                <td class="py-3 px-6"><?= htmlspecialchars($a['treatment_name']) ?></td>
+                                                <td class="py-3 px-6"><i class="fa-solid fa-user-doctor text-brand-muted dark:text-gray-500 text-[10px] mr-1"></i><?= htmlspecialchars($a['doctor_name']) ?></td>
+                                                <td class="py-3 px-6">
+                                                    <span class="font-bold"><?= date('d M Y', strtotime($a['available_date'])) ?></span>
+                                                    <span class="text-[10px] text-brand-muted dark:text-gray-500 block"><?= date('h:i A', strtotime($a['start_time'])) ?></span>
+                                                </td>
+                                                <td class="py-3 px-6"><span class="text-[10px] font-bold <?= $sc ?> px-2 py-0.5 rounded-lg border"><?= ucfirst($a['status']) ?></span></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No appointments found for the selected filters.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 text-xs text-brand-muted dark:text-gray-400 font-semibold">
+                            Showing <?= count($apt_list) ?> <?= count($apt_list) === 1 ? 'record' : 'records' ?>
+                        </div>
                     </div>
-                </div>
 
                 </div>
 
@@ -596,160 +598,160 @@ function build_filter_qs($overrides = [])
 
                 <div id="revenue-print-area" class="space-y-6">
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-sack-dollar"></i></div>
-                        <div>
-                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Total Revenue</span>
-                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_total, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500 text-lg"><i class="fa-solid fa-sack-dollar"></i></div>
+                            <div>
+                                <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Total Revenue</span>
+                                <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_total, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-line"></i></div>
+                            <div>
+                                <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Average per Booking</span>
+                                <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_avg, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center text-amber-500 text-lg"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                            <div>
+                                <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Highest Payment</span>
+                                <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_max, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-chart-line"></i></div>
-                        <div>
-                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Average per Booking</span>
-                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_avg, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
-                        </div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center text-amber-500 text-lg"><i class="fa-solid fa-arrow-trend-up"></i></div>
-                        <div>
-                            <span class="text-[11px] font-medium text-brand-muted dark:text-gray-400 block">Highest Payment</span>
-                            <span class="text-2xl font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_max, 0) ?> <span class="text-xs font-medium text-brand-muted dark:text-gray-400">MMK</span></span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                    <!-- Revenue by Treatment -->
-                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Revenue by Treatment</h3>
-                        <?php $rev_t_max = max(array_merge(array_column($rev_by_treatment, 'revenue'), [1])); ?>
-                        <div class="space-y-3">
-                            <?php if (count($rev_by_treatment) > 0): ?>
-                                <?php foreach ($rev_by_treatment as $rt): ?>
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-28 text-right truncate" title="<?= htmlspecialchars($rt['treatment_name']) ?>"><?= htmlspecialchars($rt['treatment_name']) ?></span>
-                                        <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
-                                            <div class="h-full rounded-full bg-emerald-500 flex items-center pl-2" style="width: <?= $rev_t_max > 0 ? ($rt['revenue'] / $rev_t_max * 100) : 0 ?>%; min-width: <?= $rt['revenue'] > 0 ? '3.5rem' : '0' ?>;">
-                                                <?php if ($rt['revenue'] > 0): ?>
-                                                    <span class="text-[10px] font-bold text-white"><?= number_format($rt['revenue'], 0) ?></span>
-                                                <?php endif; ?>
+                        <!-- Revenue by Treatment -->
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Revenue by Treatment</h3>
+                            <?php $rev_t_max = max(array_merge(array_column($rev_by_treatment, 'revenue'), [1])); ?>
+                            <div class="space-y-3">
+                                <?php if (count($rev_by_treatment) > 0): ?>
+                                    <?php foreach ($rev_by_treatment as $rt): ?>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-28 text-right truncate" title="<?= htmlspecialchars($rt['treatment_name']) ?>"><?= htmlspecialchars($rt['treatment_name']) ?></span>
+                                            <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
+                                                <div class="h-full rounded-full bg-emerald-500 flex items-center pl-2" style="width: <?= $rev_t_max > 0 ? ($rt['revenue'] / $rev_t_max * 100) : 0 ?>%; min-width: <?= $rt['revenue'] > 0 ? '3.5rem' : '0' ?>;">
+                                                    <?php if ($rt['revenue'] > 0): ?>
+                                                        <span class="text-[10px] font-bold text-white"><?= number_format($rt['revenue'], 0) ?></span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No revenue data for selected filters.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Revenue by Payment Method (Donut) -->
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Revenue by Payment Method</h3>
+                            <?php
+                            $donut_colors = ['#FF6584', '#A855F7', '#F59E0B', '#10B981', '#3B82F6'];
+                            $rev_pm_total = array_sum(array_column($rev_by_payment, 'revenue'));
+                            ?>
+                            <?php if (count($rev_by_payment) > 0): ?>
+                                <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+                                    <div class="relative w-36 h-36 shrink-0">
+                                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" class="dark:stroke-gray-700" stroke-width="3.5"></circle>
+                                            <?php $offset = 0; ?>
+                                            <?php foreach ($rev_by_payment as $i => $rp):
+                                                $pct = $rev_pm_total > 0 ? round($rp['revenue'] / $rev_pm_total * 100) : 0;
+                                            ?>
+                                                <circle cx="18" cy="18" r="15.915" fill="none" stroke="<?= $donut_colors[$i % 5] ?>" stroke-width="3.5" stroke-dasharray="<?= $pct ?> 100" stroke-dashoffset="-<?= $offset ?>"></circle>
+                                                <?php $offset += $pct; ?>
+                                            <?php endforeach; ?>
+                                        </svg>
+                                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                            <span class="text-[9px] text-brand-muted dark:text-gray-400 font-medium block">Total</span>
+                                            <span class="text-sm font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_pm_total, 0) ?></span>
+                                            <span class="text-[8px] text-brand-muted dark:text-gray-400">MMK</span>
+                                        </div>
                                     </div>
-                                <?php endforeach; ?>
+                                    <div class="w-full space-y-2 text-xs">
+                                        <?php foreach ($rev_by_payment as $i => $rp):
+                                            $pct = $rev_pm_total > 0 ? round($rp['revenue'] / $rev_pm_total * 100) : 0;
+                                        ?>
+                                            <div class="flex items-center justify-between font-medium">
+                                                <span class="flex items-center gap-2">
+                                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: <?= $donut_colors[$i % 5] ?>"></span>
+                                                    <?= htmlspecialchars($rp['method_name']) ?>
+                                                </span>
+                                                <span class="text-brand-muted dark:text-gray-400"><?= $pct ?>%</span>
+                                                <span class="font-bold text-brand-dark dark:text-white"><?= number_format($rp['revenue'], 0) ?> MMK</span>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
                             <?php else: ?>
-                                <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No revenue data for selected filters.</p>
+                                <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No payment data available.</p>
                             <?php endif; ?>
                         </div>
                     </div>
 
-                    <!-- Revenue by Payment Method (Donut) -->
-                    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Revenue by Payment Method</h3>
-                        <?php
-                        $donut_colors = ['#FF6584', '#A855F7', '#F59E0B', '#10B981', '#3B82F6'];
-                        $rev_pm_total = array_sum(array_column($rev_by_payment, 'revenue'));
-                        ?>
-                        <?php if (count($rev_by_payment) > 0): ?>
-                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
-                                <div class="relative w-36 h-36 shrink-0">
-                                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" class="dark:stroke-gray-700" stroke-width="3.5"></circle>
-                                        <?php $offset = 0; ?>
-                                        <?php foreach ($rev_by_payment as $i => $rp):
-                                            $pct = $rev_pm_total > 0 ? round($rp['revenue'] / $rev_pm_total * 100) : 0;
-                                        ?>
-                                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="<?= $donut_colors[$i % 5] ?>" stroke-width="3.5" stroke-dasharray="<?= $pct ?> 100" stroke-dashoffset="-<?= $offset ?>"></circle>
-                                            <?php $offset += $pct; ?>
-                                        <?php endforeach; ?>
-                                    </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                        <span class="text-[9px] text-brand-muted dark:text-gray-400 font-medium block">Total</span>
-                                        <span class="text-sm font-extrabold text-brand-dark dark:text-white"><?= number_format($rev_pm_total, 0) ?></span>
-                                        <span class="text-[8px] text-brand-muted dark:text-gray-400">MMK</span>
-                                    </div>
-                                </div>
-                                <div class="w-full space-y-2 text-xs">
-                                    <?php foreach ($rev_by_payment as $i => $rp):
-                                        $pct = $rev_pm_total > 0 ? round($rp['revenue'] / $rev_pm_total * 100) : 0;
-                                    ?>
-                                        <div class="flex items-center justify-between font-medium">
-                                            <span class="flex items-center gap-2">
-                                                <span class="w-2.5 h-2.5 rounded-full" style="background-color: <?= $donut_colors[$i % 5] ?>"></span>
-                                                <?= htmlspecialchars($rp['method_name']) ?>
-                                            </span>
-                                            <span class="text-brand-muted dark:text-gray-400"><?= $pct ?>%</span>
-                                            <span class="font-bold text-brand-dark dark:text-white"><?= number_format($rp['revenue'], 0) ?> MMK</span>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
+                    <!-- Revenue Detail Table -->
+                    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-brand-dark dark:text-white">Revenue Details</h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer">
+                                    <i class="fa-solid fa-print text-xs"></i> Print
+                                </button>
+                                <a href="export_revenue.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&payment=<?= htmlspecialchars($filter_payment) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
+                                    <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+                                </a>
                             </div>
-                        <?php else: ?>
-                            <p class="text-xs text-brand-muted dark:text-gray-400 text-center py-6">No payment data available.</p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Revenue Detail Table -->
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-brand-dark dark:text-white">Revenue Details</h3>
-                        <div class="flex items-center gap-2">
-                            <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer">
-                                <i class="fa-solid fa-print text-xs"></i> Print
-                            </button>
-                            <a href="export_revenue.php?from=<?= htmlspecialchars($filter_from) ?>&to=<?= htmlspecialchars($filter_to) ?>&payment=<?= htmlspecialchars($filter_payment) ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-200 dark:border-emerald-800">
-                                <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
-                            </a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
+                                        <th class="py-3 px-6">#</th>
+                                        <th class="py-3 px-6">Date</th>
+                                        <th class="py-3 px-6">Patient</th>
+                                        <th class="py-3 px-6">Treatment</th>
+                                        <th class="py-3 px-6">Payment Method</th>
+                                        <th class="py-3 px-6 text-right">Amount (MMK)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
+                                    <?php if (count($rev_detail) > 0): ?>
+                                        <?php foreach ($rev_detail as $i => $rd): ?>
+                                            <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
+                                                <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
+                                                <td class="py-3 px-6 font-bold"><?= date('d M Y', strtotime($rd['created_at'])) ?></td>
+                                                <td class="py-3 px-6 font-bold"><?= htmlspecialchars($rd['patient_name']) ?></td>
+                                                <td class="py-3 px-6"><?= htmlspecialchars($rd['treatment_name']) ?></td>
+                                                <td class="py-3 px-6">
+                                                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark dark:text-gray-300 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 px-2 py-1 rounded-lg">
+                                                        <i class="fa-solid fa-wallet text-brand-muted dark:text-gray-500 text-[9px]"></i>
+                                                        <?= htmlspecialchars($rd['payment_method']) ?>
+                                                    </span>
+                                                </td>
+                                                <td class="py-3 px-6 text-right font-extrabold text-emerald-600 dark:text-emerald-400"><?= number_format($rd['price'], 0) ?> MMK</td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No revenue data for the selected period.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
+                            <span>Showing <?= count($rev_detail) ?> <?= count($rev_detail) === 1 ? 'record' : 'records' ?></span>
+                            <span class="font-extrabold text-brand-dark dark:text-white">Total: <?= number_format($rev_total, 0) ?> MMK</span>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
-                                    <th class="py-3 px-6">#</th>
-                                    <th class="py-3 px-6">Date</th>
-                                    <th class="py-3 px-6">Patient</th>
-                                    <th class="py-3 px-6">Treatment</th>
-                                    <th class="py-3 px-6">Payment Method</th>
-                                    <th class="py-3 px-6 text-right">Amount (MMK)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-200">
-                                <?php if (count($rev_detail) > 0): ?>
-                                    <?php foreach ($rev_detail as $i => $rd): ?>
-                                        <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/50 transition-colors">
-                                            <td class="py-3 px-6 text-brand-muted dark:text-gray-500"><?= $i + 1 ?></td>
-                                            <td class="py-3 px-6 font-bold"><?= date('d M Y', strtotime($rd['created_at'])) ?></td>
-                                            <td class="py-3 px-6 font-bold"><?= htmlspecialchars($rd['patient_name']) ?></td>
-                                            <td class="py-3 px-6"><?= htmlspecialchars($rd['treatment_name']) ?></td>
-                                            <td class="py-3 px-6">
-                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark dark:text-gray-300 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 px-2 py-1 rounded-lg">
-                                                    <i class="fa-solid fa-wallet text-brand-muted dark:text-gray-500 text-[9px]"></i>
-                                                    <?= htmlspecialchars($rd['payment_method']) ?>
-                                                </span>
-                                            </td>
-                                            <td class="py-3 px-6 text-right font-extrabold text-emerald-600 dark:text-emerald-400"><?= number_format($rd['price'], 0) ?> MMK</td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="6" class="py-8 text-center text-brand-muted dark:text-gray-400">No revenue data for the selected period.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                        <span>Showing <?= count($rev_detail) ?> <?= count($rev_detail) === 1 ? 'record' : 'records' ?></span>
-                        <span class="font-extrabold text-brand-dark dark:text-white">Total: <?= number_format($rev_total, 0) ?> MMK</span>
-                    </div>
-                </div>
 
                 </div>
 
@@ -865,11 +867,32 @@ function build_filter_qs($overrides = [])
 
     <style>
         @media print {
-            body * { visibility: hidden; }
-            #revenue-print-area, #revenue-print-area *,
-            #apt-print-area, #apt-print-area * { visibility: visible; }
-            #revenue-print-area, #apt-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
-            #revenue-print-area .bg-white, #apt-print-area .bg-white { background: white !important; box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+            body * {
+                visibility: hidden;
+            }
+
+            #revenue-print-area,
+            #revenue-print-area *,
+            #apt-print-area,
+            #apt-print-area * {
+                visibility: visible;
+            }
+
+            #revenue-print-area,
+            #apt-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+            }
+
+            #revenue-print-area .bg-white,
+            #apt-print-area .bg-white {
+                background: white !important;
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
         }
     </style>
     <script>

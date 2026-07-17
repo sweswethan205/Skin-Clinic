@@ -1,5 +1,4 @@
 <?php
-// Clear any accidental whitespace or output before this point
 ob_start();
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -7,11 +6,11 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include_once '../config/db.php';
 
-// --- 1. HANDLE TIME SLOT AJAX REQUEST INLINE ---
+// --- 1. HANDLE TIME SLOT AJAX REQUEST (DYNAMIC GENERATION) ---
 if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
-    ob_end_clean(); // Clear buffer to ensure ONLY pristine JSON is returned
+    ob_end_clean();
     header('Content-Type: application/json');
-    
+
     if (!isset($_GET['doctor_id']) || !isset($_GET['date'])) {
         echo json_encode([]);
         exit;
@@ -19,28 +18,109 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
 
     $doctor_id = intval($_GET['doctor_id']);
     $booking_date = $_GET['date'];
+    $treatment_id = intval($_SESSION['booking_treatment_id'] ?? 0);
 
-    $query = "SELECT id AS schedule_id, start_time, is_booked 
-              FROM schedules 
-              WHERE doctor_id = ? AND available_date = ? 
-              ORDER BY start_time ASC";
+    if ($treatment_id <= 0) {
+        echo json_encode([]);
+        exit;
+    }
+
+    // Get treatment duration
+    $tq = $conn->prepare("SELECT duration FROM treatments WHERE id = ? LIMIT 1");
+    $tq->bind_param("i", $treatment_id);
+    $tq->execute();
+    $t_result = $tq->get_result();
+    $t_row = $t_result->fetch_assoc();
+    $tq->close();
+
+    if (!$t_row) {
+        echo json_encode([]);
+        exit;
+    }
+
+    $duration_minutes = intval($t_row['duration']);
+
+    // Get schedule entry for this doctor+date
+    $sq = $conn->prepare("SELECT id AS schedule_id, start_time, end_time FROM schedules WHERE doctor_id = ? AND available_date = ? LIMIT 1");
+    $sq->bind_param("is", $doctor_id, $booking_date);
+    $sq->execute();
+    $s_result = $sq->get_result();
+    $schedule = $s_result->fetch_assoc();
+    $sq->close();
+
+    if (!$schedule) {
+        echo json_encode([]);
+        exit;
+    }
+
+    // Get doctor's lunch break
+    $dq = $conn->prepare("SELECT lunch_start, lunch_end FROM doctors WHERE id = ? LIMIT 1");
+    $dq->bind_param("i", $doctor_id);
+    $dq->execute();
+    $d_result = $dq->get_result();
+    $doctor = $d_result->fetch_assoc();
+    $dq->close();
+
+    $lunch_start = strtotime($doctor['lunch_start']);
+    $lunch_end = strtotime($doctor['lunch_end']);
+
+    // Get existing non-cancelled appointments for this doctor+date
+    $aq = $conn->prepare("SELECT appointment_start, appointment_end FROM appointments WHERE schedule_id IN (SELECT id FROM schedules WHERE doctor_id = ? AND available_date = ?) AND status != 'cancelled'");
+    $aq->bind_param("is", $doctor_id, $booking_date);
+    $aq->execute();
+    $a_result = $aq->get_result();
+    $booked_ranges = [];
+    while ($a_row = $a_result->fetch_assoc()) {
+        $booked_ranges[] = [
+            'start' => strtotime($a_row['appointment_start']),
+            'end' => strtotime($a_row['appointment_end'])
+        ];
+    }
+    $aq->close();
+
+    // Query time_slots table within working hours
+    $work_start = strtotime($schedule['start_time']);
+    $work_end = strtotime($schedule['end_time']);
+    $duration_seconds = $duration_minutes * 60;
+    $max_slot_time = date("H:i:s", $work_end - $duration_seconds);
+
+    $ts_stmt = $conn->prepare("SELECT ts.id, ts.slot_time FROM time_slots ts WHERE ts.slot_time >= ? AND ts.slot_time <= ? ORDER BY ts.slot_time ASC");
+    if (!$ts_stmt) {
+        echo json_encode([]);
+        exit;
+    }
+    $ts_stmt->bind_param("ss", $schedule['start_time'], $max_slot_time);
+    $ts_stmt->execute();
+    $ts_result = $ts_stmt->get_result();
 
     $slots = [];
+    while ($ts_row = $ts_result->fetch_assoc()) {
+        $slot_start = strtotime($ts_row['slot_time']);
+        $slot_end = $slot_start + $duration_seconds;
 
-    if ($stmt = $conn->prepare($query)) {
-        $stmt->bind_param("is", $doctor_id, $booking_date);
-        if ($stmt->execute()) {
-            $result = $stmt->get_result();
-            while ($row = $result->fetch_assoc()) {
-                $slots[] = [
-                    'schedule_id' => $row['schedule_id'],
-                    'time'        => date("h:i A", strtotime($row['start_time'])), 
-                    'is_booked'   => ($row['is_booked'] === 'yes') 
-                ];
+        // Check lunch overlap
+        $overlaps_lunch = ($slot_start < $lunch_end && $slot_end > $lunch_start);
+
+        // Check booked appointment overlap
+        $overlaps_booked = false;
+        foreach ($booked_ranges as $range) {
+            if ($slot_start < $range['end'] && $slot_end > $range['start']) {
+                $overlaps_booked = true;
+                break;
             }
         }
-        $stmt->close();
+
+        $slots[] = [
+            'schedule_id' => intval($schedule['schedule_id']),
+            'start_time' => $ts_row['slot_time'],
+            'end_time' => date("H:i:s", $slot_end),
+            'display' => date("g:i", $slot_start),
+            'duration' => $duration_minutes,
+            'slots_to_lock' => $duration_minutes / 30,
+            'locked' => $overlaps_booked
+        ];
     }
+    $ts_stmt->close();
 
     echo json_encode($slots);
     exit;
@@ -76,7 +156,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_available_dates') {
     exit;
 }
 
-// --- 2. STORE TREATMENT & SCHEDULE IN SESSION ---
+// --- 2. STORE TREATMENT IN SESSION ---
 if (isset($_GET['treatment_id'])) {
     $_SESSION['booking_treatment_id'] = intval($_GET['treatment_id']);
 }
@@ -84,9 +164,10 @@ if (isset($_GET['treatment_id'])) {
 // --- 3. FETCH TREATMENT INFO FOR DISPLAY ---
 $treatment_name = '';
 $treatment_price = 0;
+$treatment_duration = 0;
 if (!empty($_SESSION['booking_treatment_id'])) {
     $tid = intval($_SESSION['booking_treatment_id']);
-    $tq = $conn->prepare("SELECT treatment_name, price FROM treatments WHERE id = ? LIMIT 1");
+    $tq = $conn->prepare("SELECT treatment_name, price, duration FROM treatments WHERE id = ? LIMIT 1");
     if ($tq) {
         $tq->bind_param("i", $tid);
         $tq->execute();
@@ -94,6 +175,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
         if ($tr) {
             $treatment_name = $tr['treatment_name'];
             $treatment_price = $tr['price'];
+            $treatment_duration = intval($tr['duration']);
         }
         $tq->close();
     }
@@ -102,8 +184,22 @@ if (!empty($_SESSION['booking_treatment_id'])) {
 // --- 4. CHECK LOGIN STATUS ---
 $is_logged_in = isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0;
 
-// --- 5. STANDARD PAGE DATA LOADING ---
-$doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE status='active' ORDER BY name ASC");
+// --- 5. FETCH DOCTORS FILTERED BY TREATMENT ---
+$doctors = null;
+if (!empty($_SESSION['booking_treatment_id'])) {
+    $tid = intval($_SESSION['booking_treatment_id']);
+    $stmt = $conn->prepare("SELECT d.id, d.name, d.photo, d.description 
+                            FROM doctors d 
+                            INNER JOIN doctor_treatments dt ON dt.doctor_id = d.id 
+                            WHERE d.status = 'active' AND dt.treatment_id = ? 
+                            ORDER BY d.name ASC");
+    $stmt->bind_param("i", $tid);
+    $stmt->execute();
+    $doctors = $stmt->get_result();
+    $stmt->close();
+} else {
+    $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE status='active' ORDER BY name ASC");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -218,7 +314,13 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
             <div>
                 <div class="mb-5">
                     <h2 class="text-xl font-bold tracking-tight text-slate-800 dark:text-white">Choose Your Doctor</h2>
-                    <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">Select a dermatologist to view available consultation timelines.</p>
+                    <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
+                        <?php if ($treatment_name): ?>
+                            Doctors available for <span class="font-semibold text-brand-pink"><?= htmlspecialchars($treatment_name) ?></span> (<?= $treatment_duration ?> min)
+                        <?php else: ?>
+                            Select a treatment first to see available doctors.
+                        <?php endif; ?>
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -246,7 +348,13 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                         </button>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <p class="col-span-4 text-center text-slate-400 dark:text-gray-500 py-8">No doctors available at the moment.</p>
+                        <p class="col-span-4 text-center text-slate-400 dark:text-gray-500 py-8">
+                            <?php if ($treatment_name): ?>
+                                No doctors are assigned to this treatment yet.
+                            <?php else: ?>
+                                No doctors available at the moment.
+                            <?php endif; ?>
+                        </p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -268,7 +376,7 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                             </div>
                             <div class="min-w-0">
                                 <h3 class="font-bold text-sm text-slate-800 dark:text-white truncate"><?= htmlspecialchars($treatment_name) ?></h3>
-                                <p class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">$<?= number_format($treatment_price, 2) ?></p>
+                                <p class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">$<?= number_format($treatment_price, 2) ?> &middot; <?= $treatment_duration ?> min</p>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -312,21 +420,21 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                             <span class="w-1.5 h-1.5 rounded-full bg-brand-pink"></span> Choose Time
                         </h3>
 
-
                         <div id="booking-message" class="hidden mb-4 p-3 rounded-xl text-sm font-medium text-center"></div>
 
-
-                        
                         <div id="slots-dynamic-grid" class="grid grid-cols-2 gap-2">
-<p class="text-xs text-slate-400 dark:text-gray-500 text-center col-span-2 py-4">Choose a practitioner and date first.</p>
+                            <p class="text-xs text-slate-400 dark:text-gray-500 text-center col-span-2 py-4">Choose a practitioner and date first.</p>
                         </div>
 
                         <div id="slots-legend" class="hidden gap-4 mt-4 text-[11px] text-slate-500 dark:text-gray-400 font-medium bg-slate-50 dark:bg-gray-800 p-2.5 rounded-xl border border-slate-100 dark:border-gray-700 justify-center">
                             <div class="flex items-center gap-1.5">
                                 <div class="w-2 h-2 bg-emerald-500 rounded-full"></div> Available
                             </div>
+                            <!-- <div class="flex items-center gap-1.5">
+                                <div class="w-2 h-2 bg-brand-pink rounded-full"></div> Selected
+                            </div> -->
                             <div class="flex items-center gap-1.5">
-                                <div class="w-2 h-2 bg-blue-400 rounded-full"></div> Booked
+                                <div class="w-2 h-2 bg-pink-300 rounded-full"></div> Booked
                             </div>
                         </div>
                     </div>
@@ -359,6 +467,7 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
         let selectedDoctorId = "";
         let selectedDateString = "";
         let selectedTimeButton = null;
+        let lockedSlotButtons = [];
         let userLoggedIn = <?= $is_logged_in ? 'true' : 'false' ?>;
 
         const calToday = new Date();
@@ -463,7 +572,6 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
             document.getElementById('step2-icon').classList.replace('text-slate-500', 'text-white');
             document.getElementById('step2-icon').classList.add('shadow-md', 'shadow-pink-200');
 
-            // Reset time section
             document.getElementById('time-slots-container').classList.add('opacity-40', 'pointer-events-none');
             document.getElementById('step3-icon').classList.replace('bg-brand-pink', 'bg-white');
             document.getElementById('step3-icon').classList.replace('text-white', 'text-slate-500');
@@ -474,6 +582,7 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
 
             selectedDateString = "";
             selectedTimeButton = null;
+            lockedSlotButtons = [];
 
             document.querySelectorAll('.cal-day.selected').forEach(el => el.classList.remove('selected'));
             calMonth = calToday.getMonth();
@@ -512,44 +621,34 @@ $doctors = $conn->query("SELECT id, name, photo, description FROM doctors WHERE 
                 .then(slots => {
                     grid.innerHTML = "";
 
-                    // if (slots.length === 0) {
-                    //     grid.innerHTML = "<p class='text-slate-400 col-span-2 text-center text-sm'>No available schedule for this date.</p>";
-                    //     legend.classList.add('hidden');
-                    //     return;
-                    // }
-
                     const message = document.getElementById("booking-message");
 
-if (slots.length === 0) {
+                    if (slots.length === 0) {
+                        message.classList.remove("hidden");
+                        message.className = "mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium text-center";
+                        message.innerHTML = "No available time slots for this date.";
+                        grid.innerHTML = "";
+                        legend.classList.add("hidden");
+                        return;
+                    }
 
-    message.classList.remove("hidden");
-    message.className = "mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium text-center";
-    message.innerHTML = "❌No available schedule for this date.";
-
-    grid.innerHTML = "";
-    legend.classList.add("hidden");
-    return;
-}
-
-// Hide message when slots are available
-message.classList.add("hidden");
+                    message.classList.add("hidden");
 
                     legend.classList.remove('hidden');
                     legend.classList.add('flex');
 
-                    slots.forEach(item => {
+                    slots.forEach((item, index) => {
                         let btn = document.createElement("button");
                         btn.type = "button";
 
-                        if (item.is_booked) {
-                            btn.disabled = true;
-                            btn.className = "w-full py-2.5 bg-blue-50/70 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-blue-400 dark:text-blue-500 font-medium rounded-xl text-xs cursor-not-allowed flex items-center justify-center gap-1.5";
-                            btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-300"></span> ${item.time}`;
+                        if (item.locked) {
+                            btn.className = "w-full py-3 bg-pink-100 dark:bg-pink-900/20 border border-pink-300 dark:border-pink-700 text-pink-700 dark:text-pink-400 font-semibold rounded-xl text-xs flex items-center justify-center px-4 time-slot-btn pointer-events-none opacity-60";
+                            btn.innerHTML = `<span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-pink-400 indicator-dot"></span> ${item.display} <i class="fa-solid fa-lock text-[9px] ml-1"></i></span>`;
                         } else {
-                            btn.className = "w-full py-2.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 time-slot-btn";
-                            btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 indicator-dot"></span> ${item.time}`;
+                            btn.className = "w-full py-3 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 font-semibold rounded-xl text-xs flex items-center justify-center px-4 time-slot-btn";
+                            btn.innerHTML = `<span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 indicator-dot"></span> ${item.display}</span>`;
                             btn.onclick = function() {
-                                handleBooking(this, item.schedule_id);
+                                handleBooking(this, item.schedule_id, item.start_time, item.end_time, item.slots_to_lock, index);
                             };
                         }
 
@@ -558,29 +657,53 @@ message.classList.add("hidden");
                 })
                 .catch((err) => {
                     console.error(err);
-                    grid.innerHTML = "<p class='text-rose-500 col-span-2 text-center text-xs font-mono bg-rose-50 border border-rose-100 p-2 rounded-xl'>Failed to read schedule data structure format.</p>";
+                    grid.innerHTML = "<p class='text-rose-500 col-span-2 text-center text-xs font-mono bg-rose-50 border border-rose-100 p-2 rounded-xl'>Failed to load time slots.</p>";
                     legend.classList.add('hidden');
                 });
         }
 
-        function handleBooking(btnElement, scheduleId) {
-            if(selectedTimeButton) {
+        function handleBooking(btnElement, scheduleId, startTime, endTime, slotsToLock, slotIndex) {
+            if (selectedTimeButton) {
                 selectedTimeButton.classList.remove('bg-brand-pink', 'text-white', 'border-brand-pink');
                 selectedTimeButton.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'hover:bg-emerald-100');
                 selectedTimeButton.querySelector('.indicator-dot').classList.replace('bg-white', 'bg-emerald-500');
             }
+
+            lockedSlotButtons.forEach(btn => {
+                if (!btn.classList.contains('pointer-events-none') || !btn.classList.contains('opacity-60')) {
+                    btn.classList.remove('bg-pink-100', 'text-pink-700', 'border-pink-300', 'pointer-events-none', 'opacity-60');
+                    btn.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'hover:bg-emerald-100');
+                    const dot = btn.querySelector('.indicator-dot');
+                    if (dot) dot.classList.replace('bg-pink-400', 'bg-emerald-500');
+                }
+            });
+            lockedSlotButtons = [];
 
             selectedTimeButton = btnElement;
             btnElement.classList.remove('bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'hover:bg-emerald-100');
             btnElement.classList.add('bg-brand-pink', 'text-white', 'border-brand-pink');
             btnElement.querySelector('.indicator-dot').classList.replace('bg-emerald-500', 'bg-white');
 
+            const allBtns = document.querySelectorAll('#slots-dynamic-grid .time-slot-btn');
+            for (let i = 1; i < slotsToLock; i++) {
+                const lockIdx = slotIndex + i;
+                if (lockIdx < allBtns.length) {
+                    const lockBtn = allBtns[lockIdx];
+                    lockBtn.classList.remove('bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'hover:bg-emerald-100');
+                    lockBtn.classList.add('bg-pink-100', 'text-pink-700', 'border-pink-300', 'pointer-events-none');
+                    const dot = lockBtn.querySelector('.indicator-dot');
+                    if (dot) dot.classList.replace('bg-emerald-500', 'bg-pink-400');
+                    lockedSlotButtons.push(lockBtn);
+                }
+            }
+
             setTimeout(() => {
+                const url = `../user/payment.php?schedule_id=${scheduleId}&start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}`;
                 if (userLoggedIn) {
-                    window.location.href = '../user/payment.php?schedule_id=' + scheduleId;
+                    window.location.href = url;
                 } else {
-                    document.getElementById('auth-signin-btn').href = '../auth/login.php?schedule_id=' + scheduleId + '&redirect=../user/payment.php';
-                    document.getElementById('auth-signup-btn').href = '../auth/re.php?schedule_id=' + scheduleId + '&redirect=../user/payment.php';
+                    document.getElementById('auth-signin-btn').href = `../auth/login.php?schedule_id=${scheduleId}&start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}&redirect=../user/payment.php`;
+                    document.getElementById('auth-signup-btn').href = `../auth/re.php?schedule_id=${scheduleId}&start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}&redirect=../user/payment.php`;
                     document.getElementById('auth-modal').classList.remove('hidden');
                 }
             }, 150);

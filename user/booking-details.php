@@ -14,9 +14,9 @@ $booking_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $booking = null;
 if ($booking_id > 0) {
     $query = "SELECT 
-                a.id, a.status, a.created_at, a.receipt_image,
+                a.id, a.status, a.created_at, a.receipt_image, a.appointment_start, a.appointment_end,
                 t.treatment_name, t.price, t.description AS treatment_desc,
-                s.available_date, s.start_time, s.end_time,
+                s.available_date,
                 d.name AS doctor_name, d.photo AS doctor_photo, d.description AS doctor_desc,
                 pm.method_name AS payment_method
               FROM appointments a
@@ -111,7 +111,7 @@ $status_colors = [
                                 </div>
                                 <div class="flex items-center gap-3 text-sm">
                                     <span class="w-8 h-8 rounded-lg bg-brand-lightPink dark:bg-pink-900/20 flex items-center justify-center text-brand-pink shrink-0"><i class="fa-regular fa-clock"></i></span>
-                                    <div><span class="block font-semibold"><?= date('h:i A', strtotime($booking['start_time'])) ?> - <?= date('h:i A', strtotime($booking['end_time'])) ?></span></div>
+                                    <div><span class="block font-semibold"><?= date('h:i A', strtotime($booking['appointment_start'])) ?> - <?= date('h:i A', strtotime($booking['appointment_end'])) ?></span></div>
                                 </div>
                             </div>
                         </div>

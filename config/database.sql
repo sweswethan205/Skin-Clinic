@@ -32,11 +32,16 @@ CREATE TABLE doctors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     email VARCHAR(50) UNIQUE,
+    password VARCHAR(255) NOT NULL,
     description TEXT,
     experience INT,
     phone VARCHAR(50),
     photo VARCHAR(255),
-    status ENUM('active','inactive') DEFAULT 'active'
+    status ENUM('active','inactive') DEFAULT 'active',
+    work_start TIME DEFAULT '09:00:00',
+    work_end TIME DEFAULT '19:00:00',
+    lunch_start TIME DEFAULT '12:00:00',
+    lunch_end TIME DEFAULT '13:00:00'
 );
 
 -- =====================================
@@ -48,7 +53,8 @@ CREATE TABLE treatments (
     treatment_name VARCHAR(100) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
-    image VARCHAR(255),
+    duration INT NOT NULL DEFAULT 60 COMMENT 'Duration in minutes: 30, 60, or 90',
+    image VARCHAR(255)
 );
 
 -- =====================================
@@ -80,12 +86,28 @@ CREATE TABLE schedules (
     available_date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
-    is_booked ENUM('yes','no') DEFAULT 'no',
 
     FOREIGN KEY (doctor_id)
     REFERENCES doctors(id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+
+    UNIQUE KEY unique_doctor_date (doctor_id, available_date)
 );
+
+-- =====================================
+-- TIME SLOTS (30-minute intervals)
+-- =====================================
+
+CREATE TABLE time_slots (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slot_time TIME NOT NULL UNIQUE
+);
+
+INSERT INTO time_slots (slot_time) VALUES
+('09:00:00'), ('09:30:00'), ('10:00:00'), ('10:30:00'), ('11:00:00'),
+('11:30:00'), ('12:00:00'), ('12:30:00'), ('13:00:00'), ('13:30:00'),
+('14:00:00'), ('14:30:00'), ('15:00:00'), ('15:30:00'), ('16:00:00'),
+('16:30:00'), ('17:00:00'), ('17:30:00'), ('18:00:00'), ('18:30:00');
 
 -- =====================================
 -- APPOINTMENTS
@@ -97,6 +119,8 @@ CREATE TABLE appointments (
     treatment_id INT NOT NULL,
     schedule_id INT NOT NULL,
     payment_method_id  INT NOT NULL,
+    appointment_start TIME NOT NULL,
+    appointment_end TIME NOT NULL,
 
     status ENUM(
         'pending',

@@ -1,0 +1,5 @@
+nul
+node_modules/
+uploads/
+.mimocode/
+delete_nul.py

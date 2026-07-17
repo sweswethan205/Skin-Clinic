@@ -33,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $treatment_name = trim($_POST['treatment_name']);
     $description = trim($_POST['description']);
     $price = floatval($_POST['price']);
+    $duration = intval($_POST['duration']);
+    if (!in_array($duration, [30, 60, 90])) $duration = 60;
 
     $image_uploaded = handle_image_upload('image');
 
@@ -44,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             exit;
         }
         $image = $image_uploaded ?? '';
-        $stmt = $conn->prepare("INSERT INTO treatments (treatment_name, description, price, image) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssds", $treatment_name, $description, $price, $image);
+        $stmt = $conn->prepare("INSERT INTO treatments (treatment_name, description, price, duration, image) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssdis", $treatment_name, $description, $price, $duration, $image);
         if ($stmt->execute()) {
             $message = "Treatment added successfully!";
             $message_type = "success";
@@ -72,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             $image = $image_uploaded;
         }
-        $stmt = $conn->prepare("UPDATE treatments SET treatment_name=?, description=?, price=?, image=? WHERE id=?");
-        $stmt->bind_param("ssdsi", $treatment_name, $description, $price, $image, $id);
+        $stmt = $conn->prepare("UPDATE treatments SET treatment_name=?, description=?, price=?, duration=?, image=? WHERE id=?");
+        $stmt->bind_param("ssdisi", $treatment_name, $description, $price, $duration, $image, $id);
         if ($stmt->execute()) {
             $message = "Treatment updated successfully!";
             $message_type = "success";
@@ -277,6 +279,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-300">
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Treatment</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Description</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6 text-center">Duration</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-center">Price</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
@@ -284,7 +287,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                         <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($treatments)): ?>
                             <tr>
-                                <td colspan="4" class="py-12 text-center">
+                                <td colspan="5" class="py-12 text-center">
                                     <div class="text-brand-muted">
                                         <i class="fa-regular fa-hand-back-fist text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No treatments found</span>
@@ -313,6 +316,11 @@ while ($row = $treatments_result->fetch_assoc()) {
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 max-w-sm">
                                     <span class="text-slate-500 dark:text-gray-400 line-clamp-2 block">
                                         <?php echo !empty($treatment['description']) ? htmlspecialchars(substr($treatment['description'], 0, 100)) . (strlen($treatment['description']) > 100 ? '...' : '') : '—'; ?>
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
+                                    <span class="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
+                                        <i class="fa-regular fa-clock"></i> <?php echo $treatment['duration']; ?> min
                                     </span>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
@@ -371,7 +379,16 @@ while ($row = $treatments_result->fetch_assoc()) {
                         </div>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Image</label>
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Duration <span class="text-red-400">*</span></label>
+                        <select name="duration" required class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                            <option value="30">30 minutes</option>
+                            <option value="60" selected>60 minutes</option>
+                            <option value="90">90 minutes</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Image</label>
                         <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
                             class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-pink file:text-white hover:file:bg-brand-pinkHover focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
@@ -408,14 +425,21 @@ while ($row = $treatments_result->fetch_assoc()) {
                     <textarea name="description" id="edit_description" rows="3"
                         class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all"></textarea>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Price <span class="text-red-400">*</span></label>
                         <div class="relative">
-                            <!-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-muted"></span> -->
                             <input type="number" name="price" id="edit_price" step="0.01" min="0" required
                                 class="w-full border border-slate-200 dark:border-gray-700 rounded-xl pl-8 pr-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                         </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Duration <span class="text-red-400">*</span></label>
+                        <select name="duration" id="edit_duration" required class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                            <option value="30">30 min</option>
+                            <option value="60">60 min</option>
+                            <option value="90">90 min</option>
+                        </select>
                     </div>
                     <div>
                         <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Image <span class="text-[10px] text-brand-muted font-medium normal-case">(leave empty to keep current)</span></label>
@@ -468,6 +492,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             document.getElementById('edit_treatment_name').value = treatment.treatment_name;
             document.getElementById('edit_description').value = treatment.description || '';
             document.getElementById('edit_price').value = treatment.price;
+            document.getElementById('edit_duration').value = treatment.duration || 60;
             document.getElementById('editModal').classList.remove('hidden');
         }
 

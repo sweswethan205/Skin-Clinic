@@ -15,6 +15,12 @@ if (isset($_GET['schedule_id'])) {
 if (isset($_GET['treatment_id'])) {
     $_SESSION['booking_treatment_id'] = intval($_GET['treatment_id']);
 }
+if (isset($_GET['start_time'])) {
+    $_SESSION['booking_start_time'] = $_GET['start_time'];
+}
+if (isset($_GET['end_time'])) {
+    $_SESSION['booking_end_time'] = $_GET['end_time'];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Capture input

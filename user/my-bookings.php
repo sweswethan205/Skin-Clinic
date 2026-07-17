@@ -15,11 +15,11 @@ $query = "SELECT
             a.id,
             a.status,
             a.created_at as booked_on,
+            a.appointment_start,
+            a.appointment_end,
             t.treatment_name,
             t.price,
             s.available_date,
-            s.start_time,
-            s.end_time,
             d.name as doctor_name
           FROM appointments a
           JOIN treatments t ON t.id = a.treatment_id
@@ -148,7 +148,7 @@ $status_colors = [
                                     </span>
                                     <span class="flex items-center gap-2">
                                         <i class="fa-regular fa-clock text-brand-pink text-xs"></i>
-                                        <?php echo date('h:i A', strtotime($booking['start_time'])); ?> - <?php echo date('h:i A', strtotime($booking['end_time'])); ?>
+                                        <?php echo date('h:i A', strtotime($booking['appointment_start'])); ?> - <?php echo date('h:i A', strtotime($booking['appointment_end'])); ?>
                                     </span>
                                     <span class="flex items-center gap-2">
                                         <i class="fa-solid fa-user-doctor text-brand-pink text-xs"></i>

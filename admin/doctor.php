@@ -40,7 +40,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     $photo_uploaded = handle_photo_upload('photo');
 
+    $work_start = $_POST['work_start'] ?? '09:00:00';
+    $work_end = $_POST['work_end'] ?? '19:00:00';
+    $lunch_start = $_POST['lunch_start'] ?? '12:00:00';
+    $lunch_end = $_POST['lunch_end'] ?? '13:00:00';
+
+    $password_raw = $_POST['password'] ?? '';
+
     if ($_POST['action'] === 'create') {
+        if (empty($password_raw)) {
+            $message = "Password is required for new doctors.";
+            $message_type = "error";
+            header("Location: doctor.php?msg=" . urlencode($message) . "&type=$message_type");
+            exit;
+        }
         if ($photo_uploaded === false) {
             $message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp.";
             $message_type = "error";
@@ -48,16 +61,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             exit;
         }
         $photo = $photo_uploaded ?? '';
-        $stmt = $conn->prepare("INSERT INTO doctors (name, email, phone, description, experience, photo, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssiss", $name, $email, $phone, $description, $experience, $photo, $status);
+        $hashed_password = password_hash($password_raw, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("INSERT INTO doctors (name, email, password, phone, description, experience, photo, status, work_start, work_end, lunch_start, lunch_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssissssss", $name, $email, $hashed_password, $phone, $description, $experience, $photo, $status, $work_start, $work_end, $lunch_start, $lunch_end);
         if ($stmt->execute()) {
+            $new_id = $conn->insert_id;
+            $stmt->close();
+
+            if (!empty($_POST['treatments']) && is_array($_POST['treatments'])) {
+                $dt_stmt = $conn->prepare("INSERT INTO doctor_treatments (doctor_id, treatment_id) VALUES (?, ?)");
+                foreach ($_POST['treatments'] as $tid) {
+                    $tid = intval($tid);
+                    if ($tid > 0) {
+                        $dt_stmt->bind_param("ii", $new_id, $tid);
+                        $dt_stmt->execute();
+                    }
+                }
+                $dt_stmt->close();
+            }
+
             $message = "Doctor added successfully!";
             $message_type = "success";
         } else {
             $message = "Error adding doctor: " . $conn->error;
             $message_type = "error";
         }
-        $stmt->close();
     } elseif ($_POST['action'] === 'update' && isset($_POST['id'])) {
         $id = intval($_POST['id']);
         // Keep existing photo if no new file uploaded
@@ -77,16 +105,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             $photo = $photo_uploaded;
         }
-        $stmt = $conn->prepare("UPDATE doctors SET name=?, email=?, phone=?, description=?, experience=?, photo=?, status=? WHERE id=?");
-        $stmt->bind_param("ssssissi", $name, $email, $phone, $description, $experience, $photo, $status, $id);
+        if (!empty($password_raw)) {
+            $hashed_password = password_hash($password_raw, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE doctors SET name=?, email=?, password=?, phone=?, description=?, experience=?, photo=?, status=?, work_start=?, work_end=?, lunch_start=?, lunch_end=? WHERE id=?");
+            $stmt->bind_param("sssssissssssi", $name, $email, $hashed_password, $phone, $description, $experience, $photo, $status, $work_start, $work_end, $lunch_start, $lunch_end, $id);
+        } else {
+            $stmt = $conn->prepare("UPDATE doctors SET name=?, email=?, phone=?, description=?, experience=?, photo=?, status=?, work_start=?, work_end=?, lunch_start=?, lunch_end=? WHERE id=?");
+            $stmt->bind_param("sssisssssssi", $name, $email, $phone, $description, $experience, $photo, $status, $work_start, $work_end, $lunch_start, $lunch_end, $id);
+        }
         if ($stmt->execute()) {
+            $stmt->close();
+
+            $dt_del = $conn->prepare("DELETE FROM doctor_treatments WHERE doctor_id = ?");
+            $dt_del->bind_param("i", $id);
+            $dt_del->execute();
+            $dt_del->close();
+
+            if (!empty($_POST['treatments']) && is_array($_POST['treatments'])) {
+                $dt_stmt = $conn->prepare("INSERT INTO doctor_treatments (doctor_id, treatment_id) VALUES (?, ?)");
+                foreach ($_POST['treatments'] as $tid) {
+                    $tid = intval($tid);
+                    if ($tid > 0) {
+                        $dt_stmt->bind_param("ii", $id, $tid);
+                        $dt_stmt->execute();
+                    }
+                }
+                $dt_stmt->close();
+            }
+
             $message = "Doctor updated successfully!";
             $message_type = "success";
         } else {
             $message = "Error updating doctor: " . $conn->error;
             $message_type = "error";
         }
-        $stmt->close();
     }
     header("Location: doctor.php?msg=" . urlencode($message) . "&type=$message_type");
     exit;
@@ -95,6 +147,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 // Handle Delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
+    $stmt = $conn->prepare("DELETE FROM doctor_treatments WHERE doctor_id=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->close();
     $stmt = $conn->prepare("DELETE FROM doctors WHERE id=?");
     $stmt->bind_param("i", $id);
     if ($stmt->execute()) {
@@ -115,12 +171,33 @@ if (isset($_GET['msg'])) {
     $message_type = $_GET['type'] ?? 'success';
 }
 
+// Fetch all treatments
+$treatments_result = $conn->query("SELECT id, treatment_name FROM treatments ORDER BY treatment_name ASC");
+$treatments = [];
+while ($trow = $treatments_result->fetch_assoc()) {
+    $treatments[] = $trow;
+}
+
 // Fetch all doctors
 $doctors_result = $conn->query("SELECT * FROM doctors ORDER BY name ASC");
 $doctors = [];
 while ($row = $doctors_result->fetch_assoc()) {
     $doctors[] = $row;
 }
+
+// Fetch treatments for each doctor
+$dt_stmt = $conn->prepare("SELECT treatment_id FROM doctor_treatments WHERE doctor_id = ?");
+foreach ($doctors as &$doc) {
+    $dt_stmt->bind_param("i", $doc['id']);
+    $dt_stmt->execute();
+    $dt_result = $dt_stmt->get_result();
+    $doc['assigned_treatments'] = [];
+    while ($dt_row = $dt_result->fetch_assoc()) {
+        $doc['assigned_treatments'][] = $dt_row['treatment_id'];
+    }
+}
+$dt_stmt->close();
+unset($doc);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -191,7 +268,7 @@ while ($row = $doctors_result->fetch_assoc()) {
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
 
         <!-- HEADER -->
-        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
+        <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
                 
                 <div>
@@ -231,7 +308,7 @@ while ($row = $doctors_result->fetch_assoc()) {
             <?php endif; ?>
 
             <!-- Summary Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-6">
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-md"></i></div>
                     <div>
@@ -270,6 +347,13 @@ while ($row = $doctors_result->fetch_assoc()) {
                         </span>
                     </div>
                 </div>
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-violet-50 text-violet-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-stethoscope"></i></div>
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Treatments</span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-white"><?php echo count($treatments); ?></span>
+                    </div>
+                </div>
             </div>
 
             <!-- Toolbar -->
@@ -292,6 +376,7 @@ while ($row = $doctors_result->fetch_assoc()) {
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Contact</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Experience</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Description</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Treatments</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-center">Status</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-right">Actions</th>
                             </tr>
@@ -299,7 +384,7 @@ while ($row = $doctors_result->fetch_assoc()) {
                         <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($doctors)): ?>
                             <tr>
-                                <td colspan="6" class="py-12 text-center">
+                                <td colspan="7" class="py-12 text-center">
                                     <div class="text-brand-muted dark:text-gray-400">
                                         <i class="fa-regular fa-user-xmark text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No doctors found</span>
@@ -341,6 +426,25 @@ while ($row = $doctors_result->fetch_assoc()) {
                                         <?php echo !empty($doctor['description']) ? htmlspecialchars(substr($doctor['description'], 0, 80)) . (strlen($doctor['description']) > 80 ? '...' : '') : '—'; ?>
                                     </span>
                                 </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <div class="flex flex-wrap gap-1">
+                                        <?php if (!empty($doctor['assigned_treatments'])): ?>
+                                            <?php foreach ($doctor['assigned_treatments'] as $atid): ?>
+                                                <?php
+                                                $tname = '';
+                                                foreach ($treatments as $t) {
+                                                    if ($t['id'] == $atid) { $tname = $t['treatment_name']; break; }
+                                                }
+                                                ?>
+                                                <?php if ($tname): ?>
+                                                <span class="px-1.5 py-0.5 bg-pink-50 text-brand-pink border border-pink-100 rounded text-[9px] font-bold"><?php echo htmlspecialchars($tname); ?></span>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span class="text-slate-400 dark:text-gray-500 text-[10px]">—</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
                                     <?php if ($doctor['status'] === 'active'): ?>
                                     <span class="px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
@@ -375,13 +479,13 @@ while ($row = $doctors_result->fetch_assoc()) {
     </div>
 
     <!-- CREATE MODAL -->
-    <div id="createModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
-        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
-            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+    <div id="createModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
                 <h3 class="text-base font-extrabold text-brand-dark dark:text-white"><i class="fa-solid fa-user-plus text-brand-pink mr-2"></i> Add New Doctor</h3>
                 <button onclick="closeCreateModal()" class="text-brand-muted hover:text-brand-dark text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form method="POST" action="doctor.php" enctype="multipart/form-data" class="p-6 space-y-5">
+            <form method="POST" action="doctor.php" enctype="multipart/form-data" class="p-6 space-y-5 overflow-y-auto flex-1">
                 <input type="hidden" name="action" value="create">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -394,6 +498,11 @@ while ($row = $doctors_result->fetch_assoc()) {
                         <input type="email" name="email" required
                             class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Password <span class="text-red-400">*</span></label>
+                    <input type="password" name="password" required placeholder="Set login password for doctor"
+                        class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -424,7 +533,48 @@ while ($row = $doctors_result->fetch_assoc()) {
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
-                <div class="flex justify-end gap-3 pt-2">
+                <div>
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-2"><i class="fa-regular fa-clock text-brand-pink mr-1"></i> Working Hours</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Work Start</label>
+                            <input type="time" name="work_start" value="09:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Work End</label>
+                            <input type="time" name="work_end" value="19:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Lunch Start</label>
+                            <input type="time" name="lunch_start" value="12:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Lunch End</label>
+                            <input type="time" name="lunch_end" value="13:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-2"><i class="fa-solid fa-stethoscope text-brand-pink mr-1"></i> Treatments</label>
+                    <div class="max-h-40 overflow-y-auto border border-slate-200 dark:border-gray-700 rounded-xl p-3 space-y-2">
+                        <?php if (!empty($treatments)): ?>
+                            <?php foreach ($treatments as $treatment): ?>
+                            <label class="flex items-center gap-2.5 cursor-pointer group/treat">
+                                <input type="checkbox" name="treatments[]" value="<?php echo $treatment['id']; ?>"
+                                    class="w-4 h-4 rounded border-slate-300 dark:border-gray-600 text-brand-pink focus:ring-brand-pink/30 cursor-pointer">
+                                <span class="text-xs font-semibold text-brand-dark dark:text-gray-300 group-hover/treat:text-brand-pink transition-colors"><?php echo htmlspecialchars($treatment['treatment_name']); ?></span>
+                            </label>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-xs text-brand-muted dark:text-gray-500 font-medium">No treatments available.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white dark:bg-gray-900 -mx-6 px-6 pb-0 border-t border-slate-100 dark:border-gray-700">
                     <button type="button" onclick="closeCreateModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 text-brand-dark dark:text-white text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
                         <i class="fa-solid fa-plus mr-1"></i> Add Doctor
@@ -435,13 +585,13 @@ while ($row = $doctors_result->fetch_assoc()) {
     </div>
 
     <!-- EDIT MODAL -->
-    <div id="editModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden">
-        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
-            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+    <div id="editModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
                 <h3 class="text-base font-extrabold text-brand-dark dark:text-white"><i class="fa-regular fa-pen-to-square text-brand-pink mr-2"></i> Edit Doctor</h3>
                 <button onclick="closeEditModal()" class="text-brand-muted hover:text-brand-dark text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form method="POST" action="doctor.php" enctype="multipart/form-data" class="p-6 space-y-5">
+            <form method="POST" action="doctor.php" enctype="multipart/form-data" class="p-6 space-y-5 overflow-y-auto flex-1">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="id" id="edit_id" value="">
                 <div class="grid grid-cols-2 gap-4">
@@ -455,6 +605,11 @@ while ($row = $doctors_result->fetch_assoc()) {
                         <input type="email" name="email" id="edit_email" required
                             class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-1.5">Password <span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium normal-case">(leave empty to keep current)</span></label>
+                    <input type="password" name="password" placeholder="Leave empty to keep current password"
+                        class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -485,7 +640,48 @@ while ($row = $doctors_result->fetch_assoc()) {
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
-                <div class="flex justify-end gap-3 pt-2">
+                <div>
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-2"><i class="fa-regular fa-clock text-brand-pink mr-1"></i> Working Hours</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Work Start</label>
+                            <input type="time" name="work_start" id="edit_work_start" value="09:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Work End</label>
+                            <input type="time" name="work_end" id="edit_work_end" value="19:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Lunch Start</label>
+                            <input type="time" name="lunch_start" id="edit_lunch_start" value="12:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-muted dark:text-gray-500 uppercase tracking-wider block mb-1">Lunch End</label>
+                            <input type="time" name="lunch_end" id="edit_lunch_end" value="13:00"
+                                class="w-full border border-slate-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-dark focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block mb-2"><i class="fa-solid fa-stethoscope text-brand-pink mr-1"></i> Treatments</label>
+                    <div class="max-h-40 overflow-y-auto border border-slate-200 dark:border-gray-700 rounded-xl p-3 space-y-2">
+                        <?php if (!empty($treatments)): ?>
+                            <?php foreach ($treatments as $treatment): ?>
+                            <label class="flex items-center gap-2.5 cursor-pointer group/treat">
+                                <input type="checkbox" name="treatments[]" value="<?php echo $treatment['id']; ?>"
+                                    class="edit-treatment-cb w-4 h-4 rounded border-slate-300 dark:border-gray-600 text-brand-pink focus:ring-brand-pink/30 cursor-pointer" data-tid="<?php echo $treatment['id']; ?>">
+                                <span class="text-xs font-semibold text-brand-dark dark:text-gray-300 group-hover/treat:text-brand-pink transition-colors"><?php echo htmlspecialchars($treatment['treatment_name']); ?></span>
+                            </label>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-xs text-brand-muted dark:text-gray-500 font-medium">No treatments available.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white dark:bg-gray-900 -mx-6 px-6 pb-0 border-t border-slate-100 dark:border-gray-700">
                     <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 text-brand-dark dark:text-white text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
                         <i class="fa-solid fa-floppy-disk mr-1"></i> Update Doctor
@@ -534,6 +730,28 @@ while ($row = $doctors_result->fetch_assoc()) {
             document.getElementById('edit_experience').value = doctor.experience || 0;
             document.getElementById('edit_description').value = doctor.description || '';
             document.getElementById('edit_status').value = doctor.status;
+
+            // Populate working hours
+            const toTimeVal = (v) => {
+                if (!v) return '';
+                return v.length > 5 ? v.substring(0, 5) : v;
+            };
+            document.getElementById('edit_work_start').value = toTimeVal(doctor.work_start) || '09:00';
+            document.getElementById('edit_work_end').value = toTimeVal(doctor.work_end) || '19:00';
+            document.getElementById('edit_lunch_start').value = toTimeVal(doctor.lunch_start) || '12:00';
+            document.getElementById('edit_lunch_end').value = toTimeVal(doctor.lunch_end) || '13:00';
+
+            // Uncheck all treatment checkboxes, then check assigned ones
+            document.querySelectorAll('.edit-treatment-cb').forEach(cb => {
+                cb.checked = false;
+            });
+            if (doctor.assigned_treatments && doctor.assigned_treatments.length > 0) {
+                doctor.assigned_treatments.forEach(tid => {
+                    const cb = document.querySelector('.edit-treatment-cb[data-tid="' + tid + '"]');
+                    if (cb) cb.checked = true;
+                });
+            }
+
             document.getElementById('editModal').classList.remove('hidden');
         }
 

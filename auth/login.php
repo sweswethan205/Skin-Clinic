@@ -16,6 +16,12 @@ if (isset($_GET['schedule_id'])) {
 if (isset($_GET['treatment_id'])) {
     $_SESSION['booking_treatment_id'] = intval($_GET['treatment_id']);
 }
+if (isset($_GET['start_time'])) {
+    $_SESSION['booking_start_time'] = $_GET['start_time'];
+}
+if (isset($_GET['end_time'])) {
+    $_SESSION['booking_end_time'] = $_GET['end_time'];
+}
 
 // 3. Process form when user clicks Sign In
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -131,6 +137,11 @@ require '../includes/header.php';
                 <p class="mt-8 text-center text-sm text-slate-400">
                     Don't have an account? <a href="../auth/re.php" class="text-pink-500 hover:underline font-semibold">Create account</a>
                 </p>
+                <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+                    <a href="../auth/doctor_login.php" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+                        <i class="fa-solid fa-user-doctor mr-1"></i> Doctor Login
+                    </a>
+                </div>
             </div>
         </div>
     </main>

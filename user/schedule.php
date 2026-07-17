@@ -10,12 +10,17 @@ while ($row = $doctors_result->fetch_assoc()) {
 
 // Fetch schedules with doctor names
 $doctor_filter = isset($_GET['doctor_id']) ? intval($_GET['doctor_id']) : 0;
-$sql = "SELECT s.*, d.name AS doctor_name, d.photo AS doctor_photo FROM schedules s JOIN doctors d ON s.doctor_id = d.id";
 if ($doctor_filter > 0) {
-    $sql .= " WHERE s.doctor_id = $doctor_filter";
+    $sql = "SELECT s.*, d.name AS doctor_name, d.photo AS doctor_photo FROM schedules s JOIN doctors d ON s.doctor_id = d.id WHERE s.doctor_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $doctor_filter);
+    $stmt->execute();
+    $schedules_result = $stmt->get_result();
+    $stmt->close();
+} else {
+    $sql = "SELECT s.*, d.name AS doctor_name, d.photo AS doctor_photo FROM schedules s JOIN doctors d ON s.doctor_id = d.id";
+    $schedules_result = $conn->query($sql);
 }
-$sql .= " ORDER BY s.available_date DESC, s.start_time ASC";
-$schedules_result = $conn->query($sql);
 $schedules = [];
 while ($row = $schedules_result->fetch_assoc()) {
     $schedules[] = $row;
@@ -73,7 +78,7 @@ while ($row = $schedules_result->fetch_assoc()) {
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
                 <div class="w-10 h-10 bg-pink-50 dark:bg-gray-800 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-day"></i></div>
                 <div>
@@ -84,23 +89,11 @@ while ($row = $schedules_result->fetch_assoc()) {
             <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
                 <div class="w-10 h-10 bg-emerald-50 dark:bg-gray-800 text-emerald-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-check-circle"></i></div>
                 <div>
-                    <span class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider block">Available</span>
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider block">Available Dates</span>
                     <span class="text-xl font-extrabold text-slate-800 dark:text-white">
                         <?php
-                        $avail = array_filter($schedules, fn($s) => $s['is_booked'] === 'no');
-                        echo count($avail);
-                        ?>
-                    </span>
-                </div>
-            </div>
-            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 bg-blue-50 dark:bg-gray-800 text-blue-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-bookmark"></i></div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider block">Booked</span>
-                    <span class="text-xl font-extrabold text-slate-800 dark:text-white">
-                        <?php
-                        $booked = array_filter($schedules, fn($s) => $s['is_booked'] === 'yes');
-                        echo count($booked);
+                        $unique_dates = array_unique(array_map(fn($s) => $s['available_date'], $schedules));
+                        echo count($unique_dates);
                         ?>
                     </span>
                 </div>
@@ -124,8 +117,7 @@ while ($row = $schedules_result->fetch_assoc()) {
                         <tr class="bg-slate-50/70 dark:bg-gray-800 border-b border-slate-100 dark:border-gray-700 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">
                             <th class="py-4 px-6">Doctor</th>
                             <th class="py-4 px-6">Date</th>
-                            <th class="py-4 px-6">Time</th>
-                            <th class="py-4 px-6 text-center">Status</th>
+                            <th class="py-4 px-6">Available Hours</th>
                             <th class="py-4 px-6 text-right">Action</th>
                         </tr>
                     </thead>
@@ -150,25 +142,10 @@ while ($row = $schedules_result->fetch_assoc()) {
                             <td class="py-4 px-6">
                                 <span class="font-mono text-sm"><?php echo date('h:i A', strtotime($schedule['start_time'])); ?> - <?php echo date('h:i A', strtotime($schedule['end_time'])); ?></span>
                             </td>
-                            <td class="py-4 px-6 text-center">
-                                <?php if ($schedule['is_booked'] === 'yes'): ?>
-                                <span class="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-circle text-[7px]"></i> Booked
-                                </span>
-                                <?php else: ?>
-                                <span class="px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-circle text-[7px]"></i> Available
-                                </span>
-                                <?php endif; ?>
-                            </td>
                             <td class="py-4 px-6 text-right">
-                                <?php if ($schedule['is_booked'] === 'no'): ?>
                                 <a href="booking.php?doctor=<?php echo urlencode($schedule['doctor_name']); ?>" class="px-3 py-1.5 bg-brand-pink text-white text-[10px] font-bold rounded-lg hover:bg-opacity-90 transition-all">
                                     Book Now
                                 </a>
-                                <?php else: ?>
-                                <span class="text-[10px] text-slate-300 font-medium">Unavailable</span>
-                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>

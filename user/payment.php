@@ -9,6 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
     $schedule_id = intval($_POST['schedule_id']);
     $treatment_id = isset($_SESSION['booking_treatment_id']) ? intval($_SESSION['booking_treatment_id']) : 0;
     $payment_method_val = $_POST['payment_method'] ?? '';
+    $appointment_start = $_POST['appointment_start'] ?? $_SESSION['booking_start_time'] ?? '';
+    $appointment_end = $_POST['appointment_end'] ?? $_SESSION['booking_end_time'] ?? '';
 
     $errors = [];
 
@@ -68,18 +70,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
     }
 
     if (empty($errors)) {
-        $chk = $conn->prepare("SELECT is_booked FROM schedules WHERE id = ? LIMIT 1");
-        $chk->bind_param("i", $schedule_id);
-        $chk->execute();
-        $chk_res = $chk->get_result();
-        $chk_row = $chk_res->fetch_assoc();
-        $chk->close();
-        if (!$chk_row || $chk_row['is_booked'] === 'yes') {
-            $errors[] = 'This time slot has already been booked by another patient.';
+        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1");
+        $overlap->bind_param("sss", $schedule_id, $appointment_end, $appointment_start);
+        $overlap->execute();
+        $overlap_res = $overlap->get_result();
+        $overlap_exists = $overlap_res->fetch_assoc();
+        $overlap->close();
+        if ($overlap_exists) {
+            $errors[] = 'This time slot overlaps with an existing appointment. Please choose another.';
         }
 
-        $dup = $conn->prepare("SELECT id FROM appointments WHERE user_id = ? AND schedule_id = ? AND status != 'cancelled' LIMIT 1");
-        $dup->bind_param("ii", $user_id, $schedule_id);
+        $dup = $conn->prepare("SELECT id FROM appointments WHERE user_id = ? AND schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1");
+        $dup->bind_param("isss", $user_id, $schedule_id, $appointment_end, $appointment_start);
         $dup->execute();
         $dup_res = $dup->get_result();
         $dup_exists = $dup_res->fetch_assoc();
@@ -91,22 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
 
     if (empty($errors)) {
         $conn->begin_transaction();
-        $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, payment_method_id, receipt_image, status) VALUES (?, ?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("iiiss", $user_id, $treatment_id, $schedule_id, $payment_method_id, $receipt_path);
+        $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, payment_method_id, appointment_start, appointment_end, receipt_image, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("iiiisss", $user_id, $treatment_id, $schedule_id, $payment_method_id, $appointment_start, $appointment_end, $receipt_path);
         if ($stmt->execute()) {
             $appointment_id = $stmt->insert_id;
             $stmt->close();
-
-            $upd = $conn->prepare("UPDATE schedules SET is_booked = 'yes' WHERE id = ? AND is_booked = 'no'");
-            $upd->bind_param("i", $schedule_id);
-            $upd->execute();
-            if ($upd->affected_rows === 0) {
-                $conn->rollback();
-                $errors[] = 'This time slot was just booked by another patient. Please choose another.';
-                header("Location: booking.php?msg=" . urlencode("Slot no longer available!") . "&type=error");
-                exit;
-            }
-            $upd->close();
 
             $title = 'New Appointment';
             $msg = "User #$user_id booked appointment #$appointment_id.";
@@ -117,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
             $notif->close();
 
             $conn->commit();
-            unset($_SESSION['booking_schedule_id'], $_SESSION['booking_treatment_id']);
+            unset($_SESSION['booking_schedule_id'], $_SESSION['booking_treatment_id'], $_SESSION['booking_start_time'], $_SESSION['booking_end_time']);
             header("Location: my-bookings.php?msg=" . urlencode("Appointment booked successfully!") . "&type=success");
             exit;
         } else {
@@ -136,6 +127,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
 
 $schedule_id = isset($_GET['schedule_id']) ? intval($_GET['schedule_id']) : (isset($_SESSION['booking_schedule_id']) ? intval($_SESSION['booking_schedule_id']) : 0);
 $treatment_id = isset($_SESSION['booking_treatment_id']) ? intval($_SESSION['booking_treatment_id']) : 0;
+
+if (isset($_GET['start_time'])) {
+    $_SESSION['booking_start_time'] = $_GET['start_time'];
+}
+if (isset($_GET['end_time'])) {
+    $_SESSION['booking_end_time'] = $_GET['end_time'];
+}
+$booking_start_time = $_SESSION['booking_start_time'] ?? '';
+$booking_end_time = $_SESSION['booking_end_time'] ?? '';
 
 if ($schedule_id > 0) {
     $_SESSION['booking_schedule_id'] = $schedule_id;
@@ -300,7 +300,7 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Date & Timestamp</span>
-                            <span class="text-xs font-medium text-brand-textMuted dark:text-gray-400"><?= isset($booking['available_date']) ? date("M d, Y", strtotime($booking['available_date'])) : 'N/A' ?> • <?= isset($booking['start_time']) ? date("h:i A", strtotime($booking['start_time'])) : 'N/A' ?></span>
+                            <span class="text-xs font-medium text-brand-textMuted dark:text-gray-400"><?= isset($booking['available_date']) ? date("M d, Y", strtotime($booking['available_date'])) : 'N/A' ?> - <?= $booking_start_time ? date("h:i A", strtotime($booking_start_time)) : 'N/A' ?> to <?= $booking_end_time ? date("h:i A", strtotime($booking_end_time)) : 'N/A' ?></span>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Total Value</span>
@@ -364,10 +364,30 @@ if (isset($_SESSION['user_id'])) {
                 <form class="space-y-4" id="payment-form" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="schedule_id" value="<?= $schedule_id ?>">
                     <input type="hidden" name="payment_method" id="payment_method_hidden" value="kbz_pay">
+                    <input type="hidden" name="appointment_start" value="<?= htmlspecialchars($_GET['start_time'] ?? $booking_start_time ?? '') ?>">
+                    <input type="hidden" name="appointment_end" value="<?= htmlspecialchars($_GET['end_time'] ?? $booking_end_time ?? '') ?>">
 
                     <div id="qr-scan-window" class="bg-[#005BAa]/5 rounded-2xl p-4 border border-[#005BAa]/20 text-center space-y-3 transition-colors duration-200">
                         <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#005BAa]">
                             <i class="fa-solid fa-qrcode text-xs"></i> <span>Scan QR Code</span>
+                        </div>
+
+                        <!-- Account Info -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200/60 dark:border-gray-700 space-y-2">
+                            <div class="flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-user text-[10px] text-[#005BAa]"></i>
+                                <span class="text-xs font-bold text-brand-dark dark:text-white">GlowSkin Clinic</span>
+                            </div>
+                            <div class="flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-phone text-[10px] text-[#005BAa]"></i>
+                                <span id="account-phone" class="text-xs font-semibold text-brand-dark dark:text-white">09-123456789</span>
+                                <button type="button" onclick="copyPhoneNumber()" class="text-[#005BAa] hover:text-[#004080] transition-colors" title="Copy phone number">
+                                    <i class="fa-regular fa-copy text-[10px]"></i>
+                                </button>
+                            </div>
+                            <div id="copy-success" class="hidden text-[10px] text-emerald-500 font-medium">
+                                <i class="fa-solid fa-check mr-1"></i> Copied!
+                            </div>
                         </div>
 
                         <div class="w-40 h-40 mx-auto bg-white dark:bg-gray-800 border border border-gray-200/60 dark:border-gray-700 rounded-xl p-2.5 flex items-center justify-center shadow-xs relative group">
@@ -548,6 +568,20 @@ if (isset($_SESSION['user_id'])) {
             modal.classList.add('opacity-0', 'pointer-events-none');
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
+        }
+
+        function copyPhoneNumber() {
+            const phoneElement = document.getElementById('account-phone');
+            const phoneText = phoneElement.textContent.trim();
+            navigator.clipboard.writeText(phoneText).then(() => {
+                const successMsg = document.getElementById('copy-success');
+                successMsg.classList.remove('hidden');
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
         }
     </script>
 </body>
