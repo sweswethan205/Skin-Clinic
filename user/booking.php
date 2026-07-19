@@ -78,6 +78,48 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
     }
     $aq->close();
 
+    // Get compatible rooms for this treatment
+    $rooms_stmt = $conn->prepare(
+        "SELECT r.id, r.capacity FROM rooms r 
+         JOIN treatment_rooms tr ON tr.room_id = r.id 
+         WHERE tr.treatment_id = ? AND r.status = 'active'"
+    );
+    $rooms_stmt->bind_param("i", $treatment_id);
+    $rooms_stmt->execute();
+    $compatible_rooms = [];
+    $room_result = $rooms_stmt->get_result();
+    while ($room_row = $room_result->fetch_assoc()) {
+        $compatible_rooms[] = ['id' => intval($room_row['id']), 'capacity' => intval($room_row['capacity'])];
+    }
+    $rooms_stmt->close();
+
+    $no_rooms_configured = empty($compatible_rooms);
+
+    // Get all existing room bookings for this date (any doctor) for room conflict checks
+    $room_bookings = [];
+    if (!empty($compatible_rooms)) {
+        $raq = $conn->prepare(
+            "SELECT a.room_id, a.appointment_start, a.appointment_end 
+             FROM appointments a 
+             WHERE a.room_id IS NOT NULL AND a.status != 'cancelled'
+             AND a.schedule_id IN (SELECT id FROM schedules WHERE available_date = ?)"
+        );
+        $raq->bind_param("s", $booking_date);
+        $raq->execute();
+        $ra_result = $raq->get_result();
+        while ($ra_row = $ra_result->fetch_assoc()) {
+            $rid = intval($ra_row['room_id']);
+            if (!isset($room_bookings[$rid])) {
+                $room_bookings[$rid] = [];
+            }
+            $room_bookings[$rid][] = [
+                'start' => strtotime($ra_row['appointment_start']),
+                'end' => strtotime($ra_row['appointment_end'])
+            ];
+        }
+        $raq->close();
+    }
+
     // Query time_slots table within working hours
     $work_start = strtotime($schedule['start_time']);
     $work_end = strtotime($schedule['end_time']);
@@ -93,23 +135,44 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
     $ts_stmt->execute();
     $ts_result = $ts_stmt->get_result();
 
-        $slots = [];
+    $slots = [];
     while ($ts_row = $ts_result->fetch_assoc()) {
         $slot_start = strtotime($ts_row['slot_time']);
         $slot_end = $slot_start + $duration_seconds;
-        $slot_end_30 = $slot_start + 1800;
 
-        // Check lunch overlap (uses full treatment duration)
+        // Check lunch overlap (full treatment duration)
         $overlaps_lunch = ($slot_start < $lunch_end && $slot_end > $lunch_start);
 
-        // Check booked appointment overlap (30-min slot window)
-        $overlaps_booked = false;
+        // Check doctor overlap (full treatment duration)
+        $doctor_busy = false;
         foreach ($booked_ranges as $range) {
-            if ($slot_start < $range['end'] && $slot_end_30 > $range['start']) {
-                $overlaps_booked = true;
+            if ($slot_start < $range['end'] && $slot_end > $range['start']) {
+                $doctor_busy = true;
                 break;
             }
         }
+
+        // Check room availability (full treatment duration)
+        $available_rooms_count = 0;
+        if (!$doctor_busy && !$overlaps_lunch) {
+            foreach ($compatible_rooms as $room) {
+                $rid = $room['id'];
+                $capacity = $room['capacity'];
+                $existing = $room_bookings[$rid] ?? [];
+                $overlapping = 0;
+                foreach ($existing as $br) {
+                    if ($slot_start < $br['end'] && $slot_end > $br['start']) {
+                        $overlapping++;
+                    }
+                }
+                if ($overlapping < $capacity) {
+                    $available_rooms_count++;
+                    break;
+                }
+            }
+        }
+
+        $locked = $doctor_busy || $overlaps_lunch || ($available_rooms_count === 0);
 
         $slots[] = [
             'schedule_id' => intval($schedule['schedule_id']),
@@ -118,7 +181,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
             'display' => date("g:i", $slot_start),
             'duration' => $duration_minutes,
             'slots_to_lock' => $duration_minutes / 30,
-            'locked' => $overlaps_booked    
+            'locked' => $locked,
+            'no_rooms' => $no_rooms_configured
         ];
     }
     $ts_stmt->close();
@@ -592,6 +656,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
         }
 
         function fetchAvailableDates(doctorId) {
+            const calDays = document.getElementById('cal-days');
             fetch(`${window.location.pathname}?action=get_available_dates&doctor_id=${doctorId}`)
                 .then(response => {
                     if (!response.ok) throw new Error("HTTP error");
@@ -600,6 +665,12 @@ if (!empty($_SESSION['booking_treatment_id'])) {
                 .then(dates => {
                     availableDates = dates;
                     renderCalendar();
+                    if (dates.length === 0) {
+                        const msg = document.createElement('div');
+                        msg.className = 'col-span-7 text-center text-xs text-amber-600 dark:text-amber-400 py-3 font-medium';
+                        msg.innerHTML = '<i class="fa-solid fa-calendar-xmark mr-1"></i> No schedules found for this doctor. Please contact the clinic.';
+                        calDays.appendChild(msg);
+                    }
                 })
                 .catch(err => {
                     console.error("Failed to load available dates:", err);
@@ -633,7 +704,23 @@ if (!empty($_SESSION['booking_treatment_id'])) {
                         return;
                     }
 
+                    if (slots[0].no_rooms) {
+                        message.classList.remove("hidden");
+                        message.className = "mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-medium text-center";
+                        message.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> No treatment rooms are configured for this session. Please contact the clinic.';
+                        grid.innerHTML = "";
+                        legend.classList.add("hidden");
+                        return;
+                    }
+
                     message.classList.add("hidden");
+
+                    const allLocked = slots.every(s => s.locked);
+                    if (allLocked) {
+                        message.classList.remove("hidden");
+                        message.className = "mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-medium text-center";
+                        message.innerHTML = '<i class="fa-solid fa-calendar-xmark mr-1"></i> All rooms are fully booked for this date. Please try another date.';
+                    }
 
                     legend.classList.remove('hidden');
                     legend.classList.add('flex');

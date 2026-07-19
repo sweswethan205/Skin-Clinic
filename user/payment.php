@@ -70,31 +70,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
     }
 
     if (empty($errors)) {
-        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1");
+        $conn->begin_transaction();
+
+        // Lock schedule row to prevent concurrent booking races
+        $lock_sched = $conn->prepare("SELECT id FROM schedules WHERE id = ? FOR UPDATE");
+        $lock_sched->bind_param("i", $schedule_id);
+        $lock_sched->execute();
+        $lock_sched->close();
+
+        // Doctor overlap check (inside transaction with lock)
+        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1 FOR UPDATE");
         $overlap->bind_param("sss", $schedule_id, $appointment_end, $appointment_start);
         $overlap->execute();
         $overlap_res = $overlap->get_result();
         $overlap_exists = $overlap_res->fetch_assoc();
         $overlap->close();
         if ($overlap_exists) {
+            $conn->rollback();
             $errors[] = 'This time slot overlaps with an existing appointment. Please choose another.';
         }
 
-        $dup = $conn->prepare("SELECT id FROM appointments WHERE user_id = ? AND schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1");
-        $dup->bind_param("isss", $user_id, $schedule_id, $appointment_end, $appointment_start);
-        $dup->execute();
-        $dup_res = $dup->get_result();
-        $dup_exists = $dup_res->fetch_assoc();
-        $dup->close();
-        if ($dup_exists) {
-            $errors[] = 'You already have a booking for this time slot.';
+        if (empty($errors)) {
+            $dup = $conn->prepare("SELECT id FROM appointments WHERE user_id = ? AND schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1");
+            $dup->bind_param("isss", $user_id, $schedule_id, $appointment_end, $appointment_start);
+            $dup->execute();
+            $dup_res = $dup->get_result();
+            $dup_exists = $dup_res->fetch_assoc();
+            $dup->close();
+            if ($dup_exists) {
+                $conn->rollback();
+                $errors[] = 'You already have a booking for this time slot.';
+            }
         }
     }
 
-    // --- AUTO-ASSIGN ROOM ---
+    // --- AUTO-ASSIGN ROOM (inside transaction) ---
     $assigned_room_id = null;
     if (empty($errors) && $treatment_id > 0) {
-        // Get available date for this schedule
         $date_query = $conn->prepare("SELECT available_date FROM schedules WHERE id = ? LIMIT 1");
         $date_query->bind_param("i", $schedule_id);
         $date_query->execute();
@@ -104,7 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         $available_date = $date_row['available_date'] ?? '';
 
         if (!empty($available_date) && !empty($appointment_start) && !empty($appointment_end)) {
-            // Get active rooms assigned to this treatment (with capacity)
             $room_query = $conn->prepare(
                 "SELECT r.id, r.capacity FROM rooms r 
                  JOIN treatment_rooms tr ON tr.room_id = r.id 
@@ -119,12 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
                 $candidate_room_id = $room_row['id'];
                 $room_capacity = intval($room_row['capacity']);
 
-                // Count existing non-cancelled bookings in this room for the overlapping time slot
+                // Lock overlapping appointments in this room to prevent race condition
                 $room_check = $conn->prepare(
                     "SELECT COUNT(*) AS booked FROM appointments 
                      WHERE room_id = ? AND status != 'cancelled' 
                      AND appointment_start < ? AND appointment_end > ? 
-                     AND schedule_id IN (SELECT id FROM schedules WHERE available_date = ?)"
+                     AND schedule_id IN (SELECT id FROM schedules WHERE available_date = ?) FOR UPDATE"
                 );
                 $room_check->bind_param("isss", $candidate_room_id, $appointment_end, $appointment_start, $available_date);
                 $room_check->execute();
@@ -143,12 +154,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         }
 
         if ($assigned_room_id === null) {
+            $conn->rollback();
             $errors[] = 'No treatment rooms are available for this time slot. Please try a different time.';
         }
     }
 
     if (empty($errors)) {
-        $conn->begin_transaction();
         $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, room_id, payment_method_id, appointment_start, appointment_end, receipt_image, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
         $stmt->bind_param("iiiissss", $user_id, $treatment_id, $schedule_id, $assigned_room_id, $payment_method_id, $appointment_start, $appointment_end, $receipt_path);
         if ($stmt->execute()) {
