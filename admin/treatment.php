@@ -13,7 +13,8 @@ if (!is_dir($upload_dir)) {
     mkdir($upload_dir, 0755, true);
 }
 
-function handle_image_upload($field_name) {
+function handle_image_upload($field_name)
+{
     global $upload_dir;
     if (!isset($_FILES[$field_name]) || $_FILES[$field_name]['error'] !== UPLOAD_ERR_OK) {
         return null;
@@ -122,6 +123,7 @@ while ($row = $treatments_result->fetch_assoc()) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -155,8 +157,13 @@ while ($row = $treatments_result->fetch_assoc()) {
         }
     </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .modal-bg { background: rgba(15, 23, 42, 0.5); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .modal-bg {
+            background: rgba(15, 23, 42, 0.5);
+        }
     </style>
     <script>
         (function() {
@@ -166,6 +173,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             }
             updateIcons();
         })();
+
         function updateIcons() {
             const isDark = document.documentElement.classList.contains('dark');
             const moon = document.getElementById('admin-icon-moon');
@@ -173,6 +181,7 @@ while ($row = $treatments_result->fetch_assoc()) {
             if (moon) moon.style.display = isDark ? 'none' : 'inline';
             if (sun) sun.style.display = isDark ? 'inline' : 'none';
         }
+
         function toggleDarkMode() {
             const html = document.documentElement;
             html.classList.toggle('dark');
@@ -181,6 +190,7 @@ while ($row = $treatments_result->fetch_assoc()) {
         }
     </script>
 </head>
+
 <body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <!-- SIDEBAR -->
@@ -191,41 +201,41 @@ while ($row = $treatments_result->fetch_assoc()) {
         <!-- HEADER -->
         <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center">
-                
-                <div>
-            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Treatment Catalog</h2>
-            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Configure medical skincare items, standard pricing, and descriptions.</p>
-                </div>
-    </div>
 
-    <div class="flex items-center space-x-4">
-        <?php include 'header-actions.php'; ?>
-        <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-            <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
-                <?php if ($admin_photo): ?>
-                    <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
-                <?php else: ?>
-                    <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
-                <?php endif; ?>
+                <div>
+                    <h2 class="text-xl font-extrabold text-brand-dark dark:text-white tracking-tight">Treatment Catalog</h2>
+                    <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">Configure medical skincare items, standard pricing, and descriptions.</p>
+                </div>
             </div>
-            <div>
-                <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
-                <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
+
+            <div class="flex items-center space-x-4">
+                <?php include 'header-actions.php'; ?>
+                <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                        <?php if ($admin_photo): ?>
+                            <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                        <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
-</header>
+        </header>
 
         <!-- MAIN -->
         <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
 
             <!-- Message Alert -->
             <?php if ($message): ?>
-            <div class="px-5 py-3.5 rounded-xl border text-sm font-bold flex items-center gap-3 <?php echo $message_type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'; ?>">
-                <i class="fa-solid <?php echo $message_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
-                <span><?php echo htmlspecialchars($message); ?></span>
-                <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+                <div class="px-5 py-3.5 rounded-xl border text-sm font-bold flex items-center gap-3 <?php echo $message_type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'; ?>">
+                    <i class="fa-solid <?php echo $message_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
+                    <span><?php echo htmlspecialchars($message); ?></span>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             <?php endif; ?>
 
             <!-- Summary Stats -->
@@ -286,56 +296,56 @@ while ($row = $treatments_result->fetch_assoc()) {
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($treatments)): ?>
-                            <tr>
-                                <td colspan="5" class="py-12 text-center">
-                                    <div class="text-brand-muted">
-                                        <i class="fa-regular fa-hand-back-fist text-3xl mb-3 block"></i>
-                                        <span class="font-bold text-sm">No treatments found</span>
-                                        <p class="text-[11px] font-medium mt-1">Add a new treatment to get started.</p>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center">
+                                        <div class="text-brand-muted">
+                                            <i class="fa-regular fa-hand-back-fist text-3xl mb-3 block"></i>
+                                            <span class="font-bold text-sm">No treatments found</span>
+                                            <p class="text-[11px] font-medium mt-1">Add a new treatment to get started.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php else: ?>
-                            <?php foreach ($treatments as $treatment): ?>
-                            <tr class="hover:bg-slate-50/60 transition-colors group">
-                                <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <div class="flex items-center space-x-3">
-                                        <?php if (!empty($treatment['image'])): ?>
-                                        <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" class="w-10 h-10 rounded-xl object-cover border border-slate-100">
-                                        <?php else: ?>
-                                        <div class="w-10 h-10 bg-brand-lightPink rounded-xl flex items-center justify-center text-brand-pink text-xs font-bold">
-                                            <i class="fa-solid fa-hand-holding-medical"></i>
-                                        </div>
-                                        <?php endif; ?>
-                                        <div>
-                                            <span class="font-bold text-brand-dark block group-hover:text-brand-pink transition-colors"><?php echo htmlspecialchars($treatment['treatment_name']); ?></span>
-                                            <span class="text-[10px] text-brand-muted block font-medium">ID: #TX-<?php echo str_pad($treatment['id'], 4, '0', STR_PAD_LEFT); ?></span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 max-w-sm">
-                                    <span class="text-slate-500 dark:text-gray-400 line-clamp-2 block">
-                                        <?php echo !empty($treatment['description']) ? htmlspecialchars(substr($treatment['description'], 0, 100)) . (strlen($treatment['description']) > 100 ? '...' : '') : '—'; ?>
-                                    </span>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
-                                    <span class="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
-                                        <i class="fa-regular fa-clock"></i> <?php echo $treatment['duration']; ?> min
-                                    </span>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
-                                    <span class="font-bold text-slate-700 dark:text-gray-300"><?php echo number_format($treatment['price'], 2); ?>MMK</span>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
-                                    <button onclick="openEditModal(<?php echo $treatment['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors" title="Edit Treatment">
-                                        <i class="fa-regular fa-pen-to-square"></i>
-                                    </button>
-                                    <button onclick="confirmDelete(<?php echo $treatment['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors" title="Delete Treatment">
-                                        <i class="fa-regular fa-trash-can"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                                <?php foreach ($treatments as $treatment): ?>
+                                    <tr class="hover:bg-slate-50/60 transition-colors group">
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <?php if (!empty($treatment['image'])): ?>
+                                                    <img src="../<?php echo htmlspecialchars($treatment['image']); ?>" class="w-10 h-10 rounded-xl object-cover border border-slate-100">
+                                                <?php else: ?>
+                                                    <div class="w-10 h-10 bg-brand-lightPink rounded-xl flex items-center justify-center text-brand-pink text-xs font-bold">
+                                                        <i class="fa-solid fa-hand-holding-medical"></i>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <div>
+                                                    <span class="font-bold text-brand-dark block group-hover:text-brand-pink transition-colors"><?php echo htmlspecialchars($treatment['treatment_name']); ?></span>
+                                                    <span class="text-[10px] text-brand-muted block font-medium">ID: #TX-<?php echo str_pad($treatment['id'], 4, '0', STR_PAD_LEFT); ?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 max-w-sm">
+                                            <span class="text-slate-500 dark:text-gray-400 line-clamp-2 block">
+                                                <?php echo !empty($treatment['description']) ? htmlspecialchars(substr($treatment['description'], 0, 100)) . (strlen($treatment['description']) > 100 ? '...' : '') : '—'; ?>
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
+                                            <span class="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 rounded-lg text-[10px] font-bold inline-flex items-center gap-1">
+                                                <i class="fa-regular fa-clock"></i> <?php echo $treatment['duration']; ?> min
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 text-center">
+                                            <span class="font-bold text-slate-700 dark:text-gray-300"><?php echo number_format($treatment['price'], 2); ?>MMK</span>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
+                                            <button onclick="openEditModal(<?php echo $treatment['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors" title="Edit Treatment">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            <button onclick="confirmDelete(<?php echo $treatment['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors" title="Delete Treatment">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -357,26 +367,24 @@ while ($row = $treatments_result->fetch_assoc()) {
             </div>
             <form method="POST" action="treatment.php" enctype="multipart/form-data" class="p-6 space-y-5">
                 <input type="hidden" name="action" value="create">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
-                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Treatment Name <span class="text-red-400">*</span></label>
-                        <input type="text" name="treatment_name" required
-                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
-                    </div>
+
+                <div>
+                    <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Treatment Name <span class="text-red-400">*</span></label>
+                    <input type="text" name="treatment_name" required
+                        class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                 </div>
+
                 <div>
                     <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Description</label>
                     <textarea name="description" rows="3"
                         class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all"></textarea>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Price <span class="text-red-400">*</span></label>
-                        <div class="relative">
-                            <!-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-muted"></span> -->
-                            <input type="number" name="price" step="0.01" min="0" required
-                                class="w-full border border-slate-200 dark:border-gray-700 rounded-xl pl-8 pr-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
-                        </div>
+                        <input type="number" name="price" step="0.01" min="0" required
+                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Duration <span class="text-red-400">*</span></label>
@@ -387,12 +395,13 @@ while ($row = $treatments_result->fetch_assoc()) {
                         </select>
                     </div>
                 </div>
+
                 <div>
                     <label class="text-xs font-bold text-brand-muted uppercase tracking-wider block mb-1.5">Image</label>
-                        <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
-                            class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-pink file:text-white hover:file:bg-brand-pinkHover focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
-                    </div>
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
+                        class="w-full border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-dark dark:text-white dark:bg-gray-900 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-pink file:text-white hover:file:bg-brand-pinkHover focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink outline-none transition-all">
                 </div>
+
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeCreateModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:text-white text-brand-dark text-xs font-bold rounded-xl transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(255,101,132,0.25)]">
@@ -525,4 +534,5 @@ while ($row = $treatments_result->fetch_assoc()) {
     </script>
 
 </body>
+
 </html>

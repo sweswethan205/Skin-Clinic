@@ -91,16 +91,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         }
     }
 
+    // --- AUTO-ASSIGN ROOM ---
+    $assigned_room_id = null;
+    if (empty($errors) && $treatment_id > 0) {
+        // Get available date for this schedule
+        $date_query = $conn->prepare("SELECT available_date FROM schedules WHERE id = ? LIMIT 1");
+        $date_query->bind_param("i", $schedule_id);
+        $date_query->execute();
+        $date_result = $date_query->get_result();
+        $date_row = $date_result->fetch_assoc();
+        $date_query->close();
+        $available_date = $date_row['available_date'] ?? '';
+
+        if (!empty($available_date) && !empty($appointment_start) && !empty($appointment_end)) {
+            // Get active rooms assigned to this treatment (with capacity)
+            $room_query = $conn->prepare(
+                "SELECT r.id, r.capacity FROM rooms r 
+                 JOIN treatment_rooms tr ON tr.room_id = r.id 
+                 WHERE tr.treatment_id = ? AND r.status = 'active' 
+                 ORDER BY r.room_number ASC"
+            );
+            $room_query->bind_param("i", $treatment_id);
+            $room_query->execute();
+            $room_result = $room_query->get_result();
+
+            while ($room_row = $room_result->fetch_assoc()) {
+                $candidate_room_id = $room_row['id'];
+                $room_capacity = intval($room_row['capacity']);
+
+                // Count existing non-cancelled bookings in this room for the overlapping time slot
+                $room_check = $conn->prepare(
+                    "SELECT COUNT(*) AS booked FROM appointments 
+                     WHERE room_id = ? AND status != 'cancelled' 
+                     AND appointment_start < ? AND appointment_end > ? 
+                     AND schedule_id IN (SELECT id FROM schedules WHERE available_date = ?)"
+                );
+                $room_check->bind_param("isss", $candidate_room_id, $appointment_end, $appointment_start, $available_date);
+                $room_check->execute();
+                $room_check_result = $room_check->get_result();
+                $booked_row = $room_check_result->fetch_assoc();
+                $room_check->close();
+
+                $booked_count = intval($booked_row['booked']);
+
+                if ($booked_count < $room_capacity) {
+                    $assigned_room_id = $candidate_room_id;
+                    break;
+                }
+            }
+            $room_query->close();
+        }
+
+        if ($assigned_room_id === null) {
+            $errors[] = 'No treatment rooms are available for this time slot. Please try a different time.';
+        }
+    }
+
     if (empty($errors)) {
         $conn->begin_transaction();
-        $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, payment_method_id, appointment_start, appointment_end, receipt_image, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("iiiisss", $user_id, $treatment_id, $schedule_id, $payment_method_id, $appointment_start, $appointment_end, $receipt_path);
+        $stmt = $conn->prepare("INSERT INTO appointments (user_id, treatment_id, schedule_id, room_id, payment_method_id, appointment_start, appointment_end, receipt_image, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("iiiissss", $user_id, $treatment_id, $schedule_id, $assigned_room_id, $payment_method_id, $appointment_start, $appointment_end, $receipt_path);
         if ($stmt->execute()) {
             $appointment_id = $stmt->insert_id;
             $stmt->close();
 
             $title = 'New Appointment';
-            $msg = "User #$user_id booked appointment #$appointment_id.";
+            $room_label = '';
+            if ($assigned_room_id) {
+                $rm_q = $conn->prepare("SELECT room_name, room_number FROM rooms WHERE id = ? LIMIT 1");
+                $rm_q->bind_param("i", $assigned_room_id);
+                $rm_q->execute();
+                $rm_r = $rm_q->get_result()->fetch_assoc();
+                $rm_q->close();
+                if ($rm_r) $room_label = ' in ' . $rm_r['room_number'] . ' (' . $rm_r['room_name'] . ')';
+            }
+            $msg = "User #$user_id booked appointment #$appointment_id{$room_label}.";
             $target = 'admin';
             $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type, target_role) VALUES (?, ?, ?, ?, 'booking', ?)");
             $notif->bind_param("iisss", $user_id, $appointment_id, $title, $msg, $target);
@@ -305,6 +370,10 @@ if (isset($_SESSION['user_id'])) {
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Total Value</span>
                             <span class="text-sm font-bold text-brand-pink">$<?= isset($booking['price']) ? number_format($booking['price'], 2) : '0.00' ?></span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-400 uppercase tracking-wider font-medium block">Treatment Room</span>
+                            <span class="text-xs font-semibold text-emerald-600"><i class="fa-solid fa-circle-check mr-1 text-[9px]"></i>Auto-assigned at booking</span>
                         </div>
                     </div>
                 </div>

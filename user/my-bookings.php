@@ -20,11 +20,14 @@ $query = "SELECT
             t.treatment_name,
             t.price,
             s.available_date,
-            d.name as doctor_name
+            d.name as doctor_name,
+            r.room_name,
+            r.room_number
           FROM appointments a
           JOIN treatments t ON t.id = a.treatment_id
           JOIN schedules s ON s.id = a.schedule_id
           JOIN doctors d ON d.id = s.doctor_id
+          LEFT JOIN rooms r ON r.id = a.room_id
           WHERE a.user_id = ?
           ORDER BY a.created_at DESC";
 
@@ -154,6 +157,12 @@ $status_colors = [
                                         <i class="fa-solid fa-user-doctor text-brand-pink text-xs"></i>
                                         Dr. <?php echo htmlspecialchars($booking['doctor_name']); ?>
                                     </span>
+                                    <?php if (!empty($booking['room_name'])): ?>
+                                    <span class="flex items-center gap-2">
+                                        <i class="fa-solid fa-door-open text-brand-pink text-xs"></i>
+                                        <?php echo htmlspecialchars($booking['room_number']) . ' - ' . htmlspecialchars($booking['room_name']); ?>
+                                    </span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="text-right">

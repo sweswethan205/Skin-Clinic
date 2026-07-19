@@ -66,13 +66,15 @@ $query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.appointment_st
                  t.treatment_name, t.price, t.duration,
                  d.name AS doctor_name,
                  s.available_date,
-                 pm.method_name AS payment_method
+                 pm.method_name AS payment_method,
+                 r.room_name, r.room_number
           FROM appointments a
           JOIN users u ON u.id = a.user_id
           JOIN treatments t ON t.id = a.treatment_id
           JOIN schedules s ON s.id = a.schedule_id
           JOIN doctors d ON d.id = s.doctor_id
           LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id
+          LEFT JOIN rooms r ON r.id = a.room_id
           WHERE a.status != 'completed'
           ORDER BY a.created_at DESC";
 $result = $conn->query($query);
@@ -220,6 +222,7 @@ foreach ($appointments as $a) {
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Patient</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Treatment</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Doctor</th>
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">Room</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Date & Time</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Payment</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Receipt</th>
@@ -251,6 +254,17 @@ foreach ($appointments as $a) {
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 font-bold dark:text-gray-200"><?= htmlspecialchars($a['treatment_name']) ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="flex items-center gap-1.5 dark:text-gray-300"><i class="fa-solid fa-user-doctor text-brand-muted dark:text-gray-500 text-[11px]"></i>Dr. <?= htmlspecialchars($a['doctor_name']) ?></span>
+                                </td>
+                                <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                    <?php if (!empty($a['room_name'])): ?>
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-dark dark:text-gray-300 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 px-2 py-1 rounded-lg">
+                                            <i class="fa-solid fa-door-open text-brand-muted text-[9px]"></i>
+                                            <?= htmlspecialchars($a['room_number']) ?>
+                                        </span>
+                                        <span class="block text-[10px] text-brand-muted dark:text-gray-500 mt-0.5 font-medium"><?= htmlspecialchars($a['room_name']) ?></span>
+                                    <?php else: ?>
+                                        <span class="text-[10px] text-brand-muted dark:text-gray-500 italic">Unassigned</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="block font-bold dark:text-gray-200"><?= date("d M Y", strtotime($a['available_date'])) ?></span>
@@ -298,7 +312,7 @@ foreach ($appointments as $a) {
                             </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                            <tr><td colspan="9" class="py-8 text-center text-brand-muted dark:text-gray-400">No appointments found.</td></tr>
+                            <tr><td colspan="10" class="py-8 text-center text-brand-muted dark:text-gray-400">No appointments found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

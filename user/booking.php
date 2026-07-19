@@ -93,18 +93,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
     $ts_stmt->execute();
     $ts_result = $ts_stmt->get_result();
 
-    $slots = [];
+        $slots = [];
     while ($ts_row = $ts_result->fetch_assoc()) {
         $slot_start = strtotime($ts_row['slot_time']);
         $slot_end = $slot_start + $duration_seconds;
+        $slot_end_30 = $slot_start + 1800;
 
-        // Check lunch overlap
+        // Check lunch overlap (uses full treatment duration)
         $overlaps_lunch = ($slot_start < $lunch_end && $slot_end > $lunch_start);
 
-        // Check booked appointment overlap
+        // Check booked appointment overlap (30-min slot window)
         $overlaps_booked = false;
         foreach ($booked_ranges as $range) {
-            if ($slot_start < $range['end'] && $slot_end > $range['start']) {
+            if ($slot_start < $range['end'] && $slot_end_30 > $range['start']) {
                 $overlaps_booked = true;
                 break;
             }
@@ -117,7 +118,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
             'display' => date("g:i", $slot_start),
             'duration' => $duration_minutes,
             'slots_to_lock' => $duration_minutes / 30,
-            'locked' => $overlaps_booked
+            'locked' => $overlaps_booked    
         ];
     }
     $ts_stmt->close();

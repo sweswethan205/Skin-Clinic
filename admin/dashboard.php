@@ -33,6 +33,10 @@ if ($result) { $row = $result->fetch_assoc(); $total_doctors = $row['c']; }
 $result = $conn->query("SELECT COUNT(*) AS c FROM treatments");
 if ($result) { $row = $result->fetch_assoc(); $total_treatments = $row['c']; }
 
+$total_rooms = 0;
+$result = $conn->query("SELECT COUNT(*) AS c FROM rooms WHERE status = 'active'");
+if ($result) { $row = $result->fetch_assoc(); $total_rooms = $row['c']; }
+
 // Total revenue (sum of treatment prices for completed/confirmed appointments)
 $total_revenue = 0;
 $rev_result = $conn->query("SELECT COALESCE(SUM(t.price), 0) AS total FROM appointments a JOIN treatments t ON t.id = a.treatment_id WHERE a.status IN ('completed','confirmed')");
@@ -226,7 +230,7 @@ if ($msg_result = $conn->query($msg_query)) {
         <main class="bg-slate-100 dark:bg-gray-950 flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-4 sm:space-y-6">
             
             <!-- GRID LAYER 1: METRIC CARD SYSTEM -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
                 <!-- Total Appointments -->
                 <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-100 dark:border-gray-800 shadow-md hover:shadow-xl flex items-center justify-between">
                     <div class="flex items-center space-x-4">
@@ -290,9 +294,20 @@ if ($msg_result = $conn->query($msg_query)) {
                             <span class="text-[10px] font-medium text-slate-400 block mt-0.5">Active Treatments</span>
                         </div>
                     </div>
-                    <!-- <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50/60 px-2 py-0.5 rounded-md flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-up text-[8px]"></i> 7%
-                    </span> -->
+                </div>
+
+                <!-- Active Rooms -->
+                <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-slate-100 dark:border-gray-800 shadow-md hover:shadow-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-500 text-lg">
+                            <i class="fa-solid fa-door-open"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-medium text-slate-400 block">Active Rooms</span>
+                            <span class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight"><?= $total_rooms ?></span>
+                            <span class="text-[10px] font-medium text-slate-400 block mt-0.5">Treatment Rooms</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Total Revenue -->

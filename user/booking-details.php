@@ -18,12 +18,14 @@ if ($booking_id > 0) {
                 t.treatment_name, t.price, t.description AS treatment_desc,
                 s.available_date,
                 d.name AS doctor_name, d.photo AS doctor_photo, d.description AS doctor_desc,
-                pm.method_name AS payment_method
+                pm.method_name AS payment_method,
+                r.room_name, r.room_number
               FROM appointments a
               JOIN treatments t ON t.id = a.treatment_id
               JOIN schedules s ON s.id = a.schedule_id
               JOIN doctors d ON d.id = s.doctor_id
               LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id
+              LEFT JOIN rooms r ON r.id = a.room_id
               WHERE a.id = ? AND a.user_id = ?
               LIMIT 1";
 
@@ -113,6 +115,12 @@ $status_colors = [
                                     <span class="w-8 h-8 rounded-lg bg-brand-lightPink dark:bg-pink-900/20 flex items-center justify-center text-brand-pink shrink-0"><i class="fa-regular fa-clock"></i></span>
                                     <div><span class="block font-semibold"><?= date('h:i A', strtotime($booking['appointment_start'])) ?> - <?= date('h:i A', strtotime($booking['appointment_end'])) ?></span></div>
                                 </div>
+                                <?php if (!empty($booking['room_name'])): ?>
+                                <div class="flex items-center gap-3 text-sm">
+                                    <span class="w-8 h-8 rounded-lg bg-brand-lightPink dark:bg-pink-900/20 flex items-center justify-center text-brand-pink shrink-0"><i class="fa-solid fa-door-open"></i></span>
+                                    <div><span class="block font-semibold"><?= htmlspecialchars($booking['room_number']) ?> - <?= htmlspecialchars($booking['room_name']) ?></span></div>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
