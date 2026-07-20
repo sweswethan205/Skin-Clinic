@@ -59,7 +59,25 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
-// Fetch appointments
+// Counts by status (all, not paginated)
+$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
+$count_result = $conn->query("SELECT status, COUNT(*) AS cnt FROM appointments WHERE status != 'completed' GROUP BY status");
+if ($count_result) {
+    while ($row = $count_result->fetch_assoc()) {
+        $counts['total'] += $row['cnt'];
+        if (isset($counts[$row['status']])) $counts[$row['status']] = $row['cnt'];
+    }
+}
+
+// Pagination
+$per_page = 15;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$total_rows = $counts['total'];
+$total_pages = max(1, ceil($total_rows / $per_page));
+if ($page > $total_pages) $page = $total_pages;
+$offset = ($page - 1) * $per_page;
+
+// Fetch appointments (paginated)
 $appointments = [];
 $query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.appointment_start, a.appointment_end,
                  u.name AS patient_name,
@@ -76,21 +94,18 @@ $query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.appointment_st
           LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id
           LEFT JOIN rooms r ON r.id = a.room_id
           WHERE a.status != 'completed'
-          ORDER BY a.created_at DESC";
-$result = $conn->query($query);
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
+          ORDER BY a.created_at DESC
+          LIMIT ? OFFSET ?";
+$result = $conn->prepare($query);
+$result->bind_param("ii", $per_page, $offset);
+$result->execute();
+$res = $result->get_result();
+if ($res) {
+    while ($row = $res->fetch_assoc()) {
         $appointments[] = $row;
     }
 }
-
-// Counts by status
-$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
-foreach ($appointments as $a) {
-    $counts['total']++;
-    $s = $a['status'];
-    if (isset($counts[$s])) $counts[$s]++;
-}
+$result->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -319,7 +334,24 @@ foreach ($appointments as $a) {
                 </div>
 
                 <div class="bg-slate-50/50 dark:bg-gray-800 px-6 py-4 border-t border-slate-100 dark:border-gray-700 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                    <span>Showing <?= count($appointments) ?> <?= count($appointments) === 1 ? 'entry' : 'entries' ?></span>
+                    <span>Showing <?= $offset + 1 ?>–<?= min($offset + $per_page, $total_rows) ?> of <?= $total_rows ?> entries</span>
+                    <?php if ($total_pages > 1): ?>
+                    <div class="flex items-center gap-1">
+                        <?php if ($page > 1): ?>
+                        <a href="?page=<?= $page - 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-left text-[10px]"></i></a>
+                        <?php endif; ?>
+                        <?php
+                        $start = max(1, $page - 2);
+                        $end = min($total_pages, $page + 2);
+                        for ($p = $start; $p <= $end; $p++):
+                        ?>
+                        <a href="?page=<?= $p ?>" class="px-3 py-1.5 rounded-lg <?= $p === $page ? 'bg-brand-dark text-white' : 'bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700' ?> transition-colors"><?= $p ?></a>
+                        <?php endfor; ?>
+                        <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?= $page + 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>

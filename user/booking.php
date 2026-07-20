@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include_once '../config/db.php';
+date_default_timezone_set('Asia/Yangon');
 
 // --- 1. HANDLE TIME SLOT AJAX REQUEST (DYNAMIC GENERATION) ---
 if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
@@ -139,14 +140,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
     while ($ts_row = $ts_result->fetch_assoc()) {
         $slot_start = strtotime($ts_row['slot_time']);
         $slot_end = $slot_start + $duration_seconds;
+        $is_today = (date('Y-m-d') === $booking_date);
+        $in_the_past = $is_today && ($slot_start < time());
 
         // Check lunch overlap (full treatment duration)
-        $overlaps_lunch = ($slot_start < $lunch_end && $slot_end > $lunch_start);
+        $overlaps_lunch = ($slot_start >= $lunch_start && $slot_start < $lunch_end);
 
         // Check doctor overlap (full treatment duration)
         $doctor_busy = false;
         foreach ($booked_ranges as $range) {
-            if ($slot_start < $range['end'] && $slot_end > $range['start']) {
+            if ($slot_start <= $range['end'] && $slot_end > $range['start']) {
                 $doctor_busy = true;
                 break;
             }
@@ -161,7 +164,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
                 $existing = $room_bookings[$rid] ?? [];
                 $overlapping = 0;
                 foreach ($existing as $br) {
-                    if ($slot_start < $br['end'] && $slot_end > $br['start']) {
+                    if ($slot_start <= $br['end'] && $slot_end > $br['start']) {
                         $overlapping++;
                     }
                 }
@@ -172,7 +175,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
             }
         }
 
-        $locked = $doctor_busy || $overlaps_lunch || ($available_rooms_count === 0);
+        $locked = $in_the_past || $doctor_busy || $overlaps_lunch || ($available_rooms_count === 0);
 
         $slots[] = [
             'schedule_id' => intval($schedule['schedule_id']),

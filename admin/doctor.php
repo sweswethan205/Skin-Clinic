@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmt->bind_param("sssssissssssi", $name, $email, $hashed_password, $phone, $description, $experience, $photo, $status, $work_start, $work_end, $lunch_start, $lunch_end, $id);
         } else {
             $stmt = $conn->prepare("UPDATE doctors SET name=?, email=?, phone=?, description=?, experience=?, photo=?, status=?, work_start=?, work_end=?, lunch_start=?, lunch_end=? WHERE id=?");
-            $stmt->bind_param("sssisssssssi", $name, $email, $phone, $description, $experience, $photo, $status, $work_start, $work_end, $lunch_start, $lunch_end, $id);
+            $stmt->bind_param("ssssissssssi", $name, $email, $phone, $description, $experience, $photo, $status, $work_start, $work_end, $lunch_start, $lunch_end, $id);
         }
         if ($stmt->execute()) {
             $stmt->close();

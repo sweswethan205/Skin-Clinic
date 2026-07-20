@@ -88,7 +88,7 @@ while ($row = $doctors_result->fetch_assoc()) {
                         <?php if (!empty($doctor['description'])): ?>
                         <div class="space-y-1">
                             <h4 class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Clinical Focus & Biography</h4>
-                            <p class="text-xs text-brand-textMuted leading-relaxed dark:text-gray-400">
+                            <p class="text-sm text-brand-textMuted leading-relaxed dark:text-gray-400">
                                 <?php echo nl2br(htmlspecialchars($doctor['description'])); ?>
                             </p>
                         </div>

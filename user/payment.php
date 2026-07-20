@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         $lock_sched->close();
 
         // Doctor overlap check (inside transaction with lock)
-        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1 FOR UPDATE");
+        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end >= ? LIMIT 1 FOR UPDATE");
         $overlap->bind_param("sss", $schedule_id, $appointment_end, $appointment_start);
         $overlap->execute();
         $overlap_res = $overlap->get_result();
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
                 $room_check = $conn->prepare(
                     "SELECT COUNT(*) AS booked FROM appointments 
                      WHERE room_id = ? AND status != 'cancelled' 
-                     AND appointment_start < ? AND appointment_end > ? 
+                     AND appointment_start < ? AND appointment_end >= ? 
                      AND schedule_id IN (SELECT id FROM schedules WHERE available_date = ?) FOR UPDATE"
                 );
                 $room_check->bind_param("isss", $candidate_room_id, $appointment_end, $appointment_start, $available_date);

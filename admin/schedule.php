@@ -164,23 +164,45 @@ while ($row = $doctors_result->fetch_assoc()) {
     $doctors[] = $row;
 }
 
-// Fetch schedules with doctor name
+// Pagination
 $doctor_filter = isset($_GET['doctor_id']) ? intval($_GET['doctor_id']) : 0;
+$per_page = 15;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+
+// Count total
 if ($doctor_filter > 0) {
-    $sched_stmt = $conn->prepare("SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id WHERE s.doctor_id = ? ORDER BY s.available_date DESC, s.start_time ASC");
-    $sched_stmt->bind_param("i", $doctor_filter);
+    $cnt_stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM schedules s WHERE s.doctor_id = ?");
+    $cnt_stmt->bind_param("i", $doctor_filter);
+    $cnt_stmt->execute();
+    $total_rows = $cnt_stmt->get_result()->fetch_assoc()['cnt'];
+    $cnt_stmt->close();
+} else {
+    $total_rows = $conn->query("SELECT COUNT(*) AS cnt FROM schedules")->fetch_assoc()['cnt'];
+}
+$total_pages = max(1, ceil($total_rows / $per_page));
+if ($page > $total_pages) $page = $total_pages;
+$offset = ($page - 1) * $per_page;
+
+// Fetch schedules with doctor name (paginated)
+if ($doctor_filter > 0) {
+    $sched_stmt = $conn->prepare("SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id WHERE s.doctor_id = ? ORDER BY s.available_date DESC, s.start_time ASC LIMIT ? OFFSET ?");
+    $sched_stmt->bind_param("iii", $doctor_filter, $per_page, $offset);
     $sched_stmt->execute();
     $schedules_result = $sched_stmt->get_result();
 } else {
-    $schedules_result = $conn->query("SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id ORDER BY s.available_date DESC, s.start_time ASC");
+    $sched_stmt = $conn->prepare("SELECT s.*, d.name AS doctor_name FROM schedules s JOIN doctors d ON s.doctor_id = d.id ORDER BY s.available_date DESC, s.start_time ASC LIMIT ? OFFSET ?");
+    $sched_stmt->bind_param("ii", $per_page, $offset);
+    $sched_stmt->execute();
+    $schedules_result = $sched_stmt->get_result();
 }
 $schedules = [];
 while ($row = $schedules_result->fetch_assoc()) {
     $schedules[] = $row;
 }
-if (isset($sched_stmt)) {
-    $sched_stmt->close();
-}
+$sched_stmt->close();
+
+// Stats use totals, not paginated data
+$total_schedules = $total_rows;
 
 // Fetch single schedule for edit modal
 $edit_schedule = null;
@@ -308,7 +330,7 @@ if (isset($_GET['edit'])) {
                     <div class="w-10 h-10 bg-pink-50 dark:bg-pink-900/20 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-calendar-day"></i></div>
                     <div>
                         <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Total Schedules</span>
-                        <span class="text-xl font-extrabold text-brand-dark dark:text-white"><?php echo count($schedules); ?></span>
+                        <span class="text-xl font-extrabold text-brand-dark dark:text-white"><?php echo $total_schedules; ?></span>
                     </div>
                 </div>
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
@@ -324,8 +346,15 @@ if (isset($_GET['edit'])) {
                         <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 uppercase tracking-wider block">Unique Dates</span>
                         <span class="text-xl font-extrabold text-brand-dark dark:text-white">
                             <?php
-                            $unique_dates = array_unique(array_column($schedules, 'available_date'));
-                            echo count($unique_dates);
+                            if ($doctor_filter > 0) {
+                                $ud_stmt = $conn->prepare("SELECT COUNT(DISTINCT s.available_date) AS cnt FROM schedules s WHERE s.doctor_id = ?");
+                                $ud_stmt->bind_param("i", $doctor_filter);
+                                $ud_stmt->execute();
+                                echo $ud_stmt->get_result()->fetch_assoc()['cnt'];
+                                $ud_stmt->close();
+                            } else {
+                                echo $conn->query("SELECT COUNT(DISTINCT available_date) AS cnt FROM schedules")->fetch_assoc()['cnt'];
+                            }
                             ?>
                         </span>
                     </div>
@@ -337,8 +366,16 @@ if (isset($_GET['edit'])) {
                         <span class="text-xl font-extrabold text-brand-dark dark:text-white">
                             <?php
                             $today = date('Y-m-d');
-                            $upcoming = array_filter($schedules, fn($s) => $s['available_date'] >= $today);
-                            echo count($upcoming);
+                            if ($doctor_filter > 0) {
+                                $up_stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM schedules s WHERE s.doctor_id = ? AND s.available_date >= ?");
+                                $up_stmt->bind_param("is", $doctor_filter, $today);
+                                $up_stmt->execute();
+                                echo $up_stmt->get_result()->fetch_assoc()['cnt'];
+                                $up_stmt->close();
+                            } else {
+                                $up_result = $conn->query("SELECT COUNT(*) AS cnt FROM schedules WHERE available_date >= '$today'");
+                                echo $up_result->fetch_assoc()['cnt'];
+                            }
                             ?>
                         </span>
                     </div>
@@ -424,7 +461,27 @@ if (isset($_GET['edit'])) {
                 </div>
 
                 <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-4 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                    <span>Showing <?php echo count($schedules); ?> schedule<?php echo count($schedules) !== 1 ? 's' : ''; ?></span>
+                    <span>Showing <?php echo $offset + 1; ?>–<?php echo min($offset + $per_page, $total_rows); ?> of <?php echo $total_rows; ?> schedule<?php echo $total_rows !== 1 ? 's' : ''; ?></span>
+                    <?php if ($total_pages > 1): ?>
+                    <div class="flex items-center gap-1">
+                        <?php
+                        $page_base = 'schedule.php?' . ($doctor_filter > 0 ? "doctor_id=$doctor_filter&" : '');
+                        ?>
+                        <?php if ($page > 1): ?>
+                        <a href="<?= $page_base ?>page=<?= $page - 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-left text-[10px]"></i></a>
+                        <?php endif; ?>
+                        <?php
+                        $start = max(1, $page - 2);
+                        $end = min($total_pages, $page + 2);
+                        for ($p = $start; $p <= $end; $p++):
+                        ?>
+                        <a href="<?= $page_base ?>page=<?= $p ?>" class="px-3 py-1.5 rounded-lg <?= $p === $page ? 'bg-brand-dark text-white' : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700' ?> transition-colors"><?= $p ?></a>
+                        <?php endfor; ?>
+                        <?php if ($page < $total_pages): ?>
+                        <a href="<?= $page_base ?>page=<?= $page + 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>
