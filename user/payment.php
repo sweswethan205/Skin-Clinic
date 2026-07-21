@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         $lock_sched->close();
 
         // Doctor overlap check (inside transaction with lock)
-        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end >= ? LIMIT 1 FOR UPDATE");
+        $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1 FOR UPDATE");
         $overlap->bind_param("sss", $schedule_id, $appointment_end, $appointment_start);
         $overlap->execute();
         $overlap_res = $overlap->get_result();
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
                 $room_check = $conn->prepare(
                     "SELECT COUNT(*) AS booked FROM appointments 
                      WHERE room_id = ? AND status != 'cancelled' 
-                     AND appointment_start < ? AND appointment_end >= ? 
+                     AND appointment_start < ? AND appointment_end > ? 
                      AND schedule_id IN (SELECT id FROM schedules WHERE available_date = ?) FOR UPDATE"
                 );
                 $room_check->bind_param("isss", $candidate_room_id, $appointment_end, $appointment_start, $available_date);
@@ -487,7 +487,7 @@ if (isset($_SESSION['user_id'])) {
                                 <p class="text-[11px] text-gray-500 font-medium"><span class="text-brand-pink font-semibold">Click to upload</span> or drag and drop</p>
                                 <p class="text-[9px] text-gray-400 mt-0.5">PNG, JPG or JPEG up to 5MB</p>
                             </div>
-                            <input type="file" id="receipt-upload" name="receipt_image" accept="image/*" required class="hidden" />
+                            <input type="file" id="receipt-upload" name="receipt_image" accept="image/*" class="hidden" />
                             <img id="receipt-preview" class="absolute inset-0 w-full h-full object-contain hidden p-4" alt="Receipt Preview">
                         </label>
                     </div>
@@ -521,6 +521,21 @@ if (isset($_SESSION['user_id'])) {
             </div>
         </div>
     </main>
+
+    <div id="receipt-error-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-rose-100 dark:border-rose-800">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+
+            <h3 class="font-serif text-2xl font-bold text-brand-dark dark:text-white mb-2">Receipt Required</h3>
+            <p class="text-xs text-brand-textMuted dark:text-gray-400 mb-6 leading-relaxed">Please upload your payment receipt image to proceed with the booking.</p>
+
+            <button onclick="closeReceiptErrorModal()" class="w-full bg-brand-pink hover:bg-opacity-95 text-white text-xs font-bold tracking-wider uppercase py-3.5 rounded-xl transition">
+                Got It
+            </button>
+        </div>
+    </div>
 
     <div id="success-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
@@ -636,6 +651,12 @@ if (isset($_SESSION['user_id'])) {
             });
 
             paymentForm.addEventListener('submit', (event) => {
+                const receiptInput = document.getElementById('receipt-upload');
+                if (!receiptInput.files || receiptInput.files.length === 0) {
+                    event.preventDefault();
+                    showReceiptErrorModal();
+                    return;
+                }
                 const submitBtn = paymentForm.querySelector('button[type="submit"]');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Processing...';
@@ -649,6 +670,28 @@ if (isset($_SESSION['user_id'])) {
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
         }
+
+        function showReceiptErrorModal() {
+            const modal = document.getElementById('receipt-error-modal');
+            const modalContent = modal.querySelector('.transform');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeReceiptErrorModal() {
+            const modal = document.getElementById('receipt-error-modal');
+            const modalContent = modal.querySelector('.transform');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+        }
+
+        document.getElementById('receipt-error-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeReceiptErrorModal();
+        });
 
         function copyPhoneNumber() {
             const phoneElement = document.getElementById('account-phone');

@@ -42,7 +42,7 @@ $p_res = $conn->query("SELECT id, method_name FROM payment_methods ORDER BY meth
 if ($p_res) while ($r = $p_res->fetch_assoc()) $payments_list[] = $r;
 
 // ===================== APPOINTMENT REPORT =====================
-$apt_where = "WHERE DATE(a.created_at) BETWEEN ? AND ? AND a.status != 'completed'";
+$apt_where = "WHERE DATE(a.created_at) BETWEEN ? AND ?";
 $apt_params = [$filter_from, $filter_to];
 $apt_types = "ss";
 
@@ -63,7 +63,7 @@ if ($filter_status !== '') {
 }
 
 // Appointment counts by status
-$apt_counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
+$apt_counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0, 'completed' => 0];
 $stmt = $conn->prepare("SELECT a.status, COUNT(*) AS cnt FROM appointments a JOIN schedules s ON s.id = a.schedule_id $apt_where GROUP BY a.status");
 $stmt->bind_param($apt_types, ...$apt_params);
 $stmt->execute();
@@ -92,9 +92,20 @@ $res = $stmt->get_result();
 while ($row = $res->fetch_assoc()) $apt_by_day[$row['day']] = (int)$row['cnt'];
 $stmt->close();
 
-// Appointment list
+// Appointment list count + pagination
+$apt_total = 0;
+$apt_per_page = 10;
+$count_stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id JOIN schedules s ON s.id = a.schedule_id JOIN doctors d ON d.id = s.doctor_id $apt_where");
+$count_stmt->bind_param($apt_types, ...$apt_params);
+$count_stmt->execute();
+$apt_total = (int) $count_stmt->get_result()->fetch_assoc()['cnt'];
+$count_stmt->close();
+$apt_total_pages = (int) max(1, ceil($apt_total / $apt_per_page));
+$apt_page = isset($_GET['apt_page']) ? (int) max(1, min((int) $_GET['apt_page'], $apt_total_pages)) : 1;
+$apt_offset = ($apt_page - 1) * $apt_per_page;
+
 $apt_list = [];
-$stmt = $conn->prepare("SELECT a.id, a.status, a.created_at, u.name AS patient_name, t.treatment_name, d.name AS doctor_name, s.available_date, s.start_time FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id JOIN schedules s ON s.id = a.schedule_id JOIN doctors d ON d.id = s.doctor_id $apt_where ORDER BY a.created_at DESC");
+$stmt = $conn->prepare("SELECT a.id, a.status, a.created_at, u.name AS patient_name, t.treatment_name, d.name AS doctor_name, s.available_date, s.start_time FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id JOIN schedules s ON s.id = a.schedule_id JOIN doctors d ON d.id = s.doctor_id $apt_where ORDER BY a.created_at DESC LIMIT $apt_per_page OFFSET $apt_offset");
 $stmt->bind_param($apt_types, ...$apt_params);
 $stmt->execute();
 $res = $stmt->get_result();
@@ -153,9 +164,20 @@ $res = $stmt->get_result();
 while ($row = $res->fetch_assoc()) $rev_by_day[] = $row;
 $stmt->close();
 
-// Revenue detail list
+// Revenue detail list count + pagination
+$rev_detail_total = 0;
+$rev_detail_per_page = 10;
+$count_stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id $rev_where");
+$count_stmt->bind_param($rev_types, ...$rev_params);
+$count_stmt->execute();
+$rev_detail_total = (int) $count_stmt->get_result()->fetch_assoc()['cnt'];
+$count_stmt->close();
+$rev_detail_total_pages = (int) max(1, ceil($rev_detail_total / $rev_detail_per_page));
+$rev_detail_page = isset($_GET['rev_page']) ? (int) max(1, min((int) $_GET['rev_page'], $rev_detail_total_pages)) : 1;
+$rev_detail_offset = ($rev_detail_page - 1) * $rev_detail_per_page;
+
 $rev_detail = [];
-$stmt = $conn->prepare("SELECT a.created_at, u.name AS patient_name, t.treatment_name, t.price, COALESCE(pm.method_name, 'N/A') AS payment_method, a.status FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id $rev_where ORDER BY a.created_at DESC");
+$stmt = $conn->prepare("SELECT a.created_at, u.name AS patient_name, t.treatment_name, t.price, COALESCE(pm.method_name, 'N/A') AS payment_method, a.status FROM appointments a JOIN users u ON u.id = a.user_id JOIN treatments t ON t.id = a.treatment_id LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id $rev_where ORDER BY a.created_at DESC LIMIT $rev_detail_per_page OFFSET $rev_detail_offset");
 $stmt->bind_param($rev_types, ...$rev_params);
 $stmt->execute();
 $res = $stmt->get_result();
@@ -369,6 +391,7 @@ function build_filter_qs($overrides = [])
                                 <option value="pending" <?= $filter_status === 'pending' ? 'selected' : '' ?>>Pending</option>
                                 <option value="confirmed" <?= $filter_status === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
                                 <option value="cancelled" <?= $filter_status === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                <option value="completed" <?= $filter_status === 'completed' ? 'selected' : '' ?>>Completed</option>
                             </select>
                         </div>
                         <div class="flex gap-2">
@@ -381,7 +404,7 @@ function build_filter_qs($overrides = [])
                 <div id="apt-print-area" class="space-y-6">
 
                     <!-- Summary Cards -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                         <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
                             <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-list-check text-sm"></i></div>
                             <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Total</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['total'] ?></span></div>
@@ -398,6 +421,10 @@ function build_filter_qs($overrides = [])
                             <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center justify-center text-rose-500"><i class="fa-solid fa-ban text-sm"></i></div>
                             <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Cancelled</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['cancelled'] ?></span></div>
                         </div>
+                        <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                            <div><span class="text-[10px] text-brand-muted dark:text-gray-400 font-medium block">Completed</span><span class="text-xl font-extrabold text-brand-dark dark:text-white"><?= $apt_counts['completed'] ?></span></div>
+                        </div>
                     </div>
 
                     <!-- Charts Row -->
@@ -407,13 +434,13 @@ function build_filter_qs($overrides = [])
                         <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                             <h3 class="text-sm font-bold text-brand-dark dark:text-white mb-4">Appointments by Status</h3>
                             <?php
-                            $status_labels = ['Pending', 'Confirmed', 'Cancelled'];
-                            $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['cancelled']];
-                            $status_colors = ['#3B82F6', '#10B981', '#F43F5E'];
+                            $status_labels = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
+                            $status_values = [$apt_counts['pending'], $apt_counts['confirmed'], $apt_counts['cancelled'], $apt_counts['completed']];
+                            $status_colors = ['#3B82F6', '#10B981', '#F43F5E', '#64748B'];
                             $bar_max = max(array_merge($status_values, [1]));
                             ?>
                             <div class="space-y-3">
-                                <?php for ($i = 0; $i < 3; $i++): ?>
+                                <?php for ($i = 0; $i < 4; $i++): ?>
                                     <div class="flex items-center gap-3">
                                         <span class="text-[10px] font-bold text-brand-muted dark:text-gray-400 w-20 text-right"><?= $status_labels[$i] ?></span>
                                         <div class="flex-grow bg-slate-100 dark:bg-gray-800 rounded-full h-6 overflow-hidden">
@@ -533,6 +560,7 @@ function build_filter_qs($overrides = [])
                                                 'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
                                                 'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
                                                 'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
+                                                'completed' => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700',
                                                 default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
                                             };
                                         ?>
@@ -556,8 +584,21 @@ function build_filter_qs($overrides = [])
                                 </tbody>
                             </table>
                         </div>
-                        <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                            Showing <?= count($apt_list) ?> <?= count($apt_list) === 1 ? 'record' : 'records' ?>
+                        <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 text-xs text-brand-muted dark:text-gray-400 font-semibold flex items-center justify-between">
+                            <span>Showing <?= $apt_offset + 1 ?>-<?= min($apt_offset + $apt_per_page, $apt_total) ?> of <?= $apt_total ?> records</span>
+                            <?php if ($apt_total_pages > 1): ?>
+                            <div class="flex items-center gap-1">
+                                <?php if ($apt_page > 1): ?>
+                                    <a href="?<?= http_build_query(array_merge($_GET, ['apt_page' => $apt_page - 1])) ?>" class="px-2 py-1 rounded bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-brand-pink hover:text-white hover:border-brand-pink transition font-bold">&laquo;</a>
+                                <?php endif; ?>
+                                <?php for ($p = 1; $p <= $apt_total_pages; $p++): ?>
+                                    <a href="?<?= http_build_query(array_merge($_GET, ['apt_page' => $p])) ?>" class="px-2 py-1 rounded border font-bold transition <?= $p === $apt_page ? 'bg-brand-pink text-white border-brand-pink' : 'bg-white dark:bg-gray-800 border-slate-200 dark:border-gray-700 hover:bg-brand-pink hover:text-white hover:border-brand-pink' ?>"><?= $p ?></a>
+                                <?php endfor; ?>
+                                <?php if ($apt_page < $apt_total_pages): ?>
+                                    <a href="?<?= http_build_query(array_merge($_GET, ['apt_page' => $apt_page + 1])) ?>" class="px-2 py-1 rounded bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-brand-pink hover:text-white hover:border-brand-pink transition font-bold">&raquo;</a>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -748,8 +789,21 @@ function build_filter_qs($overrides = [])
                             </table>
                         </div>
                         <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                            <span>Showing <?= count($rev_detail) ?> <?= count($rev_detail) === 1 ? 'record' : 'records' ?></span>
-                            <span class="font-extrabold text-brand-dark dark:text-white">Total: <?= number_format($rev_total, 0) ?> MMK</span>
+                            <span>Showing <?= $rev_detail_offset + 1 ?>-<?= min($rev_detail_offset + $rev_detail_per_page, $rev_detail_total) ?> of <?= $rev_detail_total ?> records</span>
+                            <div class="flex items-center gap-1">
+                                <span class="font-extrabold text-brand-dark dark:text-white mr-2">Total: <?= number_format($rev_total, 0) ?> MMK</span>
+                                <?php if ($rev_detail_total_pages > 1): ?>
+                                    <?php if ($rev_detail_page > 1): ?>
+                                        <a href="?<?= http_build_query(array_merge($_GET, ['rev_page' => $rev_detail_page - 1])) ?>" class="px-2 py-1 rounded bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-brand-pink hover:text-white hover:border-brand-pink transition font-bold">&laquo;</a>
+                                    <?php endif; ?>
+                                    <?php for ($p = 1; $p <= $rev_detail_total_pages; $p++): ?>
+                                        <a href="?<?= http_build_query(array_merge($_GET, ['rev_page' => $p])) ?>" class="px-2 py-1 rounded border font-bold transition <?= $p === $rev_detail_page ? 'bg-brand-pink text-white border-brand-pink' : 'bg-white dark:bg-gray-800 border-slate-200 dark:border-gray-700 hover:bg-brand-pink hover:text-white hover:border-brand-pink' ?>"><?= $p ?></a>
+                                    <?php endfor; ?>
+                                    <?php if ($rev_detail_page < $rev_detail_total_pages): ?>
+                                        <a href="?<?= http_build_query(array_merge($_GET, ['rev_page' => $rev_detail_page + 1])) ?>" class="px-2 py-1 rounded bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-brand-pink hover:text-white hover:border-brand-pink transition font-bold">&raquo;</a>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
 

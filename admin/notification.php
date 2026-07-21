@@ -40,6 +40,15 @@ $sql = "SELECT n.*,
         WHERE n.target_role = 'admin'
         ORDER BY n.created_at DESC";
 
+$count_sql = "SELECT COUNT(*) AS cnt FROM notifications n WHERE n.target_role = 'admin'";
+$count_result = $conn->query($count_sql);
+$total_items = (int) $count_result->fetch_assoc()['cnt'];
+$per_page = 10;
+$total_pages = (int) max(1, ceil($total_items / $per_page));
+$current_page = isset($_GET['page']) ? (int) max(1, min((int) $_GET['page'], $total_pages)) : 1;
+$offset = ($current_page - 1) * $per_page;
+
+$sql .= " LIMIT $per_page OFFSET $offset";
 $result = $conn->query($sql);
 ?>
 
@@ -93,6 +102,7 @@ $result = $conn->query($sql);
             }
             updateIcons();
         })();
+
         function updateIcons() {
             const isDark = document.documentElement.classList.contains('dark');
             const moon = document.getElementById('admin-icon-moon');
@@ -100,6 +110,7 @@ $result = $conn->query($sql);
             if (moon) moon.style.display = isDark ? 'none' : 'inline';
             if (sun) sun.style.display = isDark ? 'inline' : 'none';
         }
+
         function toggleDarkMode() {
             const html = document.documentElement;
             html.classList.toggle('dark');
@@ -144,85 +155,109 @@ $result = $conn->query($sql);
 
             <div class="p-4 sm:p-6 lg:p-8">
 
-            <!-- NOTIFICATION LIST -->
-            <div class="bg-white dark:bg-gray-900 rounded-2xl shadow border border-slate-100 dark:border-gray-800 overflow-hidden">
+                <!-- NOTIFICATION LIST -->
+                <div class="bg-white dark:bg-gray-900 rounded-2xl shadow border border-slate-100 dark:border-gray-800 overflow-hidden">
 
-                <table class="w-full text-sm">
-                    <thead class="bg-slate-100 dark:bg-gray-950 text-slate-600 dark:text-gray-300">
-                        <tr>
-                            <th class="p-3 text-left">Type</th>
-                            <th class="p-3 text-left">Message</th>
-                            <th class="p-3 text-left">User</th>
-                            <th class="p-3 text-left">Status</th>
-                            <th class="p-3 text-left">Date</th>
-                            <th class="p-3 text-center">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()):
-                            $type_colors = [
-                                'booking' => 'bg-blue-100 text-blue-600',
-                                'contact' => 'bg-amber-100 text-amber-600',
-                                'review' => 'bg-purple-100 text-purple-600',
-                                'status' => 'bg-emerald-100 text-emerald-600',
-                            ];
-                            $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600 dark:text-gray-300';
-                        ?>
-                            <tr class="border-b dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-gray-800">
-
-                                <td class="p-3">
-                                    <span class="px-2 py-1 text-xs font-bold rounded-full <?= $type_color ?>"><?= ucfirst($row['type']) ?></span>
-                                </td>
-
-                                <td class="p-3">
-                                    <div class="font-medium text-slate-800 dark:text-white">
-                                        <?= htmlspecialchars($row['title']) ?>
-                                    </div>
-                                    <div class="text-xs text-slate-500 dark:text-gray-400">
-                                        <?= htmlspecialchars($row['message']) ?>
-                                    </div>
-                                </td>
-
-                                <td class="p-3 text-slate-600 dark:text-gray-300">
-                                    <?= $row['user_name'] ?? 'Guest' ?>
-                                </td>
-
-                                <td class="p-3">
-                                    <?php if ($row['is_read'] == 0): ?>
-                                        <span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">Unread</span>
-                                    <?php else: ?>
-                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-600 rounded-full">Read</span>
-                                    <?php endif; ?>
-                                </td>
-
-                                <td class="p-3 text-xs text-slate-500 dark:text-gray-400">
-                                    <?= date('Y-m-d H:i', strtotime($row['created_at'])) ?>
-                                </td>
-
-                                <td class="p-3 text-center space-x-2">
-
-                                    <?php if ($row['is_read'] == 0): ?>
-                                        <a href="?read_id=<?= $row['id'] ?>"
-                                            class="text-blue-500 hover:underline text-xs">
-                                            Mark Read
-                                        </a>
-                                    <?php endif; ?>
-
-                                    <a href="?delete_id=<?= $row['id'] ?>"
-                                        onclick="return confirm('Delete this notification?')"
-                                        class="text-red-500 hover:underline text-xs">
-                                        Delete
-                                    </a>
-
-                                </td>
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-100 dark:bg-gray-950 text-slate-600 dark:text-gray-300">
+                            <tr>
+                                <th class="p-3 text-left">#</th>
+                                <th class="p-3 text-left">Type</th>
+                                <th class="p-3 text-left">Message</th>
+                                <th class="p-3 text-left">User</th>
+                                <th class="p-3 text-left">Status</th>
+                                <th class="p-3 text-left">Date</th>
+                                <th class="p-3 text-center">Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
+                        </thead>
 
-                </table>
+                        <tbody>
+                            <?php $i = $offset + 1; while ($row = $result->fetch_assoc()):
+                                $type_colors = [
+                                    'booking' => 'bg-blue-100 text-blue-600',
+                                    'contact' => 'bg-amber-100 text-amber-600',
+                                    'review' => 'bg-purple-100 text-purple-600',
+                                    'status' => 'bg-emerald-100 text-emerald-600',
+                                ];
+                                $type_color = $type_colors[$row['type']] ?? 'bg-slate-100 text-slate-600 dark:text-gray-300';
+                            ?>
+                                <tr class="border-b dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-gray-800">
 
-            </div>
+                                    <td class="p-3 text-slate-500 dark:text-gray-400"><?= $i++ ?></td>
+
+                                    <td class="p-3">
+                                        <span class="px-2 py-1 text-xs font-bold rounded-full <?= $type_color ?>"><?= ucfirst($row['type']) ?></span>
+                                    </td>
+
+                                    <td class="p-3">
+                                        <div class="font-medium text-slate-800 dark:text-white">
+                                            <?= htmlspecialchars($row['title']) ?>
+                                        </div>
+                                        <div class="text-xs text-slate-500 dark:text-gray-400">
+                                            <?= htmlspecialchars($row['message']) ?>
+                                        </div>
+                                    </td>
+
+                                    <td class="p-3 text-slate-600 dark:text-gray-300">
+                                        <?= $row['user_name'] ?? 'Guest' ?>
+                                    </td>
+
+                                    <td class="p-3">
+                                        <?php if ($row['is_read'] == 0): ?>
+                                            <span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">Unread</span>
+                                        <?php else: ?>
+                                            <span class="px-2 py-1 text-xs bg-green-100 text-green-600 rounded-full">Read</span>
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <td class="p-3 text-xs text-slate-500 dark:text-gray-400">
+                                        <?= date('Y-m-d H:i', strtotime($row['created_at'])) ?>
+                                    </td>
+
+                                    <td class="p-3 text-center space-x-2">
+
+                                        <?php if ($row['is_read'] == 0): ?>
+                                            <a href="?read_id=<?= $row['id'] ?>"
+                                                class="text-blue-500 hover:underline text-xs">
+                                                Mark Read
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <a href="?delete_id=<?= $row['id'] ?>"
+                                            onclick="return confirm('Delete this notification?')"
+                                            class="text-red-500 hover:underline text-xs">
+                                            Delete
+                                        </a>
+
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                    <div class="mt-4 flex items-center justify-center gap-1 text-xs font-semibold">
+                        <?php if ((int)$current_page > 1): ?>
+                            <a href="?page=<?= (int)$current_page - 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 hover:bg-brand-pink hover:text-white hover:border-brand-pink transition font-bold">&laquo;</a>
+                        <?php endif; ?>
+
+                        <?php for ($p = 1; $p <= $total_pages; $p++): ?>
+                            <?php $is_active = ((int)$p === (int)$current_page); ?>
+                            <a href="?page=<?= $p ?>"
+                                class="px-3 py-1.5 rounded-lg border font-bold transition <?= $is_active ? 'bg-brand-pink text-white border-brand-pink' : 'bg-white dark:bg-gray-800 border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 hover:bg-brand-pink hover:text-white hover:border-brand-pink' ?>">
+                                <?= $p ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if ((int)$current_page < (int)$total_pages): ?>
+                            <a href="?page=<?= (int)$current_page + 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 hover:bg-brand-pink hover:text-white hover:border-brand-pink transition font-bold">&raquo;</a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
 
             </div>
         </div>

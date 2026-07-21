@@ -287,6 +287,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-300">
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Treatment</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Description</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6 text-center">Duration</th>
@@ -297,7 +298,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                         <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($treatments)): ?>
                                 <tr>
-                                    <td colspan="5" class="py-12 text-center">
+                                    <td colspan="6" class="py-12 text-center">
                                         <div class="text-brand-muted">
                                             <i class="fa-regular fa-hand-back-fist text-3xl mb-3 block"></i>
                                             <span class="font-bold text-sm">No treatments found</span>

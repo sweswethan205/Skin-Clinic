@@ -93,7 +93,7 @@ if (isset($_SESSION['user_id'])) {
 
 //Review
 // Fetch approved reviews from database
-$reviews_query = "SELECT name, rating, review_text, created_at FROM testimonials WHERE status = 'approved' ORDER BY created_at DESC";
+$reviews_query = "SELECT t.name, t.rating, t.review_text, t.created_at, u.photo FROM testimonials t LEFT JOIN users u ON u.id = t.user_id WHERE t.status = 'approved' ORDER BY t.created_at DESC";
 $reviews_result = $conn->query($reviews_query);
 $reviews = [];
 if ($reviews_result && $reviews_result->num_rows > 0) {
@@ -102,33 +102,86 @@ if ($reviews_result && $reviews_result->num_rows > 0) {
     }
 }
 
-$notification = ''; // Variable to hold success/error alerts
+$notification = '';
+$user_id_index = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+$eligible_appointments = [];
 
-// 🚀 1. BACKEND PROCESSING: Run this ONLY when the form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $rating = intval($_POST['rating']);
-    $review_text = mysqli_real_escape_string($conn, $_POST['review_text']);
-    
-    // Check if the user is logged in, otherwise set to database NULL
-    $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : "NULL";
+if ($user_id_index) {
+    $uid = intval($user_id_index);
+    $stmt = $conn->prepare("
+        SELECT a.id, a.appointment_start, a.appointment_end, a.status, a.created_at,
+               t.treatment_name, s.available_date, d.name AS doctor_name
+        FROM appointments a
+        JOIN treatments t ON t.id = a.treatment_id
+        JOIN schedules s ON s.id = a.schedule_id
+        JOIN doctors d ON d.id = s.doctor_id
+        WHERE a.user_id = ?
+        AND a.status IN ('confirmed', 'completed')
+        AND a.id NOT IN (SELECT appointment_id FROM testimonials WHERE appointment_id IS NOT NULL AND user_id = ?)
+        ORDER BY s.available_date DESC
+    ");
+    $stmt->bind_param("ii", $uid, $uid);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $eligible_appointments[] = $row;
+    }
+    $stmt->close();
+}
 
-    // Insert review as 'pending' so admin can review it first
-    $query = "INSERT INTO testimonials (user_id, name, rating, review_text, status) 
-              VALUES ($user_id, '$name', $rating, '$review_text', 'pending')";
-
-    if ($conn->query($query)) {
-        $notif_title = 'New Review';
-        $notif_msg = "$name submitted a $rating-star review: " . substr($review_text, 0, 50) . (strlen($review_text) > 50 ? '...' : '');
-        $nid = ($user_id !== "NULL") ? intval($user_id) : 0;
-        $target = 'admin';
-        $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type, target_role) VALUES (?, ?, ?, 'review', ?)");
-        $nstmt->bind_param("isss", $nid, $notif_title, $notif_msg, $target);
-        $nstmt->execute();
-        $nstmt->close();
-        $notification = 'success';
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['review_text']) && !isset($_POST['message_text'])) {
+    if (!$user_id_index) {
+        $notification = 'login_required';
     } else {
-        $notification = 'error';
+        $name = mysqli_real_escape_string($conn, $_POST['name']);
+        $rating = intval($_POST['rating']);
+        $review_text = mysqli_real_escape_string($conn, $_POST['review_text']);
+        $appointment_id = intval($_POST['appointment_id']);
+        $uid = intval($user_id_index);
+
+        $check = $conn->prepare("SELECT id FROM appointments WHERE id = ? AND user_id = ? AND status IN ('confirmed', 'completed')");
+        $check->bind_param("ii", $appointment_id, $uid);
+        $check->execute();
+        $check_result = $check->get_result();
+        $valid_appointment = $check_result->fetch_assoc();
+        $check->close();
+
+        if (!$valid_appointment) {
+            $notification = 'invalid_appointment';
+        } else {
+            $dup = $conn->prepare("SELECT id FROM testimonials WHERE appointment_id = ? AND user_id = ?");
+            $dup->bind_param("ii", $appointment_id, $uid);
+            $dup->execute();
+            $dup_result = $dup->get_result();
+            $already_reviewed = $dup_result->fetch_assoc();
+            $dup->close();
+
+            if ($already_reviewed) {
+                $notification = 'already_reviewed';
+            } else {
+                $insert = $conn->prepare("INSERT INTO testimonials (user_id, name, rating, review_text, appointment_id, status) VALUES (?, ?, ?, ?, ?, 'pending')");
+                $insert->bind_param("isisi", $uid, $name, $rating, $review_text, $appointment_id);
+
+                if ($insert->execute()) {
+                    $notif_title = 'New Review';
+                    $notif_msg = "$name submitted a $rating-star review: " . substr($review_text, 0, 50) . (strlen($review_text) > 50 ? '...' : '');
+                    $nid = intval($user_id_index);
+                    $target = 'admin';
+                    $nstmt = $conn->prepare("INSERT INTO notifications (user_id, title, message, type, target_role) VALUES (?, ?, ?, 'review', ?)");
+                    $nstmt->bind_param("isss", $nid, $notif_title, $notif_msg, $target);
+                    $nstmt->execute();
+                    $nstmt->close();
+                    $notification = 'success';
+
+                    $eligible_appointments = array_filter($eligible_appointments, function ($a) use ($appointment_id) {
+                        return intval($a['id']) !== $appointment_id;
+                    });
+                } else {
+                    $notification = 'error';
+                }
+                $insert->close();
+            }
+        }
     }
 }
 
@@ -397,8 +450,12 @@ while ($row = $treatments_result->fetch_assoc()) {
                             <!-- Specified definitive dimensions explicitly to ensure consistency -->
                             <div class="w-72 sm:w-80 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs space-y-3 flex-shrink-0">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 rounded-full bg-[#FF6584]/20 flex items-center justify-center text-[#FF6584] text-xs font-bold">
-                                        <?= strtoupper(substr($review['name'], 0, 1)) ?>
+                                    <div class="w-8 h-8 rounded-full bg-[#FF6584]/20 flex items-center justify-center text-[#FF6584] text-xs font-bold overflow-hidden flex-shrink-0">
+                                        <?php if (!empty($review['photo'])): ?>
+                                            <img src="../<?= htmlspecialchars($review['photo']) ?>" alt="Avatar" class="w-full h-full object-cover">
+                                        <?php else: ?>
+                                            <?= strtoupper(substr($review['name'], 0, 1)) ?>
+                                        <?php endif; ?>
                                     </div>
                                     <div>
                                         <h4 class="font-semibold text-sm text-slate-800 dark:text-white"><?= htmlspecialchars($review['name']) ?></h4>
@@ -446,31 +503,71 @@ while ($row = $treatments_result->fetch_assoc()) {
                 
                 <?php if($notification === 'success'): ?>
                     <div class="bg-emerald-50 text-emerald-600 border border-emerald-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
-                        🎉 Thank you! Your review has been submitted for approval.
+                        Thank you! Your review has been submitted for approval.
                     </div>
                 <?php elseif($notification === 'error'): ?>
                     <div class="bg-rose-50 text-rose-600 border border-rose-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
-                        ❌ Something went wrong. Please try again.
+                        Something went wrong. Please try again.
+                    </div>
+                <?php elseif($notification === 'login_required'): ?>
+                    <div class="bg-amber-50 text-amber-600 border border-amber-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
+                        Please log in to leave a review after your appointment.
+                    </div>
+                <?php elseif($notification === 'invalid_appointment'): ?>
+                    <div class="bg-rose-50 text-rose-600 border border-rose-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
+                        Invalid appointment selected. Please choose a valid confirmed or completed appointment.
+                    </div>
+                <?php elseif($notification === 'already_reviewed'): ?>
+                    <div class="bg-amber-50 text-amber-600 border border-amber-100 p-3 rounded-xl text-xs font-medium text-center mb-4">
+                        You have already reviewed this appointment. Each appointment allows only one review.
                     </div>
                 <?php endif; ?>
 
+                <?php if(!$user_id_index): ?>
+                    <div class="text-center py-6">
+                        <div class="w-14 h-14 bg-[#FFF0F2] rounded-2xl flex items-center justify-center text-[#FF6584] text-xl mx-auto mb-4">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Please log in to leave a review after your appointment.</p>
+                        <a href="../auth/re.php" class="inline-block bg-[#FF6584] hover:bg-[#ff4d70] text-white font-bold text-[11px] tracking-wider uppercase px-7 py-3.5 rounded-xl shadow-md shadow-pink-500/10 transition-all">
+                            Log In
+                        </a>
+                    </div>
+                <?php elseif(empty($eligible_appointments)): ?>
+                    <div class="text-center py-6">
+                        <div class="w-14 h-14 bg-[#FFF0F2] rounded-2xl flex items-center justify-center text-[#FF6584] text-xl mx-auto mb-4">
+                            <i class="fa-regular fa-calendar-check"></i>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">No confirmed or completed appointments available for review.</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500">You can leave a review once your appointment is completed and hasn't been reviewed yet.</p>
+                    </div>
+                <?php else: ?>
                 <form action="" method="POST" class="space-y-5">
                     
-                    <!-- Dual Field Row (Name & Rating selection alignment) -->
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Select Appointment</label>
+                        <select name="appointment_id" required
+                            class="w-full px-4 py-3 text-xs font-medium bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[#FF6584] transition-all dark:text-gray-200">
+                            <option value="">-- Choose an appointment --</option>
+                            <?php foreach ($eligible_appointments as $apt): ?>
+                                <option value="<?= intval($apt['id']) ?>">
+                                    <?= htmlspecialchars($apt['treatment_name']) ?> with Dr. <?= htmlspecialchars($apt['doctor_name']) ?> on <?= date('M d, Y', strtotime($apt['available_date'])) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         
-                        <!-- Name input row -->
                         <div class="sm:col-span-7 space-y-1.5">
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Name</label>
                             <input type="text" name="name" required value="<?= htmlspecialchars($user_name) ?>" placeholder="Swe Swe" 
                                    class="w-full px-4 py-3 text-xs font-medium bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[#FF6584] transition-all dark:text-gray-200">
                         </div>
 
-                        <!-- Rating stars field align right stack -->
                         <div class="sm:col-span-5 space-y-1.5">
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Rating</label>
                             
-                            <!-- Star visual markup grid stack reverse list orientation -->
                             <div class="flex flex-row-reverse justify-end items-center gap-1 text-2xl text-gray-200 py-1">
                                 
                                 <input type="radio" id="star5" name="rating" value="5" class="peer hidden" required />
@@ -502,14 +599,12 @@ while ($row = $treatments_result->fetch_assoc()) {
                         </div>
                     </div>
 
-                    <!-- Textarea submission row wrapper box -->
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Review</label>
                         <textarea name="review_text" rows="4" required placeholder="How was your clinic visit or your treatment results? Tell us..." 
                                   class="w-full px-4 py-3 text-xs font-medium bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[#FF6584] resize-none transition-all leading-relaxed dark:text-gray-200"></textarea>
                     </div>
 
-                    <!-- Action interaction bottom row positioning -->
                     <div class="flex justify-end pt-2">
                         <button type="submit" 
                                 class="bg-[#FF6584] hover:bg-[#ff4d70] text-white font-bold text-[11px] tracking-wider uppercase px-7 py-3.5 rounded-xl shadow-md shadow-pink-500/10 transition-all transform active:scale-[0.98]">
@@ -517,6 +612,7 @@ while ($row = $treatments_result->fetch_assoc()) {
                         </button>
                     </div>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
     </section>

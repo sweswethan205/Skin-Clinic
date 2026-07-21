@@ -48,7 +48,15 @@ if (isset($_GET['msg'])) {
     $message_type = $_GET['type'] ?? 'success';
 }
 
-$testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+$all_testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+
+$total_rows = count($all_testimonials);
+$per_page = 10;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$total_pages = max(1, ceil($total_rows / $per_page));
+if ($page > $total_pages) $page = $total_pages;
+$offset = ($page - 1) * $per_page;
+$testimonials = array_slice($all_testimonials, $offset, $per_page);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -143,10 +151,10 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
 
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
                 <?php
-                $total = count($testimonials);
-                $pending = count(array_filter($testimonials, fn($t) => $t['status'] === 'pending'));
-                $approved = count(array_filter($testimonials, fn($t) => $t['status'] === 'approved'));
-                $rejected = count(array_filter($testimonials, fn($t) => $t['status'] === 'rejected'));
+                $total = count($all_testimonials);
+                $pending = count(array_filter($all_testimonials, fn($t) => $t['status'] === 'pending'));
+                $approved = count(array_filter($all_testimonials, fn($t) => $t['status'] === 'approved'));
+                $rejected = count(array_filter($all_testimonials, fn($t) => $t['status'] === 'rejected'));
                 ?>
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-regular fa-comment-dots"></i></div>
@@ -171,6 +179,7 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted">
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Patient</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Rating</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Review</th>
@@ -182,7 +191,7 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                         <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($testimonials)): ?>
                             <tr>
-                                <td colspan="6" class="py-12 text-center">
+                                <td colspan="7" class="py-12 text-center">
                                     <div class="text-brand-muted">
                                         <i class="fa-regular fa-comment-dots text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No testimonials yet</span>
@@ -191,8 +200,9 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                                 </td>
                             </tr>
                             <?php else: ?>
-                            <?php foreach ($testimonials as $t): ?>
+                            <?php $i = $offset + 1; foreach ($testimonials as $t): ?>
                             <tr class="hover:bg-slate-50/60 transition-colors">
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= $i++ ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-9 h-9 rounded-full bg-brand-lightPink flex items-center justify-center text-brand-pink text-xs font-bold">
@@ -203,8 +213,8 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center gap-0.5 text-amber-400 text-xs">
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <i class="fa-solid fa-star <?php echo $i <= $t['rating'] ? '' : 'text-slate-200'; ?>"></i>
+                                        <?php for ($s = 1; $s <= 5; $s++): ?>
+                                            <i class="fa-solid fa-star <?php echo $s <= $t['rating'] ? '' : 'text-slate-200'; ?>"></i>
                                         <?php endfor; ?>
                                     </div>
                                 </td>
@@ -244,7 +254,24 @@ $testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DES
                     </table>
                 </div>
                 <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-4 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted font-semibold">
-                    <span>Showing <?php echo count($testimonials); ?> testimonial<?php echo count($testimonials) !== 1 ? 's' : ''; ?></span>
+                    <span>Showing <?= $offset + 1 ?>–<?= min($offset + $per_page, $total_rows) ?> of <?= $total_rows ?> testimonials</span>
+                    <?php if ($total_pages > 1): ?>
+                    <div class="flex items-center gap-1">
+                        <?php if ($page > 1): ?>
+                        <a href="?page=<?= $page - 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-left text-[10px]"></i></a>
+                        <?php endif; ?>
+                        <?php
+                        $start = max(1, $page - 2);
+                        $end = min($total_pages, $page + 2);
+                        for ($p = $start; $p <= $end; $p++):
+                        ?>
+                        <a href="?page=<?= $p ?>" class="px-3 py-1.5 rounded-lg <?= $p === $page ? 'bg-brand-dark text-white' : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700' ?> transition-colors"><?= $p ?></a>
+                        <?php endfor; ?>
+                        <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?= $page + 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>

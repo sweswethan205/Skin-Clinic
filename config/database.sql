@@ -220,12 +220,14 @@ CREATE TABLE notifications (
 
 CREATE TABLE IF NOT EXISTS `testimonials` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT NULL, -- If they are a registered user
-  `name` VARCHAR(100) NOT NULL, -- Patient's name
-  `rating` INT CHECK (rating >= 1 AND rating <= 5), -- Star rating (1-5)
-  `review_text` TEXT NOT NULL, -- Their feedback message
-  `status` ENUM('pending', 'approved', 'rejected') DEFAULT 'pending', -- Control status
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `user_id` INT NULL,
+  `appointment_id` INT NULL,
+  `name` VARCHAR(100) NOT NULL,
+  `rating` INT CHECK (rating >= 1 AND rating <= 5),
+  `review_text` TEXT NOT NULL,
+  `status` ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
 );
 
 
@@ -273,6 +275,18 @@ CREATE TABLE treatment_rooms (
 
 ALTER TABLE appointments ADD COLUMN room_id INT NULL AFTER schedule_id;
 ALTER TABLE appointments ADD FOREIGN KEY (room_id) REFERENCES rooms(id);
+
+-- =====================================
+-- ALTER APPOINTMENTS: add cancellation_reason column
+-- =====================================
+
+ALTER TABLE appointments ADD COLUMN cancellation_reason TEXT NULL AFTER receipt_image;
+
+-- =====================================
+-- ALTER APPOINTMENTS: add 'completed' to status ENUM
+-- =====================================
+
+ALTER TABLE appointments MODIFY COLUMN status ENUM('pending', 'confirmed', 'cancelled', 'completed') DEFAULT 'pending';
 
 -- =====================================
 -- CONTACTS (contact form submissions)

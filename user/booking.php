@@ -143,16 +143,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
         $is_today = (date('Y-m-d') === $booking_date);
         $in_the_past = $is_today && ($slot_start < time());
 
-        // Check lunch overlap (full treatment duration)
-        $overlaps_lunch = ($slot_start >= $lunch_start && $slot_start < $lunch_end);
-
-        // Check doctor overlap (full treatment duration)
+        // Check each 30-min sub-slot within the full duration
         $doctor_busy = false;
-        foreach ($booked_ranges as $range) {
-            if ($slot_start <= $range['end'] && $slot_end > $range['start']) {
-                $doctor_busy = true;
-                break;
+        $overlaps_lunch = false;
+        for ($sub = $slot_start; $sub < $slot_end; $sub += 1800) {
+            $sub_end = $sub + 1800;
+
+            // Lunch overlap
+            if ($sub < $lunch_end && $sub_end > $lunch_start) {
+                $overlaps_lunch = true;
             }
+
+            // Doctor overlap
+            if (!$doctor_busy) {
+                foreach ($booked_ranges as $range) {
+                    if ($sub < $range['end'] && $sub_end > $range['start']) {
+                        $doctor_busy = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($doctor_busy && $overlaps_lunch) break;
         }
 
         // Check room availability (full treatment duration)
@@ -164,7 +176,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
                 $existing = $room_bookings[$rid] ?? [];
                 $overlapping = 0;
                 foreach ($existing as $br) {
-                    if ($slot_start <= $br['end'] && $slot_end > $br['start']) {
+                    if ($slot_start < $br['end'] && $slot_end > $br['start']) {
                         $overlapping++;
                     }
                 }

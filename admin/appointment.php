@@ -4,6 +4,15 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include_once '../config/db.php';
 
+// Auto-complete confirmed appointments whose scheduled time has passed
+$conn->query("
+    UPDATE appointments a
+    JOIN schedules s ON s.id = a.schedule_id
+    SET a.status = 'completed'
+    WHERE a.status = 'confirmed'
+    AND CONCAT(s.available_date, ' ', a.appointment_end) < NOW()
+");
+
 $admin = $conn->query("SELECT username, photo FROM admins ORDER BY id ASC LIMIT 1")->fetch_assoc();
 $admin_photo = $admin['photo'] ?? '';
 $admin_username = $admin['username'] ?? 'Admin';
@@ -17,11 +26,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $action = $_GET['action'];
     $new_status = '';
     if ($action === 'confirm') $new_status = 'confirmed';
-    elseif ($action === 'cancel') $new_status = 'cancelled';
     elseif ($action === 'pending') $new_status = 'pending';
 
     if ($new_status) {
-        // Get appointment info for notification
         $info = $conn->prepare("
             SELECT a.user_id, a.schedule_id, t.treatment_name 
             FROM appointments a 
@@ -37,10 +44,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $stmt = $conn->prepare("UPDATE appointments SET status=? WHERE id=?");
         $stmt->bind_param("si", $new_status, $id);
         if ($stmt->execute()) {
-            $message = "Appointment #$id " . ($action === 'cancel' ? 'cancelled' : ($action === 'confirm' ? 'confirmed' : 'updated')) . " successfully.";
+            $message = "Appointment #$id " . ($action === 'confirm' ? 'confirmed' : 'updated') . " successfully.";
             $msg_type = 'success';
 
-            // Create notification
             if ($app_info) {
                 $title = 'Appointment ' . ucfirst($new_status);
                 $treatment_name = $app_info['treatment_name'];
@@ -54,14 +60,52 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             }
         }
         $stmt->close();
-
-
     }
 }
 
+// Handle cancel with reason (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cancel' && isset($_POST['appointment_id'])) {
+    $id = intval($_POST['appointment_id']);
+    $cancellation_reason = trim($_POST['cancellation_reason'] ?? '');
+
+    $info = $conn->prepare("
+        SELECT a.user_id, a.schedule_id, t.treatment_name 
+        FROM appointments a 
+        JOIN treatments t ON t.id = a.treatment_id 
+        WHERE a.id = ? LIMIT 1
+    ");
+    $info->bind_param("i", $id);
+    $info->execute();
+    $info_res = $info->get_result();
+    $app_info = $info_res->fetch_assoc();
+    $info->close();
+
+    $stmt = $conn->prepare("UPDATE appointments SET status='cancelled', cancellation_reason=? WHERE id=?");
+    $stmt->bind_param("si", $cancellation_reason, $id);
+    if ($stmt->execute()) {
+        $message = "Appointment #$id cancelled successfully.";
+        $msg_type = 'success';
+
+        if ($app_info) {
+            $title = 'Appointment Cancelled';
+            $treatment_name = $app_info['treatment_name'];
+            $notif_msg = "Your \"$treatment_name\" appointment has been Cancelled.";
+            if ($cancellation_reason !== '') {
+                $notif_msg .= " Reason: " . $cancellation_reason;
+            }
+            $target = 'user';
+            $notif = $conn->prepare("INSERT INTO notifications (user_id, appointment_id, title, message, type, target_role) VALUES (?, ?, ?, ?, 'status', ?)");
+            $notif->bind_param("iisss", $app_info['user_id'], $id, $title, $notif_msg, $target);
+            $notif->execute();
+            $notif->close();
+        }
+    }
+    $stmt->close();
+}
+
 // Counts by status (all, not paginated)
-$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
-$count_result = $conn->query("SELECT status, COUNT(*) AS cnt FROM appointments WHERE status != 'completed' GROUP BY status");
+$counts = ['total' => 0, 'pending' => 0, 'confirmed' => 0, 'cancelled' => 0, 'completed' => 0];
+$count_result = $conn->query("SELECT status, COUNT(*) AS cnt FROM appointments GROUP BY status");
 if ($count_result) {
     while ($row = $count_result->fetch_assoc()) {
         $counts['total'] += $row['cnt'];
@@ -79,7 +123,7 @@ $offset = ($page - 1) * $per_page;
 
 // Fetch appointments (paginated)
 $appointments = [];
-$query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.appointment_start, a.appointment_end,
+$query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.cancellation_reason, a.appointment_start, a.appointment_end,
                  u.name AS patient_name,
                  t.treatment_name, t.price, t.duration,
                  d.name AS doctor_name,
@@ -93,7 +137,6 @@ $query = "SELECT a.id, a.status, a.created_at, a.receipt_image, a.appointment_st
           JOIN doctors d ON d.id = s.doctor_id
           LEFT JOIN payment_methods pm ON pm.id = a.payment_method_id
           LEFT JOIN rooms r ON r.id = a.room_id
-          WHERE a.status != 'completed'
           ORDER BY a.created_at DESC
           LIMIT ? OFFSET ?";
 $result = $conn->prepare($query);
@@ -225,6 +268,7 @@ $result->close();
                     <button onclick="filterTable('pending')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="pending">Pending (<?= $counts['pending'] ?>)</button>
                     <button onclick="filterTable('confirmed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="confirmed">Confirmed (<?= $counts['confirmed'] ?>)</button>
                     <button onclick="filterTable('cancelled')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="cancelled">Cancelled (<?= $counts['cancelled'] ?>)</button>
+                    <button onclick="filterTable('completed')" class="filter-btn px-4 py-2 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark dark:text-gray-400 dark:hover:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition-all border border-slate-200/40 dark:border-gray-700" data-filter="completed">Completed (<?= $counts['completed'] ?>)</button>
                 </div>
             </div>
 
@@ -253,6 +297,7 @@ $result->close();
                                         'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
                                         'pending' => 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
                                         'cancelled' => 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800',
+                                        'completed' => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700',
                                         default => 'text-slate-600 dark:text-gray-400 bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700'
                                     };
                                 ?>
@@ -313,13 +358,16 @@ $result->close();
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <span class="text-[10px] font-bold <?= $status_class ?> px-2 py-0.5 rounded-lg border"><?= ucfirst($a['status']) ?></span>
+                                    <?php if ($a['status'] === 'cancelled' && !empty($a['cancellation_reason'])): ?>
+                                        <span class="block text-[10px] text-rose-500 dark:text-rose-400 mt-1 max-w-[180px] truncate" title="<?= htmlspecialchars($a['cancellation_reason']) ?>"><?= htmlspecialchars($a['cancellation_reason']) ?></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
                                     <?php if ($a['status'] === 'pending'): ?>
                                         <a href="?action=confirm&id=<?= $a['id'] ?>" class="p-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-lg transition-colors inline-block" title="Confirm"><i class="fa-regular fa-circle-check"></i></a>
-                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
+                                        <button onclick="openCancelModal(<?= $a['id'] ?>)" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></button>
                                     <?php elseif ($a['status'] === 'confirmed'): ?>
-                                        <a href="?action=cancel&id=<?= $a['id'] ?>" onclick="return confirm('Cancel this appointment?')" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></a>
+                                        <button onclick="openCancelModal(<?= $a['id'] ?>)" class="p-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white rounded-lg transition-colors inline-block" title="Cancel"><i class="fa-regular fa-circle-xmark"></i></button>
                                     <?php elseif ($a['status'] === 'cancelled'): ?>
                                         <a href="?action=pending&id=<?= $a['id'] ?>" class="p-1.5 bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white rounded-lg transition-colors inline-block" title="Reset to Pending"><i class="fa-solid fa-arrow-rotate-left"></i></a>
                                     <?php endif; ?>
@@ -418,6 +466,53 @@ $result->close();
 
         document.getElementById('receipt-modal').addEventListener('click', function(e) {
             if (e.target === this) closeReceiptModal();
+        });
+    </script>
+
+    <!-- Cancel Reason Modal -->
+    <div id="cancel-modal" class="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-gray-800">
+                <h3 class="text-xs font-bold text-brand-dark dark:text-white uppercase tracking-wider">Cancel Appointment</h3>
+                <button onclick="closeCancelModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-brand-muted hover:text-brand-dark dark:text-gray-300 dark:hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+            <form method="POST" action="">
+                <input type="hidden" name="action" value="cancel">
+                <input type="hidden" name="appointment_id" id="cancel-appointment-id" value="">
+                <div class="p-5 space-y-4">
+                    <p class="text-xs text-brand-muted dark:text-gray-400">Please provide a reason for cancelling this appointment.</p>
+                    <div>
+                        <label for="cancellation_reason" class="block text-[11px] font-bold text-brand-dark dark:text-gray-300 mb-1.5">Reason <span class="text-rose-400">*</span></label>
+                        <textarea name="cancellation_reason" id="cancellation_reason" rows="3" required class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-brand-pink focus:bg-white transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500 dark:text-white resize-none" placeholder="Enter cancellation reason..."></textarea>
+                    </div>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeCancelModal()" class="px-4 py-2 text-xs font-bold text-brand-muted dark:text-gray-400 hover:text-brand-dark dark:hover:text-white bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 rounded-xl transition-colors">Close</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-colors">Cancel Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openCancelModal(id) {
+            document.getElementById('cancel-appointment-id').value = id;
+            document.getElementById('cancellation_reason').value = '';
+            const modal = document.getElementById('cancel-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCancelModal() {
+            const modal = document.getElementById('cancel-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('cancel-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeCancelModal();
         });
     </script>
 </body>

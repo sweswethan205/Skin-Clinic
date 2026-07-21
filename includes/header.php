@@ -120,6 +120,9 @@ if (!isset($conn) || $conn === null) {
                         <a href="../user/my-bookings.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark dark:text-gray-200 hover:bg-brand-lightPink dark:hover:bg-gray-700 transition">
                             <i class="fa-regular fa-calendar text-brand-pink"></i> My Appointments
                         </a>
+                        <a href="../user/my-reviews.php" class="flex items-center gap-3 px-4 py-3 text-sm text-brand-dark dark:text-gray-200 hover:bg-brand-lightPink dark:hover:bg-gray-700 transition">
+                            <i class="fa-solid fa-star text-brand-pink"></i> My Reviews
+                        </a>
                         <hr class="border-gray-100 dark:border-gray-700">
                         <a href="../auth/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-b-lg transition">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout

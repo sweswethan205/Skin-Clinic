@@ -284,6 +284,7 @@ unset($rm);
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Room</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Number</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Description</th>
@@ -296,7 +297,7 @@ unset($rm);
                         <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($rooms)): ?>
                             <tr>
-                                <td colspan="7" class="py-12 text-center">
+                                <td colspan="8" class="py-12 text-center">
                                     <div class="text-brand-muted dark:text-gray-400">
                                         <i class="fa-solid fa-door-closed text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No rooms found</span>
@@ -305,8 +306,9 @@ unset($rm);
                                 </td>
                             </tr>
                             <?php else: ?>
-                            <?php foreach ($rooms as $room): ?>
+                            <?php $i = 1; foreach ($rooms as $room): ?>
                             <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800/60 transition-colors group">
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= $i++ ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-10 h-10 bg-brand-lightPink dark:bg-pink-900/20 rounded-xl flex items-center justify-center text-brand-pink text-xs font-bold">

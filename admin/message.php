@@ -52,10 +52,19 @@ if (isset($_GET['msg'])) {
     $message_type = $_GET['type'] ?? 'success';
 }
 
-$messages = $conn->query("SELECT id, user_id, name, email, subject, message_text AS message, status, created_at FROM messages ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+$all_messages = $conn->query("SELECT id, user_id, name, email, subject, message_text AS message, status, created_at FROM messages ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+
+$total_rows = count($all_messages);
+$per_page = 10;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$total_pages = max(1, ceil($total_rows / $per_page));
+if ($page > $total_pages) $page = $total_pages;
+$offset = ($page - 1) * $per_page;
+$messages = array_slice($all_messages, $offset, $per_page);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,16 +80,30 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
             theme: {
                 extend: {
                     colors: {
-                        brand: { pink: '#FF6584', pinkHover: '#E04F6E', lightPink: '#FFF0F2', dark: '#0F172A', muted: '#64748B', canvas: '#F1F5F9' }
+                        brand: {
+                            pink: '#FF6584',
+                            pinkHover: '#E04F6E',
+                            lightPink: '#FFF0F2',
+                            dark: '#0F172A',
+                            muted: '#64748B',
+                            canvas: '#F1F5F9'
+                        }
                     },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .modal-bg { background: rgba(15, 23, 42, 0.5); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .modal-bg {
+            background: rgba(15, 23, 42, 0.5);
+        }
     </style>
     <script>
         (function() {
@@ -90,6 +113,7 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
             }
             updateIcons();
         })();
+
         function updateIcons() {
             const isDark = document.documentElement.classList.contains('dark');
             const moon = document.getElementById('admin-icon-moon');
@@ -97,6 +121,7 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
             if (moon) moon.style.display = isDark ? 'none' : 'inline';
             if (sun) sun.style.display = isDark ? 'inline' : 'none';
         }
+
         function toggleDarkMode() {
             const html = document.documentElement;
             html.classList.toggle('dark');
@@ -105,51 +130,52 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
         }
     </script>
 </head>
+
 <body class="bg-brand-canvas dark:bg-gray-950 text-slate-700 dark:text-gray-100 min-h-screen flex antialiased">
 
     <?php include 'sidebar.php'; ?>
-    
+
     <div class="flex-grow flex flex-col min-w-0 lg:ml-64">
         <header class="h-16 sm:h-20 bg-white dark:bg-gray-900 border-b border-slate-200/60 dark:border-gray-800 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 sticky top-0">
             <div class="flex items-center space-x-4">
-                
+
                 <div>
-            <h2 class="text-xl font-extrabold text-brand-dark dark:text-white dark:text-white tracking-tight">Messages</h2>
-            <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">View contact form submissions</p>
+                    <h2 class="text-xl font-extrabold text-brand-dark dark:text-white dark:text-white tracking-tight">Messages</h2>
+                    <p class="text-xs text-brand-muted dark:text-gray-400 font-medium">View contact form submissions</p>
                 </div>
-    </div>
-    <div class="flex items-center space-x-4">
-        <?php include 'header-actions.php'; ?>
-        <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
-            <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
-                <?php if ($admin_photo): ?>
-                    <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
-                <?php else: ?>
-                    <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
-                <?php endif; ?>
             </div>
-            <div>
-                <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
-                <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
+            <div class="flex items-center space-x-4">
+                <?php include 'header-actions.php'; ?>
+                <a href="profile.php" class="flex items-center space-x-3 hover:opacity-80 transition">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-brand-lightPink flex items-center justify-center text-brand-pink font-bold text-sm">
+                        <?php if ($admin_photo): ?>
+                            <img src="../<?php echo htmlspecialchars($admin_photo); ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-brand-dark dark:text-white block leading-tight"><?php echo htmlspecialchars($admin_username); ?></span>
+                        <!-- <span class="text-[10px] font-medium text-brand-muted">Clinic Supervisor</span> -->
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
-</header>
+        </header>
 
         <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
             <?php if ($message): ?>
-            <div class="px-5 py-3.5 rounded-xl border text-sm font-bold flex items-center gap-3 <?php echo $message_type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'; ?>">
-                <i class="fa-solid <?php echo $message_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
-                <span><?php echo htmlspecialchars($message); ?></span>
-                <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+                <div class="px-5 py-3.5 rounded-xl border text-sm font-bold flex items-center gap-3 <?php echo $message_type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'; ?>">
+                    <i class="fa-solid <?php echo $message_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
+                    <span><?php echo htmlspecialchars($message); ?></span>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             <?php endif; ?>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <?php
-                $total = count($messages);
-                $unread = count(array_filter($messages, fn($m) => $m['status'] === 'unread'));
-                $read = count(array_filter($messages, fn($m) => $m['status'] === 'read'));
+                $total = count($all_messages);
+                $unread = count(array_filter($all_messages, fn($m) => $m['status'] === 'unread'));
+                $read = count(array_filter($all_messages, fn($m) => $m['status'] === 'read'));
                 ?>
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-slate-200/50 dark:border-gray-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center space-x-4">
                     <div class="w-10 h-10 bg-pink-50 text-brand-pink rounded-xl flex items-center justify-center text-sm"><i class="fa-regular fa-envelope"></i></div>
@@ -170,6 +196,7 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Sender</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Contact</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Message</th>
@@ -180,67 +207,85 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($messages)): ?>
-                            <tr>
-                                <td colspan="6" class="py-12 text-center">
-                                    <div class="text-brand-muted dark:text-gray-400">
-                                        <i class="fa-regular fa-envelope text-3xl mb-3 block"></i>
-                                        <span class="font-bold text-sm">No messages yet</span>
-                                        <p class="text-[11px] font-medium mt-1">Contact form submissions will appear here.</p>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="7" class="py-12 text-center">
+                                        <div class="text-brand-muted dark:text-gray-400">
+                                            <i class="fa-regular fa-envelope text-3xl mb-3 block"></i>
+                                            <span class="font-bold text-sm">No messages yet</span>
+                                            <p class="text-[11px] font-medium mt-1">Contact form submissions will appear here.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php else: ?>
-                            <?php foreach ($messages as $m): ?>
-                            <tr class="hover:bg-slate-50/60 transition-colors <?php echo $m['status'] === 'unread' ? 'bg-brand-lightPink/20' : ''; ?>">
-                                <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 rounded-full bg-brand-lightPink flex items-center justify-center text-brand-pink text-xs font-bold">
-                                            <?php echo strtoupper(substr($m['name'], 0, 1)); ?>
-                                        </div>
-                                        <div>
-                                            <span class="font-bold block <?php echo $m['status'] === 'unread' ? 'text-brand-dark dark:text-white' : 'text-slate-500 dark:text-gray-400'; ?>"><?php echo htmlspecialchars($m['name']); ?></span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <a href="mailto:<?php echo htmlspecialchars($m['email']); ?>" class="text-brand-pink hover:underline font-medium"><?php echo htmlspecialchars($m['email']); ?></a>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 max-w-xs">
-                                    <span class="text-slate-500 dark:text-gray-400 line-clamp-2 block"><?php echo htmlspecialchars($m['message']); ?></span>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6">
-                                    <?php if ($m['status'] === 'read'): ?>
-                                        <span class="text-[10px] font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-600 border-emerald-200">Read</span>
-                                    <?php else: ?>
-                                        <span class="text-[10px] font-bold px-3 py-1 rounded-full border bg-amber-50 text-amber-600 border-amber-200">Unread</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?php echo date('M d, Y h:i A', strtotime($m['created_at'])); ?></td>
-                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
-                                    <?php if ($m['status'] === 'unread'): ?>
-                                        <a href="?read=<?php echo $m['id']; ?>" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-500 rounded-lg transition-colors inline-block" title="Mark as read">
-                                            <i class="fa-regular fa-circle-check"></i>
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="?unread=<?php echo $m['id']; ?>" class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-500 rounded-lg transition-colors inline-block" title="Mark as unread">
-                                            <i class="fa-regular fa-circle"></i>
-                                        </a>
-                                    <?php endif; ?>
-                                    <button onclick="showMessage(<?php echo $m['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors" title="View message">
-                                        <i class="fa-regular fa-eye"></i>
-                                    </button>
-                                    <button onclick="confirmDelete(<?php echo $m['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors" title="Delete">
-                                        <i class="fa-regular fa-trash-can"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                                <?php $i = $offset + 1; foreach ($messages as $m): ?>
+                                    <tr class="hover:bg-slate-50/60 transition-colors <?php echo $m['status'] === 'unread' ? 'bg-brand-lightPink/20' : ''; ?>">
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= $i++ ?></td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-9 h-9 rounded-full bg-brand-lightPink flex items-center justify-center text-brand-pink text-xs font-bold">
+                                                    <?php echo strtoupper(substr($m['name'], 0, 1)); ?>
+                                                </div>
+                                                <div>
+                                                    <span class="font-bold block <?php echo $m['status'] === 'unread' ? 'text-brand-dark dark:text-white' : 'text-slate-500 dark:text-gray-400'; ?>"><?php echo htmlspecialchars($m['name']); ?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                            <a href="mailto:<?php echo htmlspecialchars($m['email']); ?>" class="text-brand-pink hover:underline font-medium"><?php echo htmlspecialchars($m['email']); ?></a>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 max-w-xs">
+                                            <span class="text-slate-500 dark:text-gray-400 line-clamp-2 block"><?php echo htmlspecialchars($m['message']); ?></span>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6">
+                                            <?php if ($m['status'] === 'read'): ?>
+                                                <span class="text-[10px] font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-600 border-emerald-200">Read</span>
+                                            <?php else: ?>
+                                                <span class="text-[10px] font-bold px-3 py-1 rounded-full border bg-amber-50 text-amber-600 border-amber-200">Unread</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?php echo date('M d, Y h:i A', strtotime($m['created_at'])); ?></td>
+                                        <td class="py-3 px-3 sm:py-4 sm:px-6 text-right space-x-1 whitespace-nowrap">
+                                            <?php if ($m['status'] === 'unread'): ?>
+                                                <a href="?read=<?php echo $m['id']; ?>" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-500 rounded-lg transition-colors inline-block" title="Mark as read">
+                                                    <i class="fa-regular fa-circle-check"></i>
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="?unread=<?php echo $m['id']; ?>" class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-500 rounded-lg transition-colors inline-block" title="Mark as unread">
+                                                    <i class="fa-regular fa-circle"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            <button onclick="showMessage(<?php echo $m['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-muted hover:text-brand-dark rounded-lg transition-colors" title="View message">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </button>
+                                            <button onclick="confirmDelete(<?php echo $m['id']; ?>)" class="p-1.5 bg-slate-50 hover:bg-red-50 text-brand-muted hover:text-red-500 rounded-lg transition-colors" title="Delete">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
                 <div class="bg-slate-50/50 dark:bg-gray-900 px-6 py-4 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-brand-muted dark:text-gray-400 font-semibold">
-                    <span>Showing <?php echo count($messages); ?> message<?php echo count($messages) !== 1 ? 's' : ''; ?></span>
+                    <span>Showing <?= $offset + 1 ?>–<?= min($offset + $per_page, $total_rows) ?> of <?= $total_rows ?> messages</span>
+                    <?php if ($total_pages > 1): ?>
+                    <div class="flex items-center gap-1">
+                        <?php if ($page > 1): ?>
+                        <a href="?page=<?= $page - 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-left text-[10px]"></i></a>
+                        <?php endif; ?>
+                        <?php
+                        $start = max(1, $page - 2);
+                        $end = min($total_pages, $page + 2);
+                        for ($p = $start; $p <= $end; $p++):
+                        ?>
+                        <a href="?page=<?= $p ?>" class="px-3 py-1.5 rounded-lg <?= $p === $page ? 'bg-brand-dark text-white' : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700' ?> transition-colors"><?= $p ?></a>
+                        <?php endfor; ?>
+                        <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?= $page + 1 ?>" class="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>
@@ -291,7 +336,7 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
     </div>
 
     <script>
-        const messagesData = <?php echo json_encode($messages, JSON_UNESCAPED_UNICODE) ?: '[]'; ?>;
+        const messagesData = <?php echo json_encode($all_messages, JSON_UNESCAPED_UNICODE) ?: '[]'; ?>;
 
         function showMessage(id) {
             const m = messagesData.find(msg => msg.id == id);
@@ -301,7 +346,13 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
             document.getElementById('modal-email').textContent = m.email;
             document.getElementById('modal-email').href = 'mailto:' + m.email;
             document.getElementById('modal-message').textContent = m.message;
-            document.getElementById('modal-date').textContent = 'Received on ' + new Date(m.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            document.getElementById('modal-date').textContent = 'Received on ' + new Date(m.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             document.getElementById('viewModal').classList.remove('hidden');
         }
 
@@ -319,11 +370,14 @@ $messages = $conn->query("SELECT id, user_id, name, email, subject, message_text
         }
 
         document.querySelectorAll('.modal-bg').forEach(el => {
-            el.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
+            el.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.add('hidden');
+            });
         });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') document.querySelectorAll('.modal-bg:not(.hidden)').forEach(m => m.classList.add('hidden'));
         });
     </script>
 </body>
+
 </html>

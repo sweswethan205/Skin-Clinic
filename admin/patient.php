@@ -71,7 +71,7 @@ if (isset($_GET['delete'])) {
 }
 
 // Pagination
-$per_page = 15;
+$per_page = 10;
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $total_rows = $conn->query("SELECT COUNT(*) AS cnt FROM users")->fetch_assoc()['cnt'];
 $total_pages = max(1, ceil($total_rows / $per_page));
@@ -252,7 +252,7 @@ $stmt->close();
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-xs font-semibold text-brand-dark dark:text-gray-300 dark:divide-gray-800">
                             <?php if (count($users) > 0): ?>
-                                <?php $i = 1; ?>
+                                <?php $i = $offset + 1; ?>
                                 <?php foreach ($users as $u): ?>
                                 <tr class="hover:bg-slate-50/60 transition-colors group">
                                     <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= $i++ ?></td>

@@ -411,6 +411,7 @@ if (isset($_GET['edit'])) {
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/70 dark:bg-gray-950 border-b border-slate-200/50 dark:border-gray-800 text-[11px] font-bold uppercase tracking-wider text-brand-muted dark:text-gray-400">
+                                <th class="py-3 px-3 sm:py-4 sm:px-6">#</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Doctor</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Date</th>
                                 <th class="py-3 px-3 sm:py-4 sm:px-6">Available Hours</th>
@@ -420,7 +421,7 @@ if (isset($_GET['edit'])) {
                         <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (empty($schedules)): ?>
                             <tr>
-                                <td colspan="4" class="py-12 text-center">
+                                <td colspan="5" class="py-12 text-center">
                                     <div class="text-brand-muted dark:text-gray-400">
                                         <i class="fa-regular fa-calendar-xmark text-3xl mb-3 block"></i>
                                         <span class="font-bold text-sm">No schedules found</span>
@@ -429,8 +430,9 @@ if (isset($_GET['edit'])) {
                                 </td>
                             </tr>
                             <?php else: ?>
-                            <?php foreach ($schedules as $schedule): ?>
+                            <?php $i = $offset + 1; foreach ($schedules as $schedule): ?>
                             <tr class="hover:bg-slate-50/60 dark:hover:bg-gray-800 transition-colors group">
+                                <td class="py-3 px-3 sm:py-4 sm:px-6 text-brand-muted dark:text-gray-400"><?= $i++ ?></td>
                                 <td class="py-3 px-3 sm:py-4 sm:px-6">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-9 h-9 bg-brand-lightPink dark:bg-pink-900/20 rounded-xl flex items-center justify-center text-brand-pink text-xs font-bold">
