@@ -314,6 +314,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
             grid-template-columns: repeat(7, 1fr);
             gap: 2px;
         }
+
         .cal-day {
             width: 100%;
             aspect-ratio: 1;
@@ -327,23 +328,35 @@ if (!empty($_SESSION['booking_treatment_id'])) {
             transition: all 0.15s;
             color: #94a3b8;
         }
-        .cal-day.empty { pointer-events: none; }
-        .cal-day.past { color: #e2e8f0; pointer-events: none; }
+
+        .cal-day.empty {
+            pointer-events: none;
+        }
+
+        .cal-day.past {
+            color: #e2e8f0;
+            pointer-events: none;
+        }
+
         .cal-day.available {
             color: #1e293b;
             background: #ffffff;
         }
+
         .cal-day.available:hover {
             background: #f1f5f9;
         }
+
         .cal-day.selected {
             background: #E85D75;
             color: #fff;
             border-color: #E85D75;
         }
+
         .cal-day.today {
             border: 2px solid #E85D75;
         }
+
         .cal-nav-btn {
             width: 28px;
             height: 28px;
@@ -356,11 +369,27 @@ if (!empty($_SESSION['booking_treatment_id'])) {
             color: #64748b;
             font-size: 12px;
         }
-        .cal-nav-btn:hover { background: #f1f5f9; }
-        .dark .cal-day { color: #94a3b8; }
-        .dark .cal-day.past { color: #374151; }
-        .dark .cal-day.available { color: #e2e8f0; background: #1f2937; }
-        .dark .cal-day.available:hover { background: #374151; }
+
+        .cal-nav-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .dark .cal-day {
+            color: #94a3b8;
+        }
+
+        .dark .cal-day.past {
+            color: #374151;
+        }
+
+        .dark .cal-day.available {
+            color: #e2e8f0;
+            background: #1f2937;
+        }
+
+        .dark .cal-day.available:hover {
+            background: #374151;
+        }
     </style>
 </head>
 
@@ -368,7 +397,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
     <?php include '../includes/header.php'; ?>
 
     <div class="max-w-6xl mx-auto px-4 py-12">
-        
+
         <div class="max-w-xl mx-auto mb-12">
             <div class="flex items-center justify-between relative">
                 <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-slate-200 z-0"></div>
@@ -390,7 +419,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
         </div>
 
         <div class="space-y-10">
-            
+
             <div>
                 <div class="mb-5">
                     <h2 class="text-xl font-bold tracking-tight text-slate-800 dark:text-white">Choose Your Doctor</h2>
@@ -405,7 +434,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <?php if ($doctors && $doctors->num_rows > 0): ?>
-                        <?php while ($doc = $doctors->fetch_assoc()): 
+                        <?php while ($doc = $doctors->fetch_assoc()):
                             $photoPath = !empty($doc['photo']) ? $doc['photo'] : '';
                             if (!empty($photoPath) && strpos($photoPath, 'http') !== 0 && !file_exists($photoPath)) {
                                 if (file_exists('../' . $photoPath)) {
@@ -415,17 +444,17 @@ if (!empty($_SESSION['booking_treatment_id'])) {
                             $photo = !empty($photoPath) ? $photoPath : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
                             $specialization = !empty($doc['description']) ? $doc['description'] : 'Dermatologist';
                         ?>
-                        <button onclick="selectDoctor(this, <?= $doc['id'] ?>, '<?= htmlspecialchars($photo, ENT_QUOTES) ?>', '<?= htmlspecialchars($doc['name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($specialization, ENT_QUOTES) ?>')"
-                            class="doctor-card group bg-white dark:bg-gray-900 p-3 rounded-2xl border border-slate-200/60 dark:border-gray-700 text-left hover:shadow-lg relative">
-                            <div class="absolute top-4 right-4 w-5 h-5 rounded-full border-2 border-slate-300 dark:border-gray-600 flex items-center justify-center bg-white dark:bg-gray-800 group-hover:border-brand-pink check-indicator">
-                                <div class="w-2.5 h-2.5 rounded-full bg-brand-pink scale-0 inner-circle"></div>
-                            </div>
-                            <div class="aspect-[1/1] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-gray-700 mb-3">
-                                <img src="<?= htmlspecialchars($photo) ?>" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-                            </div>
-                            <h3 class="font-bold text-sm text-slate-800 dark:text-white group-hover:text-brand-pink truncate">Dr.<?= htmlspecialchars($doc['name']) ?></h3>
-                            <p class="text-[11px] text-slate-400 dark:text-gray-500 font-medium mt-0.5 truncate"><?= htmlspecialchars($specialization) ?></p>
-                        </button>
+                            <button onclick="selectDoctor(this, <?= $doc['id'] ?>, '<?= htmlspecialchars($photo, ENT_QUOTES) ?>', '<?= htmlspecialchars($doc['name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($specialization, ENT_QUOTES) ?>')"
+                                class="doctor-card group bg-white dark:bg-gray-900 p-3 rounded-2xl border border-slate-200/60 dark:border-gray-700 text-left hover:shadow-lg relative">
+                                <div class="absolute top-4 right-4 w-5 h-5 rounded-full border-2 border-slate-300 dark:border-gray-600 flex items-center justify-center bg-white dark:bg-gray-800 group-hover:border-brand-pink check-indicator">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-brand-pink scale-0 inner-circle"></div>
+                                </div>
+                                <div class="aspect-[1/1] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-gray-700 mb-3">
+                                    <img src="<?= htmlspecialchars($photo) ?>" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-800 dark:text-white group-hover:text-brand-pink truncate">Dr.<?= htmlspecialchars($doc['name']) ?></h3>
+                                <p class="text-[11px] text-slate-400 dark:text-gray-500 font-medium mt-0.5 truncate"><?= htmlspecialchars($specialization) ?></p>
+                            </button>
                         <?php endwhile; ?>
                     <?php else: ?>
                         <p class="col-span-4 text-center text-slate-400 dark:text-gray-500 py-8">
@@ -446,19 +475,19 @@ if (!empty($_SESSION['booking_treatment_id'])) {
                 </h2>
 
                 <div class="grid md:grid-cols-12 gap-6 items-start">
-                    
+
                     <div class="md:col-span-4 bg-slate-50 border border-slate-100 dark:bg-gray-800 dark:border-gray-700 p-4 rounded-xl sticky top-4">
                         <?php if ($treatment_name): ?>
-                        <p class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Selected Treatment</p>
-                        <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
-                            <div class="w-12 h-12 rounded-xl bg-brand-pink/10 flex items-center justify-center text-brand-pink text-lg">
-                                <i class="fa-regular fa-spa"></i>
+                            <p class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Selected Treatment</p>
+                            <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
+                                <div class="w-12 h-12 rounded-xl bg-brand-pink/10 flex items-center justify-center text-brand-pink text-lg">
+                                    <i class="fa-regular fa-spa"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="font-bold text-sm text-slate-800 dark:text-white truncate"><?= htmlspecialchars($treatment_name) ?></h3>
+                                    <p class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">$<?= number_format($treatment_price, 2) ?> &middot; <?= $treatment_duration ?> min</p>
+                                </div>
                             </div>
-                            <div class="min-w-0">
-                                <h3 class="font-bold text-sm text-slate-800 dark:text-white truncate"><?= htmlspecialchars($treatment_name) ?></h3>
-                                <p class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">$<?= number_format($treatment_price, 2) ?> &middot; <?= $treatment_duration ?> min</p>
-                            </div>
-                        </div>
                         <?php endif; ?>
                         <p class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider mb-2.5">Selected Professional</p>
                         <div class="flex items-center gap-3">
@@ -553,7 +582,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
         const calToday = new Date();
         let calMonth = calToday.getMonth();
         let calYear = calToday.getFullYear();
-        const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         function renderCalendar() {
             document.getElementById('cal-month-label').textContent = monthNames[calMonth] + ' ' + calYear;
@@ -584,7 +613,9 @@ if (!empty($_SESSION['booking_treatment_id'])) {
                     }
                     if (availableDates.includes(dateStr)) {
                         btn.classList.add('available');
-                        btn.onclick = function() { selectDate(dateStr, btn); };
+                        btn.onclick = function() {
+                            selectDate(dateStr, btn);
+                        };
                     }
                 }
 
@@ -612,13 +643,19 @@ if (!empty($_SESSION['booking_treatment_id'])) {
 
         function calPrev() {
             calMonth--;
-            if (calMonth < 0) { calMonth = 11; calYear--; }
+            if (calMonth < 0) {
+                calMonth = 11;
+                calYear--;
+            }
             renderCalendar();
         }
 
         function calNext() {
             calMonth++;
-            if (calMonth > 11) { calMonth = 0; calYear++; }
+            if (calMonth > 11) {
+                calMonth = 0;
+                calYear++;
+            }
             renderCalendar();
         }
 
@@ -634,7 +671,7 @@ if (!empty($_SESSION['booking_treatment_id'])) {
             });
 
             element.classList.add('border-brand-pink', 'ring-2', 'ring-pink-100', 'bg-pink-50/10');
-            
+
             const activeIndicator = element.querySelector('.check-indicator');
             activeIndicator.classList.remove('border-slate-300');
             activeIndicator.classList.add('border-brand-pink');
@@ -819,5 +856,6 @@ if (!empty($_SESSION['booking_treatment_id'])) {
 
     <?php include '../includes/footer.php'; ?>
 </body>
+
 </html>
 <?php $conn->close(); ?>

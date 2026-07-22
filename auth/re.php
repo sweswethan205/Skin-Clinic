@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $conn->insert_id;
                 $_SESSION['user_name'] = $username;
                 $_SESSION['user_photo'] = '';
-                $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '../user/index1.php';
+                $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '../auth/login.php';
                 header('Location: ' . $redirect);
                 exit;
             } else {

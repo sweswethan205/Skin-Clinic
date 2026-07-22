@@ -102,6 +102,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
                 $errors[] = 'You already have a booking for this time slot.';
             }
         }
+
+        if (empty($errors)) {
+            $same_day_dup = $conn->prepare(
+                "SELECT a.id FROM appointments a
+                 JOIN schedules s ON a.schedule_id = s.id
+                 WHERE a.user_id = ?
+                   AND a.treatment_id = ?
+                   AND a.status != 'cancelled'
+                   AND s.available_date = (SELECT available_date FROM schedules WHERE id = ?)
+                 LIMIT 1"
+            );
+            $same_day_dup->bind_param("iii", $user_id, $treatment_id, $schedule_id);
+            $same_day_dup->execute();
+            $same_day_dup_res = $same_day_dup->get_result();
+            $same_day_dup_exists = $same_day_dup_res->fetch_assoc();
+            $same_day_dup->close();
+            if ($same_day_dup_exists) {
+                $conn->rollback();
+                $errors[] = 'You already have a booking for this treatment on the same day. Each treatment can only be booked once per day.';
+            }
+        }
     }
 
     // --- AUTO-ASSIGN ROOM (inside transaction) ---

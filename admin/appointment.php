@@ -291,7 +291,7 @@ $result->close();
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-gray-800 text-xs font-semibold text-brand-dark dark:text-gray-300">
                             <?php if (count($appointments) > 0): ?>
-                                <?php $i = 1; ?>
+                                <?php $i = $offset + 1; ?>
                                 <?php foreach ($appointments as $a): 
                                     $status_class = match($a['status']) {
                                         'confirmed' => 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',

@@ -125,7 +125,7 @@ CREATE TABLE appointments (
     status ENUM(
         'pending',
         'confirmed',
-        'cancelled'
+        'cancelled',
     ) DEFAULT 'pending',
 
     receipt_image VARCHAR(255) NULL,
