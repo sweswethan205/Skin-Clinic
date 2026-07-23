@@ -17,6 +17,24 @@ if (isset($_GET['read_id'])) {
 }
 
 // ===============================
+// MARK ALL AS READ
+// ===============================
+if (isset($_GET['action']) && $_GET['action'] === 'mark_all_read') {
+    $conn->query("UPDATE notifications SET is_read = 1 WHERE target_role = 'admin' AND is_read = 0");
+    header("Location: notification.php?msg=" . urlencode("All notifications marked as read.") . "&type=success");
+    exit;
+}
+
+// ===============================
+// CLEAR ALL NOTIFICATIONS
+// ===============================
+if (isset($_GET['action']) && $_GET['action'] === 'clear_all') {
+    $conn->query("DELETE FROM notifications WHERE target_role = 'admin'");
+    header("Location: notification.php?msg=" . urlencode("All notifications cleared.") . "&type=success");
+    exit;
+}
+
+// ===============================
 // DELETE NOTIFICATION
 // ===============================
 if (isset($_GET['delete_id'])) {
@@ -25,6 +43,10 @@ if (isset($_GET['delete_id'])) {
     header("Location: notification.php");
     exit;
 }
+
+// Read flash message
+$flash_msg = $_GET['msg'] ?? '';
+$flash_type = $_GET['type'] ?? '';
 
 // ===============================
 // FETCH NOTIFICATIONS
@@ -154,6 +176,33 @@ $result = $conn->query($sql);
             </header>
 
             <div class="p-4 sm:p-6 lg:p-8">
+
+                <?php if ($flash_msg): ?>
+                <div class="mb-4 px-5 py-3 rounded-xl border text-sm font-bold flex items-center gap-3 <?= $flash_type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'; ?>">
+                    <i class="fa-solid <?= $flash_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
+                    <span><?= htmlspecialchars($flash_msg) ?></span>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <?php endif; ?>
+
+                <!-- Toolbar -->
+                <?php if ($total_items > 0): ?>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 bg-white dark:bg-gray-900 p-4 rounded-2xl border border-slate-200/50 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                    <span class="text-sm font-bold text-brand-dark dark:text-white px-2"><?= $total_items ?> notification<?= $total_items !== 1 ? 's' : '' ?></span>
+                    <div class="flex items-center gap-2">
+                        <a href="?action=mark_all_read"
+                           onclick="return confirm('Mark all notifications as read?')"
+                           class="px-4 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-xl transition-all border border-blue-200 dark:border-blue-800 flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-check-double text-[10px]"></i> Mark All as Read
+                        </a>
+                        <a href="?action=clear_all"
+                           onclick="return confirm('Delete ALL notifications? This cannot be undone.')"
+                           class="px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-all border border-red-200 dark:border-red-800 flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i> Clear All
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <!-- NOTIFICATION LIST -->
                 <div class="bg-white dark:bg-gray-900 rounded-2xl shadow border border-slate-100 dark:border-gray-800 overflow-hidden">

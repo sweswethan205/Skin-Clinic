@@ -54,6 +54,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_timeslots') {
         exit;
     }
 
+    // Check if doctor is on holiday for this date
+    $hq = $conn->prepare("SELECT id FROM doctor_holidays WHERE doctor_id = ? AND ? BETWEEN start_date AND end_date LIMIT 1");
+    $hq->bind_param("is", $doctor_id, $booking_date);
+    $hq->execute();
+    $h_result = $hq->get_result();
+    $hq->close();
+
+    if ($h_result->num_rows > 0) {
+        echo json_encode([]);
+        exit;
+    }
+
     // Get doctor's lunch break
     $dq = $conn->prepare("SELECT lunch_start, lunch_end FROM doctors WHERE id = ? LIMIT 1");
     $dq->bind_param("i", $doctor_id);
@@ -218,7 +230,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_available_dates') {
 
     $doctor_id = intval($_GET['doctor_id']);
 
-    $query = "SELECT DISTINCT available_date FROM schedules WHERE doctor_id = ? ORDER BY available_date ASC";
+    $query = "SELECT DISTINCT available_date FROM schedules WHERE doctor_id = ?
+              AND NOT EXISTS (
+                  SELECT 1 FROM doctor_holidays dh
+                  WHERE dh.doctor_id = schedules.doctor_id
+                  AND schedules.available_date BETWEEN dh.start_date AND dh.end_date
+              )
+              ORDER BY available_date ASC";
     $dates = [];
 
     if ($stmt = $conn->prepare($query)) {

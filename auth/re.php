@@ -35,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "All fields are required.";
     } elseif ($password !== $confirm) {
         $errors[] = "Passwords do not match.";
+    } elseif (!preg_match('/^(09|\+?959)\d{7,9}$/', $phone)) {
+        $errors[] = "Please enter a valid Myanmar phone number (e.g., 09 123456789).";
     } else {
         
         // 🚀 CRITICAL ADDITION: Check if email already exists
@@ -201,8 +203,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                             <i class="fa-solid fa-phone text-xs"></i>
                         </span>
-                        <input type="tel" id="phone" name="phone" required value="<?php echo isset($phone) ? htmlspecialchars($phone) : ''; ?>" placeholder="+1 (555) 000-0000" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-pink-400 focus:bg-white rounded-xl text-slate-800 placeholder-slate-400 text-sm transition-all outline-none">
+                        <input type="tel" id="phone" name="phone" required value="<?php echo isset($phone) ? htmlspecialchars($phone) : ''; ?>" placeholder="09 123456789" pattern="^(09|\+?959)\d{7,9}$" maxlength="13" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-pink-400 focus:bg-white rounded-xl text-slate-800 placeholder-slate-400 text-sm transition-all outline-none">
                     </div>
+                    <p id="phone-msg" class="text-xs mt-1 hidden min-h-[16px]"></p>
                 </div>
 
                 <div>
@@ -315,6 +318,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             matchMsg.classList.remove('hidden');
             matchMsg.textContent = match ? '✓ Passwords match' : '✗ Passwords do not match';
             matchMsg.className = `text-xs mt-1 ${match ? 'text-emerald-500' : 'text-rose-500'}`;
+        });
+
+        // Myanmar Phone Number Validation Script
+        const phoneInput = document.getElementById('phone');
+        const phoneMsg = document.getElementById('phone-msg');
+        const myanmarPhoneRegex = /^(09|\+?959)\d{7,9}$/;
+
+        phoneInput.addEventListener('input', () => {
+            const val = phoneInput.value.replace(/\s/g, '');
+            phoneInput.value = val;
+
+            if (val === '') {
+                phoneMsg.classList.add('hidden');
+                return;
+            }
+
+            const valid = myanmarPhoneRegex.test(val);
+            phoneMsg.classList.remove('hidden');
+            if (valid) {
+                phoneMsg.textContent = '✓ Valid Myanmar phone number';
+                phoneMsg.className = 'text-xs mt-1 text-emerald-500';
+                phoneInput.classList.remove('border-rose-300');
+                phoneInput.classList.add('border-slate-200');
+            } else {
+                phoneMsg.textContent = '✗ Use format: 09XXXXXXXXX';
+                phoneMsg.className = 'text-xs mt-1 text-rose-500';
+                phoneInput.classList.remove('border-slate-200');
+                phoneInput.classList.add('border-rose-300');
+            }
         });
     </script>
 

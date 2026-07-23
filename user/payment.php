@@ -78,6 +78,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedule_id'])) {
         $lock_sched->execute();
         $lock_sched->close();
 
+        // Doctor holiday check (inside transaction)
+        $holiday_check = $conn->prepare(
+            "SELECT dh.id FROM doctor_holidays dh
+             JOIN schedules s ON s.doctor_id = dh.doctor_id
+             WHERE s.id = ? AND s.available_date BETWEEN dh.start_date AND dh.end_date LIMIT 1"
+        );
+        $holiday_check->bind_param("i", $schedule_id);
+        $holiday_check->execute();
+        $holiday_result = $holiday_check->get_result();
+        $holiday_exists = $holiday_result->fetch_assoc();
+        $holiday_check->close();
+        if ($holiday_exists) {
+            $conn->rollback();
+            $errors[] = 'The doctor is on holiday for this date. Please choose another date.';
+        }
+
         // Doctor overlap check (inside transaction with lock)
         $overlap = $conn->prepare("SELECT id FROM appointments WHERE schedule_id = ? AND status != 'cancelled' AND appointment_start < ? AND appointment_end > ? LIMIT 1 FOR UPDATE");
         $overlap->bind_param("sss", $schedule_id, $appointment_end, $appointment_start);
