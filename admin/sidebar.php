@@ -118,6 +118,15 @@ transition-transform duration-300">
             <span>Doctor Holidays</span>
         </a>
 
+        <a href="../admin/clinic_holiday.php"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl transition
+                <?= ($current_page == "clinic_holiday.php")
+                    ? "bg-brand-lightPink dark:bg-pink-900/20 text-brand-pink border-l-4 border-brand-pink font-semibold"
+                    : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-brand-pink"; ?>">
+            <i class="fa-solid fa-store-slash"></i>
+            <span>Clinic Holidays</span>
+        </a>
+
         <a href="../admin/room.php"
             class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                 <?= ($current_page == "room.php")
